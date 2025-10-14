@@ -17,10 +17,16 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('cover_image')->nullable();
+            $table->string('banner_image')->nullable();
             $table->string('format')->nullable();
             $table->integer('episodes')->nullable();
+            $table->string('season')->nullable();
+            $table->integer('season_year')->nullable();
             $table->string('status')->nullable();
             $table->date('average_score')->nullable();
+            $table->json('genres')->nullable();
+            $table->json('studios')->nullable();
+            $table->json('tags')->nullable();
             $table->timestamps();
         });
     }

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('anime_character', function (Blueprint $table) {
         $table->id();
-        $table->foreignId('anime_id')->constrained()->onDelete('cascade');
-        $table->foreignId('character_id')->constrained()->onDelete('cascade');
+        $table->foreignId('anime_id')->constrained('anime')->onDelete('cascade');
+        $table->foreignId('character_id')->constrained('character')->onDelete('cascade');
         $table->timestamps();  
         });
     }

@@ -12,6 +12,42 @@ use Illuminate\View\View;
 class ProfileController extends Controller
 {
     /**
+     * Display the user's profile.
+     */
+    public function index()
+    {
+        $user = auth()->user();
+        return view('profile.index', compact('user'));
+    }
+
+    public function updateBioAvatar(Request $request)
+    {
+        $user = auth()->user();
+
+        $request->validate([
+            'bio' => 'nullable|string|max:500',
+            'avatar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        // Actualizar bio
+        $user->bio = $request->bio;
+
+        // Si el usuario sube una nueva imagen
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar && !str_contains($user->avatar, 'avatar-default.png')) {
+                \Storage::disk('public')->delete(str_replace('storage/', '', $user->avatar));
+            }
+
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = asset('storage/' . $path);
+        }
+
+        $user->save();
+
+        return back()->with('success', 'Perfil actualizado correctamente.');
+    }
+
+    /**
      * Display the user's profile form.
      */
     public function edit(Request $request): View
