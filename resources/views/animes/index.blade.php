@@ -11,12 +11,12 @@
 
                 <!--FORMULARIO DE BÚSQUEDA Y FILTROS -->
                 <form method="GET" action="{{ route('animes.index') }}"
-                      class="mb-6 flex flex-nowrap gap-4 items-end overflow-x-auto">
+                    class="mb-6 flex flex-nowrap gap-4 items-end overflow-x-auto">
                     <!-- Nombre -->
                     <div class="flex flex-col min-w-[180px]">
                         <label for="query" class="text-sm font-medium text-gray-700">Nombre</label>
                         <input type="text" id="query" name="query" value="{{ request('query') }}"
-                               placeholder="Buscar anime..." class="border rounded p-3 w-full">
+                            placeholder="Buscar anime..." class="border rounded p-3 w-full">
                     </div>
 
                     <!-- Género -->
@@ -24,7 +24,7 @@
                         <label for="genre" class="text-sm font-medium text-gray-700">Género</label>
                         <select id="genre" name="genre" class="border rounded p-3 w-full">
                             <option value="">Cualquiera</option>
-                            @foreach($genres as $g)
+                            @foreach ($genres as $g)
                                 <option value="{{ $g }}" {{ request('genre') == $g ? 'selected' : '' }}>
                                     {{ $g }}
                                 </option>
@@ -37,8 +37,10 @@
                         <label for="season" class="text-sm font-medium text-gray-700">Temporada</label>
                         <select id="season" name="season" class="border rounded p-3 w-full">
                             <option value="">Cualquiera</option>
-                            <option value="WINTER" {{ request('season') == 'WINTER' ? 'selected' : '' }}>Invierno</option>
-                            <option value="SPRING" {{ request('season') == 'SPRING' ? 'selected' : '' }}>Primavera</option>
+                            <option value="WINTER" {{ request('season') == 'WINTER' ? 'selected' : '' }}>Invierno
+                            </option>
+                            <option value="SPRING" {{ request('season') == 'SPRING' ? 'selected' : '' }}>Primavera
+                            </option>
                             <option value="SUMMER" {{ request('season') == 'SUMMER' ? 'selected' : '' }}>Verano</option>
                             <option value="FALL" {{ request('season') == 'FALL' ? 'selected' : '' }}>Otoño</option>
                         </select>
@@ -49,8 +51,9 @@
                         <label for="seasonYear" class="text-sm font-medium text-gray-700">Año</label>
                         <select id="seasonYear" name="seasonYear" class="border rounded p-3 w-full">
                             <option value="">Cualquiera</option>
-                            @for($year = date('Y'); $year >= 1985; $year--)
-                                <option value="{{ $year }}" {{ request('seasonYear') == $year ? 'selected' : '' }}>
+                            @for ($year = date('Y'); $year >= 1985; $year--)
+                                <option value="{{ $year }}"
+                                    {{ request('seasonYear') == $year ? 'selected' : '' }}>
                                     {{ $year }}
                                 </option>
                             @endfor
@@ -62,7 +65,7 @@
                         <label for="format" class="text-sm font-medium text-gray-700">Formato</label>
                         <select id="format" name="format" class="border rounded p-3 w-full">
                             <option value="">Cualquiera</option>
-                            @foreach(['TV','MOVIE','OVA','ONA','SPECIAL','MUSIC'] as $f)
+                            @foreach (['TV', 'MOVIE', 'OVA', 'ONA', 'SPECIAL', 'MUSIC'] as $f)
                                 <option value="{{ $f }}" {{ request('format') == $f ? 'selected' : '' }}>
                                     {{ $f }}
                                 </option>
@@ -75,10 +78,14 @@
                         <label for="status" class="text-sm font-medium text-gray-700">Estado</label>
                         <select id="status" name="status" class="border rounded p-3 w-full">
                             <option value="">Cualquiera</option>
-                            <option value="FINISHED" {{ request('status') == 'FINISHED' ? 'selected' : '' }}>Finalizado</option>
-                            <option value="RELEASING" {{ request('status') == 'RELEASING' ? 'selected' : '' }}>En emisión</option>
-                            <option value="NOT_YET_RELEASED" {{ request('status') == 'NOT_YET_RELEASED' ? 'selected' : '' }}>No estrenado</option>
-                            <option value="CANCELLED" {{ request('status') == 'CANCELLED' ? 'selected' : '' }}>Cancelado</option>
+                            <option value="FINISHED" {{ request('status') == 'FINISHED' ? 'selected' : '' }}>Finalizado
+                            </option>
+                            <option value="RELEASING" {{ request('status') == 'RELEASING' ? 'selected' : '' }}>En
+                                emisión</option>
+                            <option value="NOT_YET_RELEASED"
+                                {{ request('status') == 'NOT_YET_RELEASED' ? 'selected' : '' }}>No estrenado</option>
+                            <option value="CANCELLED" {{ request('status') == 'CANCELLED' ? 'selected' : '' }}>
+                                Cancelado</option>
                         </select>
                     </div>
 
@@ -92,32 +99,36 @@
                     </div>
                 </form>
 
-                <!--GRID DE RESULTADOS -->
+                <!--GRID DE RESULTADOS-->
                 <div id="anime-grid" class="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-4">
-                    @foreach($animes as $anime)
-                        <div class="bg-gray-100 rounded-lg overflow-hidden shadow hover:shadow-lg transition">
-                            <img src="{{ $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}"
-                                 class="w-full h-64 object-cover">
-                            <div class="p-2">
-                                <h3 class="text-lg font-bold truncate">{{ $anime['title']['romaji'] }}</h3>
-                                <p class="text-sm text-gray-600">
-                                    ⭐ {{ $anime['averageScore'] ?? 'N/A' }} | {{ $anime['format'] ?? '' }}
-                                </p>
+                    @foreach ($animes as $anime)
+                        <a href="{{ route('animes.show', $anime['id']) }}">
+                            <div class="bg-gray-100 rounded-lg overflow-hidden shadow hover:shadow-lg transition">
+                                <img src="{{ $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}"
+                                    class="w-full h-64 object-cover">
+                                <div class="p-2">
+                                    <h3 class="text-lg font-bold truncate">{{ $anime['title']['romaji'] }}</h3>
+                                    <p class="text-sm text-gray-600">
+                                        ⭐ {{ $anime['averageScore'] ?? 'N/A' }} | {{ $anime['format'] ?? '' }}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
+                        </a>
                     @endforeach
                 </div>
+
 
                 <!--LOADER / INDICADOR DE CARGA -->
                 <div id="loading" class="hidden text-center py-6">
                     <div class="flex justify-center items-center space-x-2">
-                        <div class="w-5 h-5 border-2 border-t-transparent border-indigo-600 rounded-full animate-spin"></div>
+                        <div class="w-5 h-5 border-2 border-t-transparent border-indigo-600 rounded-full animate-spin">
+                        </div>
                         <span class="text-gray-600">Cargando más animes...</span>
                     </div>
                 </div>
 
                 <!-- ⚠️ SIN RESULTADOS -->
-                @if(empty($animes))
+                @if (empty($animes))
                     <p class="text-gray-500 mt-4">No se encontraron resultados.</p>
                 @endif
 

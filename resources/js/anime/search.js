@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
      */
     function appendAnime(anime) {
         const html = `
+        <a href="/animes/${anime.id}">
             <div class="bg-gray-100 rounded-lg overflow-hidden shadow hover:shadow-lg transition">
                 <img src="${anime.coverImage.large}" 
                      alt="${anime.title.romaji}" 
@@ -32,7 +33,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         ⭐ ${anime.averageScore ?? "N/A"} | ${anime.format ?? ""}
                     </p>
                 </div>
-            </div>`;
+            </div>
+        </a>`;
         grid.insertAdjacentHTML("beforeend", html);
     }
 

@@ -129,4 +129,43 @@ class AnimeController extends Controller
             'status'
         ));
     }
+    /**
+     * Muestra los detalles de un anime específico.
+     */
+    public function show($id)
+    {
+        $queryString = '
+    query ($id: Int) {
+        Media(id: $id, type: ANIME) {
+            id
+            title { romaji english native }
+            coverImage { large medium }
+            bannerImage
+            description
+            averageScore
+            popularity
+            format
+            episodes
+            season
+            seasonYear
+            genres
+            status
+        }
+    }';
+
+        $variables = ['id' => (int)$id];
+
+        $response = Http::post('https://graphql.anilist.co', [
+            'query' => $queryString,
+            'variables' => $variables,
+        ]);
+
+        $anime = $response->json('data.Media');
+
+        if (!$anime) {
+            abort(404, 'Anime no encontrado');
+        }
+
+        return view('animes.show', compact('anime'));
+    }
 }

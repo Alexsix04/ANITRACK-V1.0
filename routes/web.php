@@ -23,7 +23,7 @@ Route::post('/profile/update-bio-avatar', [ProfileController::class, 'updateBioA
 
 //Rutas  Animes
 Route::get('/animes', [AnimeController::class, 'index'])->name('animes.index');
-//Route::get('/animes/search', [AnimeController::class, 'search'])->name('animes.search');
+Route::get('/animes/{id}', [AnimeController::class, 'show'])->name('animes.show');
 
 //Rutas Listas
 Route::get('/listas', [AnimeController::class, 'index'])->name('listas.index');
