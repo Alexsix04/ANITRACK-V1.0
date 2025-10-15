@@ -9,14 +9,14 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white p-6 shadow rounded-lg">
 
-                <!-- Formulario de búsqueda y filtros -->
-                <form method="GET" action="{{ route('animes.index') }}" 
+                <!--FORMULARIO DE BÚSQUEDA Y FILTROS -->
+                <form method="GET" action="{{ route('animes.index') }}"
                       class="mb-6 flex flex-nowrap gap-4 items-end overflow-x-auto">
                     <!-- Nombre -->
                     <div class="flex flex-col min-w-[180px]">
                         <label for="query" class="text-sm font-medium text-gray-700">Nombre</label>
                         <input type="text" id="query" name="query" value="{{ request('query') }}"
-                            placeholder="Buscar anime..." class="border rounded p-3 w-full">
+                               placeholder="Buscar anime..." class="border rounded p-3 w-full">
                     </div>
 
                     <!-- Género -->
@@ -92,47 +92,41 @@
                     </div>
                 </form>
 
-                <!-- Resultados -->
-                @if(isset($animes) && count($animes) > 0)
-                    <div class="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-4">
-                        @foreach($animes as $anime)
-                            <div class="bg-gray-100 rounded-lg overflow-hidden shadow hover:shadow-lg transition">
-                                <img src="{{ $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}"
-                                     class="w-full h-64 object-cover">
-                                <div class="p-2">
-                                    <h3 class="text-lg font-bold truncate">{{ $anime['title']['romaji'] }}</h3>
-                                    <p class="text-sm text-gray-600">
-                                        ⭐ {{ $anime['averageScore'] ?? 'N/A' }} | {{ $anime['format'] ?? '' }}
-                                    </p>
-                                </div>
+                <!--GRID DE RESULTADOS -->
+                <div id="anime-grid" class="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-4">
+                    @foreach($animes as $anime)
+                        <div class="bg-gray-100 rounded-lg overflow-hidden shadow hover:shadow-lg transition">
+                            <img src="{{ $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}"
+                                 class="w-full h-64 object-cover">
+                            <div class="p-2">
+                                <h3 class="text-lg font-bold truncate">{{ $anime['title']['romaji'] }}</h3>
+                                <p class="text-sm text-gray-600">
+                                    ⭐ {{ $anime['averageScore'] ?? 'N/A' }} | {{ $anime['format'] ?? '' }}
+                                </p>
                             </div>
-                        @endforeach
-                    </div>
-
-                    <!-- Paginación -->
-                    @if(!empty($pageInfo))
-                        <div class="flex justify-center mt-6 space-x-2">
-                            @if(($pageInfo['currentPage'] ?? 1) > 1)
-                                <a href="{{ url()->current() }}?page={{ $pageInfo['currentPage'] - 1 }}&{{ $queryStringForPagination }}"
-                                   class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Anterior</a>
-                            @endif
-
-                            <span class="px-4 py-2 bg-gray-100 rounded">
-                                Página {{ $pageInfo['currentPage'] }} de {{ $pageInfo['lastPage'] }}
-                            </span>
-
-                            @if($pageInfo['hasNextPage'] ?? false)
-                                <a href="{{ url()->current() }}?page={{ $pageInfo['currentPage'] + 1 }}&{{ $queryStringForPagination }}"
-                                   class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Siguiente</a>
-                            @endif
                         </div>
-                    @endif
+                    @endforeach
+                </div>
 
-                @elseif(isset($animes))
+                <!--LOADER / INDICADOR DE CARGA -->
+                <div id="loading" class="hidden text-center py-6">
+                    <div class="flex justify-center items-center space-x-2">
+                        <div class="w-5 h-5 border-2 border-t-transparent border-indigo-600 rounded-full animate-spin"></div>
+                        <span class="text-gray-600">Cargando más animes...</span>
+                    </div>
+                </div>
+
+                <!-- ⚠️ SIN RESULTADOS -->
+                @if(empty($animes))
                     <p class="text-gray-500 mt-4">No se encontraron resultados.</p>
                 @endif
 
             </div>
         </div>
     </div>
+
+    <!--JS -->
+    <script>
+        window.pageInfo = @json($pageInfo ?? []);
+    </script>
 </x-app-layout>

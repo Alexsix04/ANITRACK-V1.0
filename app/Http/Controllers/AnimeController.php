@@ -9,7 +9,7 @@ class AnimeController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = 24;
+        $perPage = 100;
         $page = $request->input('page', 1);
 
         // Filtros
@@ -20,17 +20,17 @@ class AnimeController extends Controller
         $format = $request->input('format');
         $status = $request->input('status');
 
-        // Mínimo score base
         $minScore = 60;
 
-        // Construir dinámicamente la consulta
+        // Construcción dinámica de filtros GraphQL
         $filters = [];
         if ($genre) $filters['genre_in'] = [$genre];
         if ($season) $filters['season'] = $season;
-        if ($seasonYear) $filters['seasonYear'] = (int)$seasonYear;
+        if ($seasonYear) $filters['seasonYear'] = (int) $seasonYear;
         if ($format) $filters['format'] = $format;
         if ($status) $filters['status'] = $status;
 
+        // Consulta GraphQL
         $queryString = '
         query ($search: String, $perPage: Int, $page: Int, $minScore: Int, 
                $genre_in: [String], $season: MediaSeason, $seasonYear: Int, 
@@ -85,11 +85,14 @@ class AnimeController extends Controller
         $animes = $data['media'] ?? [];
         $pageInfo = $data['pageInfo'] ?? [];
 
-        // Filtro de géneros explícitos
+        // Excluir géneros explícitos
         $excludedGenres = ['Ecchi', 'Hentai'];
         $animes = array_filter($animes, function ($anime) use ($excludedGenres) {
             return empty(array_intersect($anime['genres'], $excludedGenres));
         });
+
+        // Rellenar si faltan (por haber filtrado)
+        $animes = array_slice($animes, 0, $perPage);
 
         // Ordenar RELEASING primero
         usort($animes, function ($a, $b) {
@@ -99,16 +102,21 @@ class AnimeController extends Controller
             return ($a['status'] === 'RELEASING') ? -1 : 1;
         });
 
-        // Obtener géneros
+        // Obtener géneros válidos
         $genresResponse = Http::post('https://graphql.anilist.co', [
             'query' => 'query { GenreCollection }',
         ]);
         $genres = array_diff($genresResponse->json('data.GenreCollection') ?? [], $excludedGenres);
 
-        // --- NUEVO: reconstruir la querystring para la paginación ---
-        $queryParams = $request->except('page');
-        $queryStringForPagination = http_build_query($queryParams);
+        // Si el request es AJAX → devolver JSON
+        if ($request->ajax()) {
+            return response()->json([
+                'animes' => array_values($animes),
+                'pageInfo' => $pageInfo,
+            ]);
+        }
 
+        // Si es una carga normal → vista completa
         return view('animes.index', compact(
             'animes',
             'genres',
@@ -118,8 +126,7 @@ class AnimeController extends Controller
             'season',
             'seasonYear',
             'format',
-            'status',
-            'queryStringForPagination'
+            'status'
         ));
     }
 }
