@@ -1,28 +1,31 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-2xl text-gray-800 leading-tight">
             Buscar Animes
         </h2>
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white p-6 shadow rounded-lg">
+        <div class="max-w-[95rem] mx-auto sm:px-4 lg:px-6">
+            <div class="bg-white p-6 shadow-lg rounded-xl">
 
-                <!--FORMULARIO DE BÚSQUEDA Y FILTROS -->
-                <form method="GET" action="{{ route('animes.index') }}"
-                    class="mb-6 flex flex-nowrap gap-4 items-end overflow-x-auto">
+                <!-- FORMULARIO -->
+                <form id="anime-search-form" method="GET" action="{{ route('animes.index') }}"
+                    class="mb-6 flex flex-wrap gap-5 items-end">
+
                     <!-- Nombre -->
-                    <div class="flex flex-col min-w-[180px]">
-                        <label for="query" class="text-sm font-medium text-gray-700">Nombre</label>
+                    <div class="flex flex-col flex-1 min-w-[200px]">
+                        <label for="query" class="text-base font-medium text-gray-700 mb-1">Nombre</label>
                         <input type="text" id="query" name="query" value="{{ request('query') }}"
-                            placeholder="Buscar anime..." class="border rounded p-3 w-full">
+                            placeholder="Buscar anime..."
+                            class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
                     </div>
 
                     <!-- Género -->
-                    <div class="flex flex-col min-w-[150px]">
-                        <label for="genre" class="text-sm font-medium text-gray-700">Género</label>
-                        <select id="genre" name="genre" class="border rounded p-3 w-full">
+                    <div class="flex flex-col flex-1 min-w-[160px]">
+                        <label for="genre" class="text-base font-medium text-gray-700 mb-1">Género</label>
+                        <select id="genre" name="genre"
+                            class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
                             <option value="">Cualquiera</option>
                             @foreach ($genres as $g)
                                 <option value="{{ $g }}" {{ request('genre') == $g ? 'selected' : '' }}>
@@ -33,9 +36,10 @@
                     </div>
 
                     <!-- Temporada -->
-                    <div class="flex flex-col min-w-[120px]">
-                        <label for="season" class="text-sm font-medium text-gray-700">Temporada</label>
-                        <select id="season" name="season" class="border rounded p-3 w-full">
+                    <div class="flex flex-col flex-1 min-w-[140px]">
+                        <label for="season" class="text-base font-medium text-gray-700 mb-1">Temporada</label>
+                        <select id="season" name="season"
+                            class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
                             <option value="">Cualquiera</option>
                             <option value="WINTER" {{ request('season') == 'WINTER' ? 'selected' : '' }}>Invierno
                             </option>
@@ -47,9 +51,10 @@
                     </div>
 
                     <!-- Año -->
-                    <div class="flex flex-col min-w-[130px]">
-                        <label for="seasonYear" class="text-sm font-medium text-gray-700">Año</label>
-                        <select id="seasonYear" name="seasonYear" class="border rounded p-3 w-full">
+                    <div class="flex flex-col flex-1 min-w-[130px]">
+                        <label for="seasonYear" class="text-base font-medium text-gray-700 mb-1">Año</label>
+                        <select id="seasonYear" name="seasonYear"
+                            class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
                             <option value="">Cualquiera</option>
                             @for ($year = date('Y'); $year >= 1985; $year--)
                                 <option value="{{ $year }}"
@@ -61,9 +66,10 @@
                     </div>
 
                     <!-- Formato -->
-                    <div class="flex flex-col min-w-[120px]">
-                        <label for="format" class="text-sm font-medium text-gray-700">Formato</label>
-                        <select id="format" name="format" class="border rounded p-3 w-full">
+                    <div class="flex flex-col flex-1 min-w-[140px]">
+                        <label for="format" class="text-base font-medium text-gray-700 mb-1">Formato</label>
+                        <select id="format" name="format"
+                            class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
                             <option value="">Cualquiera</option>
                             @foreach (['TV', 'MOVIE', 'OVA', 'ONA', 'SPECIAL', 'MUSIC'] as $f)
                                 <option value="{{ $f }}" {{ request('format') == $f ? 'selected' : '' }}>
@@ -74,9 +80,10 @@
                     </div>
 
                     <!-- Estado -->
-                    <div class="flex flex-col min-w-[120px]">
-                        <label for="status" class="text-sm font-medium text-gray-700">Estado</label>
-                        <select id="status" name="status" class="border rounded p-3 w-full">
+                    <div class="flex flex-col flex-1 min-w-[140px]">
+                        <label for="status" class="text-base font-medium text-gray-700 mb-1">Estado</label>
+                        <select id="status" name="status"
+                            class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
                             <option value="">Cualquiera</option>
                             <option value="FINISHED" {{ request('status') == 'FINISHED' ? 'selected' : '' }}>Finalizado
                             </option>
@@ -88,26 +95,18 @@
                                 Cancelado</option>
                         </select>
                     </div>
-
-                    <!-- Botón Buscar -->
-                    <div class="flex flex-col min-w-[120px]">
-                        <label class="text-sm font-medium text-gray-700">&nbsp;</label>
-                        <button type="submit"
-                            class="bg-indigo-600 text-white px-6 py-3 rounded hover:bg-indigo-700 w-full">
-                            Buscar
-                        </button>
-                    </div>
                 </form>
 
-                <!--GRID DE RESULTADOS-->
-                <div id="anime-grid" class="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-6 gap-4">
+                <!-- GRID DE RESULTADOS -->
+                <div id="anime-grid"
+                    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-7">
                     @foreach ($animes as $anime)
                         <a href="{{ route('animes.show', $anime['id']) }}">
-                            <div class="bg-gray-100 rounded-lg overflow-hidden shadow hover:shadow-lg transition">
+                            <div class="bg-gray-100 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition">
                                 <img src="{{ $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}"
-                                    class="w-full h-64 object-cover">
-                                <div class="p-2">
-                                    <h3 class="text-lg font-bold truncate">{{ $anime['title']['romaji'] }}</h3>
+                                    class="w-full h-64 object-cover"> <!-- más pequeño que antes -->
+                                <div class="p-2.5">
+                                    <h3 class="text-base font-semibold truncate">{{ $anime['title']['romaji'] }}</h3>
                                     <p class="text-sm text-gray-600">
                                         ⭐ {{ $anime['averageScore'] ?? 'N/A' }} | {{ $anime['format'] ?? '' }}
                                     </p>
@@ -117,27 +116,99 @@
                     @endforeach
                 </div>
 
-
-                <!--LOADER / INDICADOR DE CARGA -->
-                <div id="loading" class="hidden text-center py-6">
-                    <div class="flex justify-center items-center space-x-2">
-                        <div class="w-5 h-5 border-2 border-t-transparent border-indigo-600 rounded-full animate-spin">
-                        </div>
-                        <span class="text-gray-600">Cargando más animes...</span>
-                    </div>
-                </div>
-
-                <!-- ⚠️ SIN RESULTADOS -->
-                @if (empty($animes))
-                    <p class="text-gray-500 mt-4">No se encontraron resultados.</p>
-                @endif
-
             </div>
         </div>
     </div>
 
-    <!--JS -->
+    <!-- LOADER -->
+    <div id="loading" class="hidden text-center py-6">
+        <div class="flex justify-center items-center space-x-2">
+            <div class="w-5 h-5 border-2 border-t-transparent border-indigo-600 rounded-full animate-spin"></div>
+            <span class="text-gray-600">Cargando animes...</span>
+        </div>
+    </div>
+
+    <!-- SIN RESULTADOS -->
+    <p id="no-results" class="hidden text-gray-500 mt-4">No se encontraron resultados.</p>
+
+    </div>
+    </div>
+    </div>
+
+    <!-- JS -->
     <script>
-        window.pageInfo = @json($pageInfo ?? []);
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('anime-search-form');
+            const grid = document.getElementById('anime-grid');
+            const loader = document.getElementById('loading');
+            const noResults = document.getElementById('no-results');
+
+            // Función principal para cargar resultados vía AJAX
+            const fetchAnimes = async () => {
+                loader.classList.remove('hidden');
+                noResults.classList.add('hidden');
+
+                const formData = new FormData(form);
+                const params = new URLSearchParams(formData).toString();
+
+                try {
+                    const response = await fetch(`${form.action}?${params}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const data = await response.json();
+                    renderAnimes(data.animes);
+                } catch (error) {
+                    console.error('Error al cargar los animes:', error);
+                } finally {
+                    loader.classList.add('hidden');
+                }
+            };
+
+            // Renderizar los animes en el grid
+            const renderAnimes = (animes) => {
+                grid.innerHTML = '';
+
+                if (!animes || animes.length === 0) {
+                    noResults.classList.remove('hidden');
+                    return;
+                }
+
+                animes.forEach(anime => {
+                    const card = document.createElement('a');
+                    card.href = `/animes/${anime.id}`;
+                    card.innerHTML = `
+                        <div class="bg-gray-100 rounded-lg overflow-hidden shadow hover:shadow-lg transition">
+                            <img src="${anime.coverImage.large}" alt="${anime.title.romaji}" class="w-full h-64 object-cover">
+                            <div class="p-2">
+                                <h3 class="text-lg font-bold truncate">${anime.title.romaji}</h3>
+                                <p class="text-sm text-gray-600">
+                                    ⭐ ${anime.averageScore ?? 'N/A'} | ${anime.format ?? ''}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            };
+
+            // Escuchar cambios en todos los campos del formulario
+            form.addEventListener('change', fetchAnimes);
+
+            // Búsqueda mientras escribe (con debounce)
+            let typingTimer;
+            const input = document.getElementById('query');
+            input.addEventListener('input', () => {
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(fetchAnimes, 400);
+            });
+
+            // Evitar recarga con el botón "Buscar"
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                fetchAnimes();
+            });
+        });
     </script>
 </x-app-layout>

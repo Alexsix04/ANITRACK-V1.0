@@ -1,107 +1,127 @@
-/**
- * search.js
- * Maneja búsqueda dinámica y scroll infinito de animes
- * Compatible con AnimeController AJAX JSON
- */
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('anime-search-form');
+    const grid = document.getElementById('anime-grid');
+    const loader = document.getElementById('loading');
+    const noResults = document.getElementById('no-results');
+    const queryInput = document.getElementById('query');
 
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.querySelector("form"); // formulario de búsqueda
-    const grid = document.getElementById("anime-grid"); // contenedor de animes
-    const loader = document.getElementById("loading"); // spinner
-    const baseUrl = window.location.pathname; // /animes
+    if (!form || !grid) return;
 
-    let currentPage = window.pageInfo?.currentPage ?? 1;
-    let lastPage = window.pageInfo?.lastPage ?? 1;
+    let page = 1;
     let loading = false;
-
-    // Guardamos los filtros actuales
-    let currentFilters = Object.fromEntries(new FormData(form));
+    let hasNextPage = true;
 
     /**
-     * Renderiza un anime en el grid
+     * Renderiza las tarjetas de anime en el grid
+     * @param {Array} animes
+     * @param {Boolean} append - si true, agrega al grid existente
      */
-    function appendAnime(anime) {
-        const html = `
-        <a href="/animes/${anime.id}">
-            <div class="bg-gray-100 rounded-lg overflow-hidden shadow hover:shadow-lg transition">
-                <img src="${anime.coverImage.large}" 
-                     alt="${anime.title.romaji}" 
-                     class="w-full h-64 object-cover">
-                <div class="p-2">
-                    <h3 class="text-lg font-bold truncate">${anime.title.romaji}</h3>
-                    <p class="text-sm text-gray-600">
-                        ⭐ ${anime.averageScore ?? "N/A"} | ${anime.format ?? ""}
-                    </p>
+    const renderAnimes = (animes, append = false) => {
+        if (!append) grid.innerHTML = '';
+
+        if (!animes || animes.length === 0) {
+            if (!append) noResults.classList.remove('hidden');
+            return;
+        }
+
+        noResults.classList.add('hidden');
+
+        animes.forEach(anime => {
+            const card = document.createElement('a');
+            card.href = `/animes/${anime.id}`;
+            card.innerHTML = `
+                <div class="bg-gray-100 rounded-lg overflow-hidden shadow hover:shadow-lg transition">
+                    <img src="${anime.coverImage.large}" alt="${anime.title.romaji}" class="w-full h-64 object-cover">
+                    <div class="p-2">
+                        <h3 class="text-lg font-bold truncate">${anime.title.romaji}</h3>
+                        <p class="text-sm text-gray-600">
+                            ⭐ ${anime.averageScore ?? 'N/A'} | ${anime.format ?? ''}
+                        </p>
+                    </div>
                 </div>
-            </div>
-        </a>`;
-        grid.insertAdjacentHTML("beforeend", html);
-    }
+            `;
+            grid.appendChild(card);
+        });
+    };
 
     /**
-     * Carga una página específica usando los filtros actuales
+     * Realiza la petición AJAX para buscar animes
      */
-    async function loadPage(page) {
-        if (loading || page > lastPage) return;
+    const fetchAnimes = async (append = false) => {
+        if (loading || (!hasNextPage && append)) return;
+
         loading = true;
-        loader.classList.remove("hidden");
+        loader.classList.remove('hidden');
+        noResults.classList.add('hidden');
+
+        const formData = new FormData(form);
+        if (append) formData.set('page', page + 1);
+        const params = new URLSearchParams(formData).toString();
 
         try {
-            const params = new URLSearchParams(currentFilters);
-            params.set("page", page);
-
-            const res = await fetch(`${baseUrl}?${params.toString()}`, {
-                headers: { "X-Requested-With": "XMLHttpRequest" },
+            const response = await fetch(`${form.action}?${params}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
 
-            if (!res.ok) throw new Error("Error cargando animes");
+            if (!response.ok) throw new Error(`Error ${response.status}`);
 
-            const data = await res.json();
+            const data = await response.json();
 
-            data.animes.forEach(appendAnime);
-            currentPage = data.pageInfo.currentPage;
-            lastPage = data.pageInfo.lastPage;
-        } catch (err) {
-            console.error(err);
+            if (append) page++;
+            hasNextPage = data.pageInfo?.hasNextPage ?? false;
+
+            renderAnimes(data.animes, append);
+        } catch (error) {
+            console.error('Error al cargar los animes:', error);
         } finally {
-            loader.classList.add("hidden");
+            loader.classList.add('hidden');
             loading = false;
         }
-    }
+    };
 
     /**
-     * Maneja scroll infinito
+     * Debounce para campo de búsqueda
      */
-    function handleScroll() {
-        const scrollPos = window.innerHeight + window.scrollY;
-        const threshold = document.body.offsetHeight - 400;
-        if (scrollPos >= threshold) {
-            loadPage(currentPage + 1);
-        }
-    }
+    let typingTimer;
+    const debounceDelay = 400;
+    queryInput.addEventListener('input', () => {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            page = 1;
+            hasNextPage = true;
+            fetchAnimes(false);
+        }, debounceDelay);
+    });
 
     /**
-     * Búsqueda dinámica (submit del formulario)
+     * Escucha cambios en selects y reinicia búsqueda
      */
-    async function searchAnimes(e) {
+    form.addEventListener('change', () => {
+        page = 1;
+        hasNextPage = true;
+        fetchAnimes(false);
+    });
+
+    /**
+     * Evita recarga al hacer submit manual
+     */
+    form.addEventListener('submit', (e) => {
         e.preventDefault();
-        loading = true;
-        loader.classList.remove("hidden");
-        grid.innerHTML = ""; // limpiar resultados anteriores
-        currentPage = 1;
+        page = 1;
+        hasNextPage = true;
+        fetchAnimes(false);
+    });
 
-        // Guardamos filtros actuales
-        currentFilters = Object.fromEntries(new FormData(form));
-
-        await loadPage(currentPage);
-        loading = false;
-    }
-
-    // Evento submit
-    if (form) {
-        form.addEventListener("submit", searchAnimes);
-    }
-
-    // Scroll infinito
-    window.addEventListener("scroll", handleScroll);
+    /**
+     * Scroll infinito (carga siguiente página)
+     */
+    window.addEventListener('scroll', () => {
+        if (
+            window.innerHeight + window.scrollY >= document.body.offsetHeight - 400 &&
+            !loading &&
+            hasNextPage
+        ) {
+            fetchAnimes(true);
+        }
+    });
 });

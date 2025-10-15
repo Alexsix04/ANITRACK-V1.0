@@ -12,7 +12,7 @@ class AnimeController extends Controller
         $perPage = 100;
         $page = $request->input('page', 1);
 
-        // Filtros
+        // Filtros del formulario
         $query = $request->input('query');
         $genre = $request->input('genre');
         $season = $request->input('season');
@@ -45,7 +45,6 @@ class AnimeController extends Controller
                 media(
                     search: $search,
                     type: ANIME, 
-                    status_in: [RELEASING, FINISHED],
                     averageScore_greater: $minScore,
                     genre_in: $genre_in,
                     season: $season,
@@ -91,9 +90,6 @@ class AnimeController extends Controller
             return empty(array_intersect($anime['genres'], $excludedGenres));
         });
 
-        // Rellenar si faltan (por haber filtrado)
-        $animes = array_slice($animes, 0, $perPage);
-
         // Ordenar RELEASING primero
         usort($animes, function ($a, $b) {
             if ($a['status'] === $b['status']) {
@@ -102,13 +98,16 @@ class AnimeController extends Controller
             return ($a['status'] === 'RELEASING') ? -1 : 1;
         });
 
-        // Obtener géneros válidos
-        $genresResponse = Http::post('https://graphql.anilist.co', [
-            'query' => 'query { GenreCollection }',
-        ]);
-        $genres = array_diff($genresResponse->json('data.GenreCollection') ?? [], $excludedGenres);
+        // Obtener géneros válidos (solo para la vista normal)
+        $genres = [];
+        if (!$request->ajax()) {
+            $genresResponse = Http::post('https://graphql.anilist.co', [
+                'query' => 'query { GenreCollection }',
+            ]);
+            $genres = array_diff($genresResponse->json('data.GenreCollection') ?? [], $excludedGenres);
+        }
 
-        // Si el request es AJAX → devolver JSON
+        // Respuesta AJAX
         if ($request->ajax()) {
             return response()->json([
                 'animes' => array_values($animes),
@@ -116,7 +115,7 @@ class AnimeController extends Controller
             ]);
         }
 
-        // Si es una carga normal → vista completa
+        // Respuesta normal (vista completa)
         return view('animes.index', compact(
             'animes',
             'genres',
@@ -129,6 +128,7 @@ class AnimeController extends Controller
             'status'
         ));
     }
+
     /**
      * Muestra los detalles de un anime específico.
      */
