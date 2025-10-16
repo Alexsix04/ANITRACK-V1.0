@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loader = document.getElementById('loading');
     const noResults = document.getElementById('no-results');
     const queryInput = document.getElementById('query');
+    const pageTitle = document.getElementById('anime-page-title'); // contenedor del título
 
     if (!form || !grid) return;
 
@@ -11,11 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let loading = false;
     let hasNextPage = true;
 
-    /**
-     * Renderiza las tarjetas de anime en el grid
-     * @param {Array} animes
-     * @param {Boolean} append - si true, agrega al grid existente
-     */
     const renderAnimes = (animes, append = false) => {
         if (!append) grid.innerHTML = '';
 
@@ -44,9 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    /**
-     * Realiza la petición AJAX para buscar animes
-     */
     const fetchAnimes = async (append = false) => {
         if (loading || (!hasNextPage && append)) return;
 
@@ -79,42 +72,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    /**
-     * Debounce para campo de búsqueda
-     */
+    // Función para actualizar el título y URL al cambiar filtros
+    const updateState = () => {
+        page = 1;
+        hasNextPage = true;
+        fetchAnimes(false);
+
+        if (history.replaceState) {
+            const formData = new FormData(form);
+            formData.delete('filter'); // siempre ignoramos filter del home si se toca formulario
+            const params = new URLSearchParams(formData).toString();
+            const newUrl = params ? '/animes?' + params : '/animes';
+            history.replaceState(null, '', newUrl);
+        }
+
+        if (pageTitle) pageTitle.textContent = 'Buscar Animes';
+    };
+
+    // Debounce para input de búsqueda
     let typingTimer;
     const debounceDelay = 400;
     queryInput.addEventListener('input', () => {
         clearTimeout(typingTimer);
-        typingTimer = setTimeout(() => {
-            page = 1;
-            hasNextPage = true;
-            fetchAnimes(false);
-        }, debounceDelay);
+        typingTimer = setTimeout(updateState, debounceDelay);
     });
 
-    /**
-     * Escucha cambios en selects y reinicia búsqueda
-     */
-    form.addEventListener('change', () => {
-        page = 1;
-        hasNextPage = true;
-        fetchAnimes(false);
-    });
+    // Cambio en cualquier filtro
+    form.addEventListener('change', updateState);
 
-    /**
-     * Evita recarga al hacer submit manual
-     */
+    // Submit del formulario
     form.addEventListener('submit', (e) => {
         e.preventDefault();
-        page = 1;
-        hasNextPage = true;
-        fetchAnimes(false);
+        updateState();
     });
 
-    /**
-     * Scroll infinito (carga siguiente página)
-     */
+    // Scroll infinito
     window.addEventListener('scroll', () => {
         if (
             window.innerHeight + window.scrollY >= document.body.offsetHeight - 400 &&

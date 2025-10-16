@@ -8,127 +8,202 @@ use Illuminate\Support\Facades\Http;
 class AnimeController extends Controller
 {
     public function index(Request $request)
-    {
-        $perPage = 100;
-        $page = $request->input('page', 1);
+{
+    $perPage = 100;
+    $page = $request->input('page', 1);
 
-        // Filtros del formulario
-        $query = $request->input('query');
-        $genre = $request->input('genre');
-        $season = $request->input('season');
-        $seasonYear = $request->input('seasonYear');
-        $format = $request->input('format');
-        $status = $request->input('status');
+    // Filtro general desde "Ver más" en home
+    $filterFromHome = $request->input('filter');
 
-        $minScore = 60;
+    // Filtros del formulario
+    $query = $request->input('query');
+    $genre = $request->input('genre');
+    $season = $request->input('season');
+    $seasonYear = $request->input('seasonYear');
+    $format = $request->input('format');
+    $status = $request->input('status');
 
-        // Construcción dinámica de filtros GraphQL
-        $filters = [];
-        if ($genre) $filters['genre_in'] = [$genre];
-        if ($season) $filters['season'] = $season;
-        if ($seasonYear) $filters['seasonYear'] = (int) $seasonYear;
-        if ($format) $filters['format'] = $format;
-        if ($status) $filters['status'] = $status;
+    // Construcción dinámica de filtros GraphQL
+    $filters = [];
+    if ($genre) $filters['genre_in'] = [$genre];
+    if ($season) $filters['season'] = $season;
+    if ($seasonYear) $filters['seasonYear'] = (int) $seasonYear;
+    if ($format) $filters['format'] = $format;
+    if ($status) $filters['status'] = $status;
 
-        // Consulta GraphQL
-        $queryString = '
-        query ($search: String, $perPage: Int, $page: Int, $minScore: Int, 
-               $genre_in: [String], $season: MediaSeason, $seasonYear: Int, 
-               $format: MediaFormat, $status: MediaStatus) {
-            Page(page: $page, perPage: $perPage) {
-                pageInfo {
-                    total
-                    currentPage
-                    lastPage
-                    hasNextPage
+    // Determinar si se aplicará filtro de sección (solo desde "Ver más" y si no hay filtros manuales)
+    $applyFilter = $filterFromHome && !$query && !$genre && !$season && !$seasonYear && !$format && !$status;
+    $filter = $applyFilter ? $filterFromHome : null;
+
+    // Definir título dinámico
+    $title = $applyFilter ? ucfirst(str_replace('-', ' ', $filterFromHome)) : 'Buscar Animes';
+
+    // Aplicar filtros predefinidos según "filter" solo si corresponde
+    if ($applyFilter && $filter) {
+        switch ($filter) {
+            case 'mas-populares-de-la-temporada':
+                $currentMonth = now()->month;
+
+                if ($currentMonth >= 3 && $currentMonth <= 5) {
+                    $filters['season'] = 'SPRING';
+                } elseif ($currentMonth >= 6 && $currentMonth <= 8) {
+                    $filters['season'] = 'SUMMER';
+                } elseif ($currentMonth >= 9 && $currentMonth <= 11) {
+                    $filters['season'] = 'FALL';
+                } else {
+                    $filters['season'] = 'WINTER';
                 }
-                media(
-                    search: $search,
-                    type: ANIME, 
-                    averageScore_greater: $minScore,
-                    genre_in: $genre_in,
-                    season: $season,
-                    seasonYear: $seasonYear,
-                    format: $format,
-                    status: $status,
-                    sort: [POPULARITY_DESC, START_DATE_DESC]
-                ) {
-                    id
-                    title { romaji english native }
-                    coverImage { large }
-                    averageScore
-                    popularity
-                    format
-                    episodes
-                    season
-                    seasonYear
-                    genres
-                    status
-                }
+
+                $filters['seasonYear'] = now()->year;
+                $filters['sort'] = ['POPULARITY_DESC'];
+                break;
+
+            case 'estrenos':
+            case 'en-emision':
+                $filters['status'] = 'RELEASING';
+                $filters['sort'] = ['START_DATE_DESC', 'POPULARITY_DESC'];
+                $minScore = 1;
+                break;
+
+            case 'mejor-ranqueados':
+            case 'mejor-valorados':
+                $filters['sort'] = ['SCORE_DESC'];
+                $filters['status'] = 'FINISHED';
+                break;
+
+            case 'proximos-estrenos':
+            case 'proximos-estrenos-2026':
+                $filters['status'] = 'NOT_YET_RELEASED';
+                $filters['sort'] = ['POPULARITY_DESC'];
+                $filters['seasonYear'] = now()->year + 1;
+                $minScore = 1;
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    // Si hay búsqueda manual, ignoramos filter de sección
+    if ($query) {
+        $filter = null;
+    }
+
+    // Definir sort según filtros o por defecto
+    $sort = $filters['sort'] ?? ['POPULARITY_DESC', 'START_DATE_DESC'];
+
+    // Consulta GraphQL
+    $queryString = '
+query ($search: String, $perPage: Int, $page: Int, $minScore: Int, 
+       $genre_in: [String], $season: MediaSeason, $seasonYear: Int, 
+       $format: MediaFormat, $status: MediaStatus, $sort: [MediaSort]) {
+    Page(page: $page, perPage: $perPage) {
+        pageInfo {
+            total
+            currentPage
+            lastPage
+            hasNextPage
+        }
+        media(
+            search: $search,
+            type: ANIME, 
+            averageScore_greater: $minScore,
+            genre_in: $genre_in,
+            season: $season,
+            seasonYear: $seasonYear,
+            format: $format,
+            status: $status,
+            sort: $sort
+        ) {
+            id
+            title { romaji english native }
+            coverImage { large }
+            averageScore
+            popularity
+            format
+            episodes
+            season
+            seasonYear
+            genres
+            status
+        }
+    }
+}';
+
+    $variables = array_merge([
+        'search' => $query,
+        'page' => $page,
+        'perPage' => $perPage,
+        //'minScore' => $minScore,
+        'sort' => $sort
+    ], $filters);
+
+    $response = Http::post('https://graphql.anilist.co', [
+        'query' => $queryString,
+        'variables' => $variables,
+    ]);
+
+    $data = $response->json('data.Page');
+    $animes = $data['media'] ?? [];
+    $pageInfo = $data['pageInfo'] ?? [];
+
+    // Excluir géneros explícitos
+    $excludedGenres = ['Ecchi', 'Hentai'];
+    $animes = array_filter($animes, function ($anime) use ($excludedGenres) {
+        return empty(array_intersect($anime['genres'], $excludedGenres));
+    });
+
+    // Ordenar según el filtro
+    if (in_array($filter, ['mejor-ranqueados', 'mejor-valorados'])) {
+        usort($animes, function ($a, $b) {
+            $scoreA = $a['averageScore'] ?? 0;
+            $scoreB = $b['averageScore'] ?? 0;
+            if ($scoreA === $scoreB) {
+                return ($b['popularity'] ?? 0) - ($a['popularity'] ?? 0);
             }
-        }';
-
-        $variables = array_merge([
-            'search' => $query,
-            'page' => $page,
-            'perPage' => $perPage,
-            'minScore' => $minScore,
-        ], $filters);
-
-        $response = Http::post('https://graphql.anilist.co', [
-            'query' => $queryString,
-            'variables' => $variables,
-        ]);
-
-        $data = $response->json('data.Page');
-        $animes = $data['media'] ?? [];
-        $pageInfo = $data['pageInfo'] ?? [];
-
-        // Excluir géneros explícitos
-        $excludedGenres = ['Ecchi', 'Hentai'];
-        $animes = array_filter($animes, function ($anime) use ($excludedGenres) {
-            return empty(array_intersect($anime['genres'], $excludedGenres));
+            return $scoreB - $scoreA;
         });
-
-        // Ordenar RELEASING primero
+    } else {
         usort($animes, function ($a, $b) {
             if ($a['status'] === $b['status']) {
                 return ($b['popularity'] ?? 0) - ($a['popularity'] ?? 0);
             }
             return ($a['status'] === 'RELEASING') ? -1 : 1;
         });
-
-        // Obtener géneros válidos (solo para la vista normal)
-        $genres = [];
-        if (!$request->ajax()) {
-            $genresResponse = Http::post('https://graphql.anilist.co', [
-                'query' => 'query { GenreCollection }',
-            ]);
-            $genres = array_diff($genresResponse->json('data.GenreCollection') ?? [], $excludedGenres);
-        }
-
-        // Respuesta AJAX
-        if ($request->ajax()) {
-            return response()->json([
-                'animes' => array_values($animes),
-                'pageInfo' => $pageInfo,
-            ]);
-        }
-
-        // Respuesta normal (vista completa)
-        return view('animes.index', compact(
-            'animes',
-            'genres',
-            'pageInfo',
-            'query',
-            'genre',
-            'season',
-            'seasonYear',
-            'format',
-            'status'
-        ));
     }
 
+    // Obtener géneros válidos (solo para la vista normal)
+    $genres = [];
+    if (!$request->ajax()) {
+        $genresResponse = Http::post('https://graphql.anilist.co', [
+            'query' => 'query { GenreCollection }',
+        ]);
+        $genres = array_diff($genresResponse->json('data.GenreCollection') ?? [], $excludedGenres);
+    }
+
+    // Respuesta AJAX
+    if ($request->ajax()) {
+        return response()->json([
+            'animes' => array_values($animes),
+            'pageInfo' => $pageInfo,
+        ]);
+    }
+
+    // Respuesta normal (vista completa)
+    return view('animes.index', compact(
+        'animes',
+        'genres',
+        'pageInfo',
+        'query',
+        'genre',
+        'season',
+        'seasonYear',
+        'format',
+        'status',
+        'filter',
+        'title' // nuevo: título dinámico para la vista
+    ));
+}
     /**
      * Muestra los detalles de un anime específico.
      */
