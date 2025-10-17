@@ -167,30 +167,56 @@ query ($search: String, $perPage: Int, $page: Int, $minScore: Int,
         ));
     }
 
-   
+
     /**
      * Muestra los detalles de un anime específico.
      */
-    public function show($id)
+    public function show($id, $seccion = null)
     {
         $queryString = '
-    query ($id: Int) {
-        Media(id: $id, type: ANIME) {
-            id
-            title { romaji english native }
-            coverImage { large medium }
-            bannerImage
-            description
-            averageScore
-            popularity
-            format
-            episodes
-            season
-            seasonYear
-            genres
-            status
-        }
-    }';
+        query ($id: Int) {
+            Media(id: $id, type: ANIME) {
+                id
+                title { romaji english native }
+                coverImage { large medium }
+                bannerImage
+                description
+                averageScore
+                popularity
+                format
+                episodes
+                season
+                seasonYear
+                startDate { year month day }
+                endDate { year month day }
+                tags { name }
+                genres
+                status
+                source
+                duration
+                studios { edges { node { name } } }
+                characters(page: 1, perPage: 10) {
+                    edges {
+                        role
+                        node {
+                            id
+                            name { full }
+                            image { large medium }
+                        }
+                    }
+                }
+                staff(page: 1, perPage: 10) {
+                    edges {
+                        role
+                        node {
+                            id
+                            name { full }
+                            image { large medium }
+                        }
+                    }
+                }
+            }
+        }';
 
         $variables = ['id' => (int)$id];
 
@@ -205,6 +231,9 @@ query ($search: String, $perPage: Int, $page: Int, $minScore: Int,
             abort(404, 'Anime no encontrado');
         }
 
-        return view('animes.show', compact('anime'));
+        // Si no hay sección en la URL, usamos "opcion1"
+        $seccion = $seccion ?? 'opcion1';
+
+        return view('animes.show', compact('anime', 'seccion'));
     }
 }
