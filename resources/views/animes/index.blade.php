@@ -1,11 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 id="anime-page-title" class="font-semibold text-2xl text-gray-800 leading-tight">
-            @if ($filter && !request()->hasAny(['query', 'genre', 'season', 'seasonYear', 'format', 'status']))
-                {{ ucfirst(str_replace('-', ' ', $filter)) }}
-            @else
-                Buscar Animes
-            @endif
+            {{ $title ?? 'Buscar Animes' }}
         </h2>
     </x-slot>
 
@@ -15,9 +11,8 @@
 
                 <!-- FORMULARIO -->
                 <form id="anime-search-form" method="GET" action="{{ route('animes.index') }}"
-                    class="mb-6 flex flex-wrap gap-5 items-end">
-
-                    @if ($filter && !request()->hasAny(['query', 'genre', 'season', 'seasonYear', 'format', 'status']))
+                      class="mb-6 flex flex-wrap gap-5 items-end">
+                    @if ($filter)
                         <input type="hidden" name="filter" value="{{ $filter }}">
                     @endif
 
@@ -25,15 +20,15 @@
                     <div class="flex flex-col flex-1 min-w-[200px]">
                         <label for="query" class="text-base font-medium text-gray-700 mb-1">Nombre</label>
                         <input type="text" id="query" name="query" value="{{ request('query') }}"
-                            placeholder="Buscar anime..."
-                            class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
+                               placeholder="Buscar anime..."
+                               class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
                     </div>
 
                     <!-- Género -->
                     <div class="flex flex-col flex-1 min-w-[160px]">
                         <label for="genre" class="text-base font-medium text-gray-700 mb-1">Género</label>
                         <select id="genre" name="genre"
-                            class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
+                                class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
                             <option value="">Cualquiera</option>
                             @foreach ($genres as $g)
                                 <option value="{{ $g }}" {{ request('genre') == $g ? 'selected' : '' }}>
@@ -47,7 +42,7 @@
                     <div class="flex flex-col flex-1 min-w-[140px]">
                         <label for="season" class="text-base font-medium text-gray-700 mb-1">Temporada</label>
                         <select id="season" name="season"
-                            class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
+                                class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
                             <option value="">Cualquiera</option>
                             <option value="WINTER" {{ request('season') == 'WINTER' ? 'selected' : '' }}>Invierno</option>
                             <option value="SPRING" {{ request('season') == 'SPRING' ? 'selected' : '' }}>Primavera</option>
@@ -60,7 +55,7 @@
                     <div class="flex flex-col flex-1 min-w-[130px]">
                         <label for="seasonYear" class="text-base font-medium text-gray-700 mb-1">Año</label>
                         <select id="seasonYear" name="seasonYear"
-                            class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
+                                class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
                             <option value="">Cualquiera</option>
                             @for ($year = date('Y') + 1; $year >= 1985; $year--)
                                 <option value="{{ $year }}" {{ request('seasonYear') == $year ? 'selected' : '' }}>
@@ -74,7 +69,7 @@
                     <div class="flex flex-col flex-1 min-w-[140px]">
                         <label for="format" class="text-base font-medium text-gray-700 mb-1">Formato</label>
                         <select id="format" name="format"
-                            class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
+                                class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
                             <option value="">Cualquiera</option>
                             @foreach (['TV', 'MOVIE', 'OVA', 'ONA', 'SPECIAL', 'MUSIC'] as $f)
                                 <option value="{{ $f }}" {{ request('format') == $f ? 'selected' : '' }}>
@@ -88,7 +83,7 @@
                     <div class="flex flex-col flex-1 min-w-[140px]">
                         <label for="status" class="text-base font-medium text-gray-700 mb-1">Estado</label>
                         <select id="status" name="status"
-                            class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
+                                class="border rounded-lg p-3 w-full text-base focus:ring-2 focus:ring-blue-400">
                             <option value="">Cualquiera</option>
                             <option value="FINISHED" {{ request('status') == 'FINISHED' ? 'selected' : '' }}>Finalizado</option>
                             <option value="RELEASING" {{ request('status') == 'RELEASING' ? 'selected' : '' }}>En emisión</option>
@@ -100,12 +95,12 @@
 
                 <!-- GRID DE RESULTADOS -->
                 <div id="anime-grid"
-                    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-7">
+                     class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-7">
                     @foreach ($animes as $anime)
                         <a href="{{ route('animes.show', $anime['id']) }}">
                             <div class="bg-gray-100 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition">
                                 <img src="{{ $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}"
-                                    class="w-full h-64 object-cover">
+                                     class="w-full h-64 object-cover">
                                 <div class="p-2.5">
                                     <h3 class="text-base font-semibold truncate">{{ $anime['title']['romaji'] }}</h3>
                                     <p class="text-sm text-gray-600">
@@ -133,118 +128,5 @@
     <p id="no-results" class="hidden text-gray-500 mt-4">No se encontraron resultados.</p>
 
     <!-- JS -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('anime-search-form');
-            const grid = document.getElementById('anime-grid');
-            const loader = document.getElementById('loading');
-            const noResults = document.getElementById('no-results');
-            const pageTitle = document.getElementById('anime-page-title');
-
-            let page = 1;
-            let loading = false;
-            let hasNextPage = true;
-
-            const renderAnimes = (animes, append = false) => {
-                if (!append) grid.innerHTML = '';
-
-                if (!animes || animes.length === 0) {
-                    noResults.classList.remove('hidden');
-                    return;
-                }
-
-                noResults.classList.add('hidden');
-
-                animes.forEach(anime => {
-                    const card = document.createElement('a');
-                    card.href = `/animes/${anime.id}`;
-                    card.innerHTML = `
-                        <div class="bg-gray-100 rounded-lg overflow-hidden shadow hover:shadow-lg transition">
-                            <img src="${anime.coverImage.large}" alt="${anime.title.romaji}" class="w-full h-64 object-cover">
-                            <div class="p-2">
-                                <h3 class="text-lg font-bold truncate">${anime.title.romaji}</h3>
-                                <p class="text-sm text-gray-600">
-                                    ⭐ ${anime.averageScore ?? 'N/A'} | ${anime.format ?? ''}
-                                </p>
-                            </div>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-            };
-
-            const fetchAnimes = async (append = false) => {
-                if (loading || (!hasNextPage && append)) return;
-
-                loading = true;
-                loader.classList.remove('hidden');
-                noResults.classList.add('hidden');
-
-                const formData = new FormData(form);
-                if (append) formData.set('page', page + 1);
-                const params = new URLSearchParams(formData).toString();
-
-                try {
-                    const response = await fetch(`${form.action}?${params}`, {
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    });
-                    if (!response.ok) throw new Error(`Error ${response.status}`);
-                    const data = await response.json();
-
-                    if (append) page++;
-                    hasNextPage = data.pageInfo?.hasNextPage ?? false;
-
-                    renderAnimes(data.animes, append);
-                } catch (error) {
-                    console.error('Error al cargar los animes:', error);
-                } finally {
-                    loader.classList.add('hidden');
-                    loading = false;
-                }
-            };
-
-            const updateState = () => {
-                page = 1;
-                hasNextPage = true;
-                fetchAnimes(false);
-
-                if (history.replaceState) {
-                    const formData = new FormData(form);
-                    formData.delete('filter'); // ignorar filter si se toca formulario
-                    const params = new URLSearchParams(formData).toString();
-                    const newUrl = params ? '/animes?' + params : '/animes';
-                    history.replaceState(null, '', newUrl);
-                }
-
-                if (pageTitle) pageTitle.textContent = 'Buscar Animes';
-            };
-
-            // Debounce para búsqueda
-            let typingTimer;
-            document.getElementById('query').addEventListener('input', () => {
-                clearTimeout(typingTimer);
-                typingTimer = setTimeout(updateState, 400);
-            });
-
-            // Cambios en filtros
-            form.addEventListener('change', updateState);
-
-            // Submit del formulario
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                updateState();
-            });
-
-            // Scroll infinito
-            window.addEventListener('scroll', () => {
-                if (
-                    window.innerHeight + window.scrollY >= document.body.offsetHeight - 400 &&
-                    !loading &&
-                    hasNextPage
-                ) {
-                    fetchAnimes(true);
-                }
-            });
-        });
-    </script>
+    <script src="{{ asset('/js/search.js') }}"></script>
 </x-app-layout>

@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loader = document.getElementById('loading');
     const noResults = document.getElementById('no-results');
     const queryInput = document.getElementById('query');
-    const pageTitle = document.getElementById('anime-page-title'); // contenedor del título
+    const pageTitle = document.getElementById('anime-page-title');
 
     if (!form || !grid) return;
 
@@ -14,12 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderAnimes = (animes, append = false) => {
         if (!append) grid.innerHTML = '';
-
         if (!animes || animes.length === 0) {
             if (!append) noResults.classList.remove('hidden');
             return;
         }
-
         noResults.classList.add('hidden');
 
         animes.forEach(anime => {
@@ -40,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    const fetchAnimes = async (append = false) => {
+    const fetchAnimes = async (append = false, useDefaults = false) => {
         if (loading || (!hasNextPage && append)) return;
 
         loading = true;
@@ -48,6 +46,17 @@ document.addEventListener('DOMContentLoaded', () => {
         noResults.classList.add('hidden');
 
         const formData = new FormData(form);
+
+        if (useDefaults) {
+            // Si queremos resultados por defecto, eliminamos todos los filtros y búsqueda
+            formData.delete('query');
+            formData.delete('genre');
+            formData.delete('season');
+            formData.delete('seasonYear');
+            formData.delete('format');
+            formData.delete('status');
+        }
+
         if (append) formData.set('page', page + 1);
         const params = new URLSearchParams(formData).toString();
 
@@ -55,41 +64,50 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${form.action}?${params}`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
-
             if (!response.ok) throw new Error(`Error ${response.status}`);
-
             const data = await response.json();
-
             if (append) page++;
             hasNextPage = data.pageInfo?.hasNextPage ?? false;
-
             renderAnimes(data.animes, append);
-        } catch (error) {
-            console.error('Error al cargar los animes:', error);
+        } catch (e) {
+            console.error('Error al cargar animes:', e);
         } finally {
             loader.classList.add('hidden');
             loading = false;
         }
     };
 
-    // Función para actualizar el título y URL al cambiar filtros
     const updateState = () => {
         page = 1;
         hasNextPage = true;
+
+        // Detectar si todos los filtros y el buscador están vacíos
+        const isEmpty = !queryInput.value.trim() &&
+            !form.genre.value &&
+            !form.season.value &&
+            !form.seasonYear.value &&
+            !form.format.value &&
+            !form.status.value;
+
+        if (isEmpty) {
+            // Recargar la página para mostrar resultados por defecto
+            window.location.href = '/animes';
+            return;
+        }
+
+        // Si hay algún filtro o búsqueda, usar AJAX
         fetchAnimes(false);
 
+        // Mantener URL limpia
         if (history.replaceState) {
-            const formData = new FormData(form);
-            formData.delete('filter'); // siempre ignoramos filter del home si se toca formulario
-            const params = new URLSearchParams(formData).toString();
-            const newUrl = params ? '/animes?' + params : '/animes';
-            history.replaceState(null, '', newUrl);
+            history.replaceState(null, '', '/animes');
         }
 
         if (pageTitle) pageTitle.textContent = 'Buscar Animes';
     };
 
-    // Debounce para input de búsqueda
+
+    // Debounce input
     let typingTimer;
     const debounceDelay = 400;
     queryInput.addEventListener('input', () => {
@@ -97,23 +115,18 @@ document.addEventListener('DOMContentLoaded', () => {
         typingTimer = setTimeout(updateState, debounceDelay);
     });
 
-    // Cambio en cualquier filtro
     form.addEventListener('change', updateState);
-
-    // Submit del formulario
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        updateState();
-    });
+    form.addEventListener('submit', (e) => { e.preventDefault(); updateState(); });
 
     // Scroll infinito
     window.addEventListener('scroll', () => {
-        if (
-            window.innerHeight + window.scrollY >= document.body.offsetHeight - 400 &&
-            !loading &&
-            hasNextPage
-        ) {
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 400 && !loading && hasNextPage) {
             fetchAnimes(true);
         }
+    });
+
+    // Manejo de botón atrás
+    window.addEventListener('popstate', () => {
+        if (window.location.pathname === '/animes') updateState();
     });
 });
