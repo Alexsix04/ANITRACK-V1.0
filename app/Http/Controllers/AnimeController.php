@@ -101,9 +101,11 @@ class AnimeController extends Controller
     {
         $anime = $this->aniList->getAnimeById((int)$id);
 
+       // dd($anime);
+
         if (!$anime) abort(404, 'Anime no encontrado');
 
-        $seccion = $seccion ?? 'opcion1';
+        $seccion = $seccion ?? 'general';
 
         return view('animes.show', compact('anime', 'seccion'));
     }

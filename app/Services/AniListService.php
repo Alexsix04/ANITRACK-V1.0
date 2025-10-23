@@ -58,18 +58,161 @@ class AniListService
                     studios { edges { node { name } } }
                     startDate { year month day }
                     endDate { year month day }
-                    tags { name }
-                    characters(page: 1, perPage: 10) { edges { role node { id name { full } image { large medium } } } }
+                    characters(page: 1, perPage: 50) { edges { role node { id name { full } image { large medium } } } }
                     staff(page: 1, perPage: 10) { edges { role node { id name { full } image { large medium } } } }
-                }
-            }
-        ';
+                    trailer {
+                    id
+                    site
+                    thumbnail
+                    }
+                    streamingEpisodes {
+                    title
+                    thumbnail
+                    url
+                    site
+                    }
+                    relations {
+                        edges {
+                            relationType
+                                node {
+                                    id
+                                        title {
+                                            romaji
+                                            english
+                                            }
+                                        coverImage {
+                                            medium
+                                            }
+                                        type
+                                        format
+                                        status
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ';
 
         return $this->query($query, ['id' => $id])['data']['Media'] ?? null;
     }
 
     /**
-     * Obtiene los géneros disponibles excluyendo explícitos.
+     * Obtiene todos los personajes de un anime.
+     */
+    public function getCharactersByAnime(int $animeId, int $page = 1, int $perPage = 50)
+    {
+        $query = '
+            query ($id: Int, $page: Int, $perPage: Int) {
+                Media(id: $id, type: ANIME) {
+                    characters(page: $page, perPage: $perPage) {
+                        pageInfo { total currentPage lastPage hasNextPage }
+                        edges { role node { id name { full } image { large medium } } }
+                    }
+                }
+            }
+        ';
+
+        return $this->query($query, ['id' => $animeId, 'page' => $page, 'perPage' => $perPage])['data']['Media']['characters'] ?? [];
+    }
+
+    /**
+     * Obtiene un personaje específico por su ID.
+     */
+    public function getCharacterById(int $characterId)
+    {
+        $query = '
+            query ($id: Int) {
+                Character(id: $id) {
+                    id
+                    name { full native }
+                    image { large medium }
+                    description
+                    favourites
+                    media { edges { role node { id title { romaji english } coverImage { large medium } } } }
+                }
+            }
+        ';
+
+        return $this->query($query, ['id' => $characterId])['data']['Character'] ?? null;
+    }
+
+    /**
+     * Obtiene todo el staff de un anime.
+     */
+    public function getStaffByAnime(int $animeId, int $page = 1, int $perPage = 50)
+    {
+        $query = '
+            query ($id: Int, $page: Int, $perPage: Int) {
+                Media(id: $id, type: ANIME) {
+                    staff(page: $page, perPage: $perPage) {
+                        pageInfo { total currentPage lastPage hasNextPage }
+                        edges { role node { id name { full } image { large medium } } }
+                    }
+                }
+            }
+        ';
+
+        return $this->query($query, ['id' => $animeId, 'page' => $page, 'perPage' => $perPage])['data']['Media']['staff'] ?? [];
+    }
+
+    /**
+     * Obtiene un miembro de staff por su ID.
+     */
+    public function getStaffById(int $staffId)
+    {
+        $query = '
+            query ($id: Int) {
+                Staff(id: $id) {
+                    id
+                    name { full native }
+                    image { large medium }
+                    description
+                    favourites
+                    staffMedia { edges { role node { id title { romaji english } coverImage { large medium } } } }
+                }
+            }
+        ';
+
+        return $this->query($query, ['id' => $staffId])['data']['Staff'] ?? null;
+    }
+
+    /**
+     * Obtiene episodios de un anime.
+     */
+    public function getEpisodesByAnime(int $animeId)
+    {
+        $query = '
+            query ($id: Int) {
+                Media(id: $id, type: ANIME) {
+                    episodes
+                }
+            }
+        ';
+
+        return $this->query($query, ['id' => $animeId])['data']['Media']['episodes'] ?? 0;
+    }
+
+    /**
+     * Obtiene comentarios (reviews) de un anime.
+     */
+    public function getReviewsByAnime(int $animeId, int $page = 1, int $perPage = 20)
+    {
+        $query = '
+            query ($id: Int, $page: Int, $perPage: Int) {
+                Media(id: $id, type: ANIME) {
+                    reviews(page: $page, perPage: $perPage) {
+                        pageInfo { total currentPage lastPage hasNextPage }
+                        nodes { id summary body rating user { id name } }
+                    }
+                }
+            }
+        ';
+
+        return $this->query($query, ['id' => $animeId, 'page' => $page, 'perPage' => $perPage])['data']['Media']['reviews'] ?? [];
+    }
+
+    /**
+     * Obtiene géneros disponibles excluyendo explícitos.
      */
     public function getGenres()
     {
@@ -144,6 +287,7 @@ class AniListService
 
         return compact('animes', 'pageInfo');
     }
+
     public function searchAnimeBySeason(array $params = [])
     {
         $filters = [];

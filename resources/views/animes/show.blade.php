@@ -13,13 +13,11 @@
             <div class="absolute inset-0 bg-black opacity-20"></div>
         </div>
 
-        <!-- Contenido principal: imagen y detalles -->
+        <!-- Contenido principal -->
         <div class="relative flex flex-col lg:flex-row p-6 lg:p-12 h-full items-start">
-            <!-- Portada y botones -->
             <div class="flex-shrink-0 mb-4 lg:mb-0 lg:mr-8 flex flex-col items-start">
                 <img src="{{ $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}"
                     class="w-64 h-96 object-cover rounded-lg shadow-lg mb-4">
-
                 <div class="flex space-x-4">
                     <button
                         class="flex items-center justify-center w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg shadow-md transition">
@@ -28,23 +26,19 @@
                                 d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782 1.4 8.172L12 18.896l-7.334 3.868 1.4-8.172-5.934-5.782 8.2-1.192z" />
                         </svg>
                     </button>
-
                     <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
                         Añadir a mi lista
                     </button>
                 </div>
             </div>
 
-            <!-- Información con scroll en la descripción al hover -->
             <div class="text-white lg:flex-1 max-w-3xl flex flex-col h-96">
                 <h2 class="text-4xl lg:text-5xl font-bold mb-2">{{ $anime['title']['romaji'] }}</h2>
                 <h3 class="text-2xl mb-2 text-gray-300">{{ $anime['title']['english'] ?? '' }}</h3>
                 <p class="mb-2 text-lg"><strong>Episodios:</strong> {{ $anime['episodes'] ?? 'N/A' }}</p>
 
-                <!-- Contenedor de descripción alineado con la portada -->
                 <div
-                    class="mt-4 p-6 bg-gray-800 bg-opacity-70 rounded-lg text-gray-100 text-lg leading-relaxed
-                        flex-1 overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+                    class="mt-4 p-6 bg-gray-800 bg-opacity-70 rounded-lg text-gray-100 text-lg leading-relaxed flex-1 overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
                     {!! $anime['description'] !!}
                 </div>
             </div>
@@ -54,7 +48,8 @@
     <!-- Sección adicional ocupando todo el ancho -->
     <section class="w-full p-6 mt-8 flex gap-8">
         <!-- Columna izquierda: info del anime disponible -->
-        <div class="w-64 flex-shrink-0 bg-gray-100 p-6 rounded-lg shadow-md sticky top-28 space-y-4">
+        <div class="w-64 flex-shrink-0 bg-gray-100 p-6 rounded-lg shadow-md space-y-4" style="align-self: flex-start;">
+            <!-- Aquí eliminamos sticky y limitamos altura -->
             <h2 class="text-xl font-bold mb-4">Detalles del Anime</h2>
 
             <div>
@@ -85,14 +80,18 @@
             <div>
                 <h3 class="text-gray-800 font-semibold text-base">START DATE</h3>
                 <p class="text-gray-700 text-sm">
-                    {{ $anime['startDate']['year'] ?? 'N/A' }}-{{ $anime['startDate']['month'] ?? 'N/A' }}-{{ $anime['startDate']['day'] ?? 'N/A' }}
+                    {{ $anime['startDate']['year'] ?? 'N/A' }}-
+                    {{ $anime['startDate']['month'] ?? 'N/A' }}-
+                    {{ $anime['startDate']['day'] ?? 'N/A' }}
                 </p>
             </div>
 
             <div>
                 <h3 class="text-gray-800 font-semibold text-base">END DATE</h3>
                 <p class="text-gray-700 text-sm">
-                    {{ $anime['endDate']['year'] ?? 'N/A' }}-{{ $anime['endDate']['month'] ?? 'N/A' }}-{{ $anime['endDate']['day'] ?? 'N/A' }}
+                    {{ $anime['endDate']['year'] ?? 'N/A' }}-
+                    {{ $anime['endDate']['month'] ?? 'N/A' }}-
+                    {{ $anime['endDate']['day'] ?? 'N/A' }}
                 </p>
             </div>
 
@@ -138,43 +137,171 @@
             </div>
         </div>
 
-        <!-- Columna derecha: menú y contenido -->
-        <div x-data="{ activeTab: '{{ $seccion }}' }" class="flex-1">
+        <!-- Columna derecha: menú de secciones -->
+        <div class="flex-1">
+            <h2 class="text-2xl font-bold mb-4">Secciones</h2>
 
-            <h2 class="text-2xl font-bold mb-4">Opciones</h2>
-
-            <div class="flex space-x-4 mb-6 border-b border-gray-300 overflow-x-auto">
-                @foreach (['opcion1', 'opcion2', 'opcion3', 'opcion4', 'opcion5'] as $op)
+            <!-- Menú de botones tipo tabs -->
+            <div class="flex space-x-2 mb-6 border-b border-gray-300 overflow-x-auto">
+                @foreach (['General', 'Personajes', 'Staff', 'Episodios', 'Comentarios'] as $section)
                     <button
-                        @click="
-                    activeTab = '{{ $op }}';
-                    const base = '/animes/{{ $anime['id'] }}';
-                    history.pushState({}, '', '{{ $op === 'opcion1' ? '' : '/' . $op }}' ? base + '{{ $op === 'opcion1' ? '' : '/' . $op }}' : base);
-                "
-                        :class="activeTab === '{{ $op }}' ? 'text-blue-500 border-blue-500' : 'text-gray-700'"
-                        class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500 transition">
-                        {{ ucfirst($op) }}
+                        class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
+                        {{ $section }}
                     </button>
                 @endforeach
             </div>
 
-            <div class="text-gray-700">
-                <template x-if="activeTab === 'opcion1'">
-                    <p>Contenido de la opción 1.</p>
-                </template>
+            <!-- Contenido por defecto: Vista General -->
+            <div class="text-gray-700 space-y-8">
+                <!-- Relaciones -->
+                <div class="mt-8">
+                    <h3 class="text-xl font-bold mb-3 border-b border-gray-300 pb-2">Relaciones</h3>
 
-                <template x-if="activeTab === 'opcion2'">
-                    <p>Contenido de la opción 2.</p>
-                </template>
+                    @php
+                        // Tipos permitidos y orden
+                        $allowedTypes = ['PREQUEL', 'SEQUEL', 'ALTERNATIVE'];
 
-                <template x-if="activeTab === 'opcion3'">
-                    <p>Contenido de la opción 3.</p>
-                </template>
+                        // Filtramos solo relaciones tipo ANIME permitidas
+                        $animeRelations = collect($anime['relations']['edges'] ?? [])->filter(
+                            fn($r) => ($r['node']['type'] ?? null) === 'ANIME' &&
+                                in_array(strtoupper($r['relationType'] ?? ''), $allowedTypes),
+                        );
+
+                        // Ordenar según el orden deseado
+                        $animeRelations = $animeRelations->sortBy(
+                            fn($r) => array_search(strtoupper($r['relationType']), $allowedTypes),
+                        );
+                    @endphp
+
+                    @if ($animeRelations->isNotEmpty())
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            @foreach ($animeRelations as $relation)
+                                <a href="{{ route('animes.show', $relation['node']['id']) }}"
+                                    class="block bg-gray-100 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition transform hover:-translate-y-1">
+                                    <div class="flex items-center space-x-3 p-3">
+                                        <img src="{{ $relation['node']['coverImage']['medium'] ?? '' }}"
+                                            alt="{{ $relation['node']['title']['romaji'] ?? 'Sin título' }}"
+                                            class="w-20 h-28 object-cover rounded-md">
+                                        <div class="flex-1 min-w-0">
+                                            <h4 class="text-base font-semibold text-gray-800 truncate">
+                                                {{ $relation['node']['title']['romaji'] ?? 'Sin título' }}
+                                            </h4>
+                                            <p class="text-sm text-gray-500">
+                                                {{ ucfirst(strtolower($relation['relationType'] ?? '')) }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-gray-500">No hay relaciones disponibles.</p>
+                    @endif
+                </div>
+
+                <!-- Personajes (resumen 10, MAIN primero) -->
+                <div>
+                    <h3 class="text-xl font-bold mb-4 border-b border-gray-300 pb-2">Personajes Destacados</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-3">
+                        @php
+                            $characters = $anime['characters']['edges'] ?? [];
+                            $mainCharacters = array_filter($characters, fn($c) => $c['role'] === 'MAIN');
+                            $otherCharacters = array_filter($characters, fn($c) => $c['role'] !== 'MAIN');
+                            $charactersToShow = array_slice(array_merge($mainCharacters, $otherCharacters), 0, 10);
+                        @endphp
+                        @foreach ($charactersToShow as $char)
+                            <div
+                                class="flex items-center bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 p-2">
+                                <img src="{{ $char['node']['image']['medium'] }}"
+                                    alt="{{ $char['node']['name']['full'] }}"
+                                    class="w-20 h-20 object-contain rounded-lg flex-shrink-0">
+                                <div class="ml-3 flex flex-col justify-center">
+                                    <p class="text-sm font-semibold">{{ $char['node']['name']['full'] }}</p>
+                                    <p class="text-xs text-gray-500">{{ $char['role'] }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Staff (resumen 5) -->
+                <div>
+                    <h3 class="text-xl font-bold mb-4 border-b border-gray-300 pb-2">Staff Destacado</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-3">
+                        @php
+                            $staffList = $anime['staff']['edges'] ?? [];
+                            $staffToShow = array_slice($staffList, 0, 6);
+                        @endphp
+                        @foreach ($staffToShow as $staff)
+                            <div
+                                class="flex items-center bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 p-2">
+                                <img src="{{ $staff['node']['image']['medium'] }}"
+                                    alt="{{ $staff['node']['name']['full'] }}"
+                                    class="w-20 h-20 object-contain rounded-lg flex-shrink-0">
+                                <div class="ml-3 flex flex-col justify-center">
+                                    <p class="text-sm font-semibold">{{ $staff['node']['name']['full'] }}</p>
+                                    <p class="text-xs text-gray-500">{{ $staff['role'] }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                <!-- Trailer -->
+                <div class="mt-8">
+                    <h3 class="text-xl font-bold mb-3 border-b border-gray-300 pb-2">Trailer</h3>
+
+                    @if (!empty($anime['trailer']) && $anime['trailer']['site'] === 'youtube')
+                        <div class="w-full max-w-3xl rounded-lg overflow-hidden shadow-md">
+                            <iframe src="https://www.youtube.com/embed/{{ $anime['trailer']['id'] }}"
+                                title="YouTube trailer" frameborder="0" allowfullscreen class="w-full h-72 rounded-lg">
+                            </iframe>
+                        </div>
+                    @elseif(!empty($anime['trailer']) && $anime['trailer']['site'] === 'dailymotion')
+                        <div class="w-full max-w-3xl rounded-lg overflow-hidden shadow-md">
+                            <iframe src="https://www.dailymotion.com/embed/video/{{ $anime['trailer']['id'] }}"
+                                title="Dailymotion trailer" frameborder="0" allowfullscreen
+                                class="w-full h-72 rounded-lg">
+                            </iframe>
+                        </div>
+                    @else
+                        <p class="text-gray-500">Trailer no disponible.</p>
+                    @endif
+                </div>
+
+
+
+                <!-- Episodios -->
+                <div class="mt-8">
+                    <h3 class="text-xl font-bold mb-3 border-b border-gray-300 pb-2">Episodios</h3>
+
+                    @if (!empty($anime['streamingEpisodes']))
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            @foreach (collect($anime['streamingEpisodes'])->take(4) as $episode)
+                                <a href="{{ $episode['url'] }}" target="_blank"
+                                    class="block bg-gray-100 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
+                                    <img src="{{ $episode['thumbnail'] }}" alt="{{ $episode['title'] }}"
+                                        class="w-full object-cover h-40">
+                                    <div class="p-3">
+                                        <h4 class="text-sm font-semibold text-gray-800 truncate">
+                                            {{ $episode['title'] }}</h4>
+                                        <p class="text-xs text-gray-500">{{ $episode['site'] }}</p>
+                                    </div>
+                                </a>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-gray-500">Episodios no disponibles.</p>
+                    @endif
+                </div>
+                <!--Comentarios -->
+                <div>
+                    <h3 class="text-xl font-bold mb-2 border-b border-gray-300 pb-2">Comentarios</h3>
+                    <p>Proximante...</p>
+                </div>
+
             </div>
         </div>
 
-
     </section>
 
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </x-app-layout>
