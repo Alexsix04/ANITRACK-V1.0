@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AnimeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CharactersController;
+use App\Http\Controllers\EpisodesController;
 use App\Http\Controllers\StaffController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,9 @@ Route::get('/animes/{id}', [AnimeController::class, 'show'])->name('animes.show'
 Route::prefix('animes/{anime}')->name('animes.')->group(function () {
     Route::get('personajes', [CharactersController::class, 'index'])->name('characters.index');
     Route::get('personajes/{character}', [CharactersController::class, 'show'])->name('characters.show');
+    Route::get('staff', [StaffController::class, 'index'])->name('staff.index');
+    Route::get('staff/{staff}', [StaffController::class, 'show'])->name('staff.show');
+    Route::get('episodios', [EpisodesController::class, 'index'])->name('episodes.index');
 });
 
 //Rutas Listas

@@ -115,40 +115,6 @@ class AniListService
         return $this->query($query, ['id' => $animeId, 'page' => $page, 'perPage' => $perPage])['data']['Media']['characters'] ?? [];
     }
 
-    public function getAllCharactersByAnime(int $animeId)
-    {
-        $allCharacters = [];
-        $page = 1;
-        $perPage = 50;
-        $hasNextPage = true;
-
-        while ($hasNextPage) {
-            $query = '
-            query ($id: Int, $page: Int, $perPage: Int) {
-                Media(id: $id, type: ANIME) {
-                    characters(page: $page, perPage: $perPage) {
-                        pageInfo { currentPage hasNextPage }
-                        edges { role node { id name { full } image { large medium } } }
-                    }
-                }
-            }
-        ';
-
-            $response = $this->query($query, ['id' => $animeId, 'page' => $page, 'perPage' => $perPage]);
-            $charactersData = $response['data']['Media']['characters'] ?? null;
-
-            if ($charactersData) {
-                $allCharacters = array_merge($allCharacters, $charactersData['edges']);
-                $hasNextPage = $charactersData['pageInfo']['hasNextPage'];
-                $page++;
-            } else {
-                $hasNextPage = false;
-            }
-        }
-
-        return $allCharacters;
-    }
-
     /**
      * Obtiene un personaje específico por su ID.
      */

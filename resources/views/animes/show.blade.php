@@ -156,6 +156,18 @@
                             class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
                             {{ $section }}
                         </a>
+                    @elseif ($section === 'Staff')
+                        <!-- Botón funcional que lleva a la vista de personajes -->
+                        <a href="{{ route('animes.staff.index', ['anime' => $anime['id']]) }}"
+                            class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
+                            {{ $section }}
+                        </a>
+                    @elseif ($section === 'Episodios')
+                        <!-- Botón funcional que lleva a la vista de personajes -->
+                        <a href="{{ route('animes.episodes.index', ['anime' => $anime['id']]) }}"
+                            class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
+                            {{ $section }}
+                        </a>
                     @else
                         <!-- Botones estáticos -->
                         <button
@@ -270,7 +282,8 @@
                     @if (!empty($anime['trailer']) && $anime['trailer']['site'] === 'youtube')
                         <div class="w-full max-w-3xl rounded-lg overflow-hidden shadow-md">
                             <iframe src="https://www.youtube.com/embed/{{ $anime['trailer']['id'] }}"
-                                title="YouTube trailer" frameborder="0" allowfullscreen class="w-full h-72 rounded-lg">
+                                title="YouTube trailer" frameborder="0" allowfullscreen
+                                class="w-full h-72 rounded-lg">
                             </iframe>
                         </div>
                     @elseif(!empty($anime['trailer']) && $anime['trailer']['site'] === 'dailymotion')
@@ -310,12 +323,54 @@
                         <p class="text-gray-500">Episodios no disponibles.</p>
                     @endif
                 </div>
-                <!--Comentarios -->
-                <div>
+                <!--Comentarios-->
+                <div class="mt-8">
                     <h3 class="text-xl font-bold mb-2 border-b border-gray-300 pb-2">Comentarios</h3>
-                    <p>Proximante...</p>
+
+                    <!-- Lista de comentarios -->
+                    <div id="commentsList" class="space-y-3 mb-4">
+                        <p class="text-gray-500">Sé el primero en comentar...</p>
+                    </div>
+
+                    <!-- Formulario para añadir comentario -->
+                    <form id="commentForm" class="flex flex-col space-y-2">
+                        <textarea id="commentInput" rows="3" placeholder="Añadir un comentario..."
+                            class="border border-gray-300 rounded-md p-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        <button type="submit"
+                            class="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600 transition">
+                            Comentar
+                        </button>
+                    </form>
                 </div>
 
+                <script>
+                    // Obtener elementos
+                    const form = document.getElementById('commentForm');
+                    const input = document.getElementById('commentInput');
+                    const commentsList = document.getElementById('commentsList');
+
+                    // Manejar envío del formulario
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+
+                        const commentText = input.value.trim();
+                        if (!commentText) return;
+
+                        // Crear nuevo comentario temporal
+                        const newComment = document.createElement('div');
+                        newComment.classList.add('bg-gray-100', 'p-3', 'rounded-md', 'shadow');
+                        newComment.innerHTML = `
+            <p class="text-sm font-semibold">Usuario Anónimo</p>
+            <p class="text-sm text-gray-700 mt-1">${commentText}</p>
+        `;
+
+                        // Añadir al listado
+                        commentsList.prepend(newComment);
+
+                        // Limpiar textarea
+                        input.value = '';
+                    });
+                </script>
             </div>
         </div>
 

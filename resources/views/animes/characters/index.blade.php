@@ -155,6 +155,18 @@
                             class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
                             {{ $section }}
                         </a>
+                    @elseif ($section === 'Staff')
+                        <!-- Botón funcional que lleva a la vista de staff -->
+                        <a href="{{ route('animes.staff.index', ['anime' => $anime['id']]) }}"
+                            class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
+                            {{ $section }}
+                        </a>
+                     @elseif ($section === 'Episodios')
+                        <!-- Botón funcional que lleva a la vista de personajes -->
+                        <a href="{{ route('animes.episodes.index', ['anime' => $anime['id']]) }}"
+                            class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
+                            {{ $section }}
+                        </a>
                     @else
                         <!-- Botones estáticos -->
                         <button
@@ -225,7 +237,7 @@
                             });
                             const data = await response.json();
 
-                            if (data.html.trim() === '') {
+                            if (!data.html || !data.hasMore) {
                                 hasMore = false;
                             } else {
                                 container.insertAdjacentHTML('beforeend', data.html);

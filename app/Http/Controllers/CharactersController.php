@@ -14,28 +14,22 @@ class CharactersController extends Controller
         $this->aniList = $aniList;
     }
 
-    // Lista de personajes de un anime
+    // Lista de personajes de un anime (scroll infinito 25 por página)
     public function index(Request $request, $animeId)
     {
         $anime = $this->aniList->getAnimeById((int)$animeId);
         if (!$anime) abort(404, 'Anime no encontrado');
 
-        // Traer todos los personajes del anime
-        $allCharacters = $this->aniList->getAllCharactersByAnime((int)$animeId);
-
-        // Filtrar MAIN primero
-        $allCharacters = collect($allCharacters)
-            ->sortByDesc(fn($c) => $c['role'] === 'MAIN')
-            ->values()
-            ->all();
-
-        // Paginación manual para el scroll infinito
+        $page = (int)$request->get('page', 1);
         $perPage = 25;
-        $page = (int) $request->get('page', 1);
-        $offset = ($page - 1) * $perPage;
-        $characters = array_slice($allCharacters, $offset, $perPage);
 
-        // Respuesta AJAX para scroll infinito
+        // Obtenemos solo la página que necesitamos
+        $charactersPage = $this->aniList->getCharactersByAnime((int)$animeId, $page, $perPage);
+
+        $characters = $charactersPage['edges'] ?? [];
+        $hasMore = $charactersPage['pageInfo']['hasNextPage'] ?? false;
+
+        // Respuesta AJAX
         if ($request->ajax()) {
             $html = '';
             foreach ($characters as $char) {
@@ -57,37 +51,36 @@ class CharactersController extends Controller
 
             return response()->json([
                 'html' => $html,
-                'hasMore' => ($offset + $perPage) < count($allCharacters),
+                'hasMore' => $hasMore,
             ]);
         }
 
-        // Vista normal
         return view('animes.characters.index', compact('anime', 'characters'));
     }
+
     // Detalle de un personaje
     public function show($animeId, $characterId)
     {
+
+        dd([
+        'animeId' => $animeId,
+        'characterId' => $characterId
+    ]);
+    
         $anime = $this->aniList->getAnimeById((int)$animeId);
         if (!$anime) abort(404, 'Anime no encontrado');
 
-        $characters = $this->aniList->getAllCharactersByAnime((int)$animeId);
+        $characterData = $this->aniList->getCharacterById((int)$characterId);
+        if (!$characterData) abort(404, 'Personaje no encontrado');
 
-        $character = collect($characters)
-            ->firstWhere('node.id', (int)$characterId);
-
-        if (!$character) abort(404, 'Personaje no encontrado');
-
-        // Mapear al formato que espera tu vista
+        // Mapear al formato que espera la vista
         $character = [
-            'id' => $character['node']['id'],
-            'name' => $character['node']['name'],
-            'image' => $character['node']['image'],
-            'role' => $character['role'],
-            'description' => $character['node']['description'] ?? null,
-            'gender' => $character['node']['gender'] ?? null,
-            'age' => $character['node']['age'] ?? null,
-            'voiceActors' => $character['voiceActors'] ?? [],
-            'media' => $character['media'] ?? [],
+            'id' => $characterData['id'],
+            'name' => $characterData['name'],
+            'image' => $characterData['image'],
+            'description' => $characterData['description'] ?? null,
+            'favourites' => $characterData['favourites'] ?? 0,
+            'media' => $characterData['media']['edges'] ?? [],
         ];
 
         return view('animes.characters.show', compact('character'));
