@@ -144,12 +144,29 @@
             <!-- Menú de botones tipo tabs -->
             <div class="flex space-x-2 mb-6 border-b border-gray-300 overflow-x-auto">
                 @foreach (['General', 'Personajes', 'Staff', 'Episodios', 'Comentarios'] as $section)
-                    <button
-                        class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
-                        {{ $section }}
-                    </button>
+                    @if ($section === 'General')
+                        <!-- Botón funcional que lleva a la vista general del anime -->
+                        <a href="{{ route('animes.show', ['id' => $anime['id']]) }}"
+                            class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
+                            {{ $section }}
+                        </a>
+                    @elseif ($section === 'Personajes')
+                        <!-- Botón funcional que lleva a la vista de personajes -->
+                        <a href="{{ route('animes.characters.index', ['anime' => $anime['id']]) }}"
+                            class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
+                            {{ $section }}
+                        </a>
+                    @else
+                        <!-- Botones estáticos -->
+                        <button
+                            class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
+                            {{ $section }}
+                        </button>
+                    @endif
                 @endforeach
             </div>
+
+
 
             <!-- Contenido por defecto: Vista General -->
             <div class="text-gray-700 space-y-8">

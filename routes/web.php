@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AnimeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CharactersController;
+use App\Http\Controllers\StaffController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -28,14 +29,12 @@ Route::post('/profile/update-bio-avatar', [ProfileController::class, 'updateBioA
 //Rutas  Animes
 Route::get('/animes', [AnimeController::class, 'index'])->name('animes.index');
 Route::get('/animes/{id}', [AnimeController::class, 'show'])->name('animes.show');
-Route::get('/animes/{id}/{seccion?}', [AnimeController::class, 'show'])->name('animes.show');
 
-//Rutas Personajes
-Route::prefix('animes/{anime}')->group(function () {
-    Route::get('personajes', [CharactersController::class, 'index'])->name('animes.personajes.index');
-    Route::get('personajes/{character}', [CharactersController::class, 'show'])->name('animes.personajes.show');
+// Personajes
+Route::prefix('animes/{anime}')->name('animes.')->group(function () {
+    Route::get('personajes', [CharactersController::class, 'index'])->name('characters.index');
+    Route::get('personajes/{character}', [CharactersController::class, 'show'])->name('characters.show');
 });
-
 
 //Rutas Listas
 Route::get('/listas', [AnimeController::class, 'index'])->name('listas.index');
