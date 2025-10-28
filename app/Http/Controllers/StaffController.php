@@ -64,17 +64,39 @@ class StaffController extends Controller
      */
     public function show($animeId, $staffId)
     {
+        // Obtener anime
         $anime = $this->aniList->getAnimeById((int)$animeId);
         if (!$anime) abort(404, 'Anime no encontrado');
 
-        $staffMember = $this->aniList->getStaffById((int)$staffId);
+        // Intentamos buscar el staff dentro del anime
+        $page = 1;
+        $perPage = 50;
+        $staffMember = null;
+
+        do {
+            $staffPage = $this->aniList->getStaffByAnime((int)$animeId, $page, $perPage);
+            $edges = $staffPage['edges'] ?? [];
+
+            foreach ($edges as $staff) {
+                if ((int)$staff['node']['id'] === (int)$staffId) {
+                    $staffMember = $staff['node'];
+                    $role = $staff['role'] ?? null;
+                    break 2; // encontrado
+                }
+            }
+
+            $page++;
+            $hasMore = $staffPage['pageInfo']['hasNextPage'] ?? false;
+        } while ($hasMore && !$staffMember);
 
         if (!$staffMember) abort(404, 'Miembro del staff no encontrado');
 
+        // Mapear al formato de la vista
         $staff = [
             'id' => $staffMember['id'],
             'name' => $staffMember['name'],
             'image' => $staffMember['image'],
+            'role' => $role,
             'description' => $staffMember['description'] ?? null,
             'favourites' => $staffMember['favourites'] ?? 0,
             'media' => $staffMember['staffMedia']['edges'] ?? [],

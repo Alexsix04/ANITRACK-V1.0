@@ -106,7 +106,7 @@ class AniListService
                 Media(id: $id, type: ANIME) {
                     characters(page: $page, perPage: $perPage) {
                         pageInfo { total currentPage lastPage hasNextPage }
-                        edges { role node { id name { full } image { large medium } } }
+                        edges { role node { id name { full } image { large medium } description age gender bloodType dateOfBirth { year month day } } }
                     }
                 }
             }
