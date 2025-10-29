@@ -107,21 +107,20 @@
                     <h2 class="text-2xl font-bold mb-4 border-b border-gray-300 pb-2">Actores de Voz</h2>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         @foreach ($character['voiceActors'] as $actor)
-                            <div
-                                class="bg-white rounded-lg overflow-hidden shadow-sm p-2 flex flex-col items-center text-center">
+                            <a href="{{ route('animes.voiceactors.show', ['id' => $actor['id']]) }}"
+                                class="bg-white rounded-lg overflow-hidden shadow-sm p-2 flex flex-col items-center text-center hover:shadow-md hover:-translate-y-1 transform transition">
                                 <img src="{{ $actor['image']['medium'] ?? ($actor['image']['large'] ?? '') }}"
                                     alt="{{ $actor['name']['full'] }}"
                                     class="w-24 h-24 object-cover rounded-full mb-2">
-                                <p class="text-sm font-semibold">{{ $actor['name']['full'] }}</p>
+                                <p class="text-sm font-semibold text-gray-800">{{ $actor['name']['full'] }}</p>
                                 @if (!empty($actor['languageV2']))
                                     <p class="text-xs text-gray-500">{{ $actor['languageV2'] }}</p>
                                 @endif
-                            </div>
+                            </a>
                         @endforeach
                     </div>
                 </div>
             @endif
-
         </div>
     </div>
 </x-app-layout>

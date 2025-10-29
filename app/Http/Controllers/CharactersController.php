@@ -113,6 +113,7 @@ class CharactersController extends Controller
             'Species' => 'Especie',
             'Alias' => 'Alias',
             'Weapon' => 'Arma',
+            'Partners' => 'Partners',
         ];
 
         // Detectar atributos tipo __Height__: o **Height:**
@@ -121,6 +122,9 @@ class CharactersController extends Controller
                 $key = trim($match[1]);
                 $value = trim($match[2]);
                 $translatedKey = $translations[$key] ?? $key;
+
+                // Limpiar delimitadores tipo ~! ... !~ pero conservar el contenido
+                $value = preg_replace('/~!\s*(.*?)\s*!~/', '$1', $value);
 
                 // Reemplazar enlaces de personajes dentro del valor
                 $value = preg_replace_callback(
@@ -133,6 +137,14 @@ class CharactersController extends Controller
                     },
                     $value
                 );
+
+                // Quitar guiones finales solitarios en Edad
+                if ($translatedKey === 'Edad') {
+                    $value = preg_replace('/-$/', '', $value);
+                }
+
+                // Quitar __ o ** sobrantes
+                $value = preg_replace('/^(?:__|\*\*)|(?:__|\*\*)$/', '', $value);
 
                 $attributes[$translatedKey] = $value;
             }
@@ -171,7 +183,6 @@ class CharactersController extends Controller
             !empty($characterData['dateOfBirth']) &&
             (!empty($characterData['dateOfBirth']['day']) || !empty($characterData['dateOfBirth']['month']))
         ) {
-
             $day = $characterData['dateOfBirth']['day'] ?? null;
             $month = $characterData['dateOfBirth']['month'] ?? null;
             $year = $characterData['dateOfBirth']['year'] ?? null;
@@ -191,7 +202,7 @@ class CharactersController extends Controller
             'description' => $cleanDescription,
             'favourites' => $characterData['favourites'] ?? 0,
             'media' => $characterData['media']['edges'] ?? [],
-            'voiceActors' => $voiceActors, // <-- actores de voz solo para este personaje en este anime
+            'voiceActors' => $voiceActors,
             'extra_attributes' => $attributes,
         ];
 

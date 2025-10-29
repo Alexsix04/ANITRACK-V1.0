@@ -6,6 +6,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CharactersController;
 use App\Http\Controllers\EpisodesController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\VoiceActorsController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -31,7 +32,7 @@ Route::post('/profile/update-bio-avatar', [ProfileController::class, 'updateBioA
 Route::get('/animes', [AnimeController::class, 'index'])->name('animes.index');
 Route::get('/animes/{id}', [AnimeController::class, 'show'])->name('animes.show');
 
-// Personajes
+// Secciones
 Route::prefix('animes/{anime}')->name('animes.')->group(function () {
     Route::get('personajes', [CharactersController::class, 'index'])->name('characters.index');
     Route::get('personajes/{character}', [CharactersController::class, 'show'])->name('characters.show');
@@ -39,6 +40,9 @@ Route::prefix('animes/{anime}')->name('animes.')->group(function () {
     Route::get('staff/{staff}', [StaffController::class, 'show'])->name('staff.show');
     Route::get('episodios', [EpisodesController::class, 'index'])->name('episodes.index');
 });
+
+//Actores de voz
+Route::get('animes/Actores-de-voz/{id}', [VoiceActorsController::class, 'show'])->name('animes.voiceactors.show');
 
 //Rutas Listas
 Route::get('/listas', [AnimeController::class, 'index'])->name('listas.index');

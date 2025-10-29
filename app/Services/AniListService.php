@@ -205,7 +205,7 @@ query ($id: Int) {
                 image { large medium }
                 description
                 favourites
-                staffMedia(page: $page, perPage: $perPage, sort: POPULARITY_DESC) {
+                staffMedia(page: $page, perPage: $perPage) {
                     pageInfo { total currentPage lastPage hasNextPage }
                     edges { node { id title { romaji english } coverImage { large medium } } }
                 }
@@ -216,6 +216,50 @@ query ($id: Int) {
     return $this->query($query, ['id' => $staffId, 'page' => $page, 'perPage' => $perPage])['data']['Staff'] ?? null;
 }
 
+public function getStaffSummaryById(int $staffId, int $page = 1, int $perPage = 25)
+{
+    $query = '
+        query ($id: Int, $page: Int, $perPage: Int) {
+            Staff(id: $id) {
+                id
+                name { full native }
+                image { large medium }
+                description
+                favourites
+                staffMedia(page: $page, perPage: $perPage, sort: POPULARITY_DESC) {
+                    edges {
+                        node {
+                            id
+                            title { romaji english }
+                            coverImage { large medium }
+                        }
+                    }
+                }
+                characterMedia(page: 1, perPage: 50, sort: POPULARITY_DESC) {
+                    edges {
+                        node {
+                            id
+                            title { romaji english }
+                            coverImage { large medium }
+                        }
+                        characters {
+                            id
+                            name { full native }
+                            image { large medium }
+                            favourites
+                        }
+                    }
+                }
+            }
+        }
+    ';
+
+    return $this->query($query, [
+        'id' => $staffId,
+        'page' => $page,
+        'perPage' => $perPage,
+    ])['data']['Staff'] ?? null;
+}
 
     /**
      * Obtiene episodios de un anime.
