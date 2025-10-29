@@ -239,22 +239,25 @@
                             $charactersToShow = array_slice(array_merge($mainCharacters, $otherCharacters), 0, 10);
                         @endphp
                         @foreach ($charactersToShow as $char)
-                            <div
-                                class="flex items-center bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 p-2">
-                                <img src="{{ $char['node']['image']['medium'] }}"
-                                    alt="{{ $char['node']['name']['full'] }}"
-                                    class="w-20 h-20 object-contain rounded-lg flex-shrink-0">
-                                <div class="ml-3 flex flex-col justify-center">
-                                    <p class="text-sm font-semibold">{{ $char['node']['name']['full'] }}</p>
-                                    <p class="text-xs text-gray-500">{{ $char['role'] }}</p>
+                            <a href="{{ route('animes.characters.show', ['anime' => $anime['id'], 'character' => $char['node']['id']]) }}"
+                                class="block">
+                                <div
+                                    class="flex items-center bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 p-2">
+                                    <img src="{{ $char['node']['image']['medium'] }}"
+                                        alt="{{ $char['node']['name']['full'] }}"
+                                        class="w-20 h-20 object-contain rounded-lg flex-shrink-0">
+                                    <div class="ml-3 flex flex-col justify-center">
+                                        <p class="text-sm font-semibold">{{ $char['node']['name']['full'] }}</p>
+                                        <p class="text-xs text-gray-500">{{ $char['role'] }}</p>
+                                    </div>
                                 </div>
-                            </div>
+                            </a>
                         @endforeach
                     </div>
                 </div>
 
                 <!-- Staff (resumen 5) -->
-                <div>
+                <div class="mt-6">
                     <h3 class="text-xl font-bold mb-4 border-b border-gray-300 pb-2">Staff Destacado</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-3">
                         @php
@@ -262,16 +265,19 @@
                             $staffToShow = array_slice($staffList, 0, 6);
                         @endphp
                         @foreach ($staffToShow as $staff)
-                            <div
-                                class="flex items-center bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 p-2">
-                                <img src="{{ $staff['node']['image']['medium'] }}"
-                                    alt="{{ $staff['node']['name']['full'] }}"
-                                    class="w-20 h-20 object-contain rounded-lg flex-shrink-0">
-                                <div class="ml-3 flex flex-col justify-center">
-                                    <p class="text-sm font-semibold">{{ $staff['node']['name']['full'] }}</p>
-                                    <p class="text-xs text-gray-500">{{ $staff['role'] }}</p>
+                            <a href="{{ route('animes.staff.show', ['anime' => $anime['id'], 'staff' => $staff['node']['id']]) }}"
+                                class="block">
+                                <div
+                                    class="flex items-center bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-300 p-2">
+                                    <img src="{{ $staff['node']['image']['medium'] }}"
+                                        alt="{{ $staff['node']['name']['full'] }}"
+                                        class="w-20 h-20 object-contain rounded-lg flex-shrink-0">
+                                    <div class="ml-3 flex flex-col justify-center">
+                                        <p class="text-sm font-semibold">{{ $staff['node']['name']['full'] }}</p>
+                                        <p class="text-xs text-gray-500">{{ $staff['role'] }}</p>
+                                    </div>
                                 </div>
-                            </div>
+                            </a>
                         @endforeach
                     </div>
                 </div>

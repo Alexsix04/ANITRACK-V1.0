@@ -102,16 +102,33 @@ class AniListService
     public function getCharactersByAnime(int $animeId, int $page = 1, int $perPage = 50)
     {
         $query = '
-            query ($id: Int, $page: Int, $perPage: Int) {
-                Media(id: $id, type: ANIME) {
-                    characters(page: $page, perPage: $perPage) {
-                        pageInfo { total currentPage lastPage hasNextPage }
-                        edges { role node { id name { full } image { large medium } description age gender bloodType dateOfBirth { year month day } } }
+    query ($id: Int, $page: Int, $perPage: Int) {
+        Media(id: $id, type: ANIME) {
+            characters(page: $page, perPage: $perPage) {
+                pageInfo { total currentPage lastPage hasNextPage }
+                edges {
+                    role
+                    node {
+                        id
+                        name { full }
+                        image { large medium }
+                        description
+                        age
+                        gender
+                        bloodType
+                        dateOfBirth { year month day }
+                    }
+                    voiceActors(sort: [RELEVANCE, ID]) {
+                        id
+                        name { full native }
+                        languageV2
+                        image { large medium }
                     }
                 }
             }
-        ';
-
+        }
+    }
+';
         return $this->query($query, ['id' => $animeId, 'page' => $page, 'perPage' => $perPage])['data']['Media']['characters'] ?? [];
     }
 
@@ -121,17 +138,37 @@ class AniListService
     public function getCharacterById(int $characterId)
     {
         $query = '
-            query ($id: Int) {
-                Character(id: $id) {
+query ($id: Int) {
+    Character(id: $id) {
+        id
+        name { full native }
+        image { large medium }
+        description
+        age
+        gender
+        bloodType
+        dateOfBirth { day month year }
+        favourites
+        media {
+            edges {
+                role
+                node { 
                     id
-                    name { full native }
-                    image { large medium }
-                    description
-                    favourites
-                    media { edges { role node { id title { romaji english } coverImage { large medium } } } }
+                    title { romaji english }
+                    coverImage { large medium }
                 }
             }
-        ';
+        }
+        voiceActors {
+            id
+            name { full native }
+            languageV2
+            image { medium large }
+        }
+    }
+}
+';
+
 
         return $this->query($query, ['id' => $characterId])['data']['Character'] ?? null;
     }
