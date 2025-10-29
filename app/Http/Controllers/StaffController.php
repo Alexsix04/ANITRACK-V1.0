@@ -66,12 +66,15 @@ class StaffController extends Controller
     {
         // Obtener anime
         $anime = $this->aniList->getAnimeById((int)$animeId);
-        if (!$anime) abort(404, 'Anime no encontrado');
+        if (!$anime) {
+            abort(404, 'Anime no encontrado');
+        }
 
-        // Intentamos buscar el staff dentro del anime
+        // Buscar el staff dentro del anime y obtener roles en este anime
         $page = 1;
         $perPage = 50;
         $staffMember = null;
+        $rolesInAnime = [];
 
         do {
             $staffPage = $this->aniList->getStaffByAnime((int)$animeId, $page, $perPage);
@@ -80,8 +83,7 @@ class StaffController extends Controller
             foreach ($edges as $staff) {
                 if ((int)$staff['node']['id'] === (int)$staffId) {
                     $staffMember = $staff['node'];
-                    $role = $staff['role'] ?? null;
-                    break 2; // encontrado
+                    $rolesInAnime[] = $staff['role'] ?? null;
                 }
             }
 
@@ -89,19 +91,53 @@ class StaffController extends Controller
             $hasMore = $staffPage['pageInfo']['hasNextPage'] ?? false;
         } while ($hasMore && !$staffMember);
 
-        if (!$staffMember) abort(404, 'Miembro del staff no encontrado');
+        if (!$staffMember) {
+            abort(404, 'Miembro del staff no encontrado');
+        }
+
+        // Obtener todos los animes del staff con paginación y eliminar duplicados
+        $otherAnimes = [];
+        $uniqueAnimes = []; // para evitar duplicados por ID
+        $page = 1;
+        $perPage = 25;
+
+        do {
+            $fullStaffPage = $this->aniList->getStaffById((int)$staffId, $page, $perPage);
+            $edges = $fullStaffPage['staffMedia']['edges'] ?? [];
+
+            foreach ($edges as $mediaEdge) {
+                $media = $mediaEdge['node'];
+                $id = (int)$media['id'];
+
+                // Excluir el anime actual y duplicados
+                if ($id !== (int)$animeId && !isset($uniqueAnimes[$id])) {
+                    $uniqueAnimes[$id] = true;
+                    $otherAnimes[] = [
+                        'id' => $media['id'],
+                        'title' => $media['title']['romaji'] ?? $media['title']['english'] ?? 'Sin título',
+                        'coverImage' => $media['coverImage']['large'] ?? null,
+                    ];
+                }
+            }
+
+            $page++;
+            $hasMore = $fullStaffPage['staffMedia']['pageInfo']['hasNextPage'] ?? false;
+        } while ($hasMore);
 
         // Mapear al formato de la vista
         $staff = [
             'id' => $staffMember['id'],
             'name' => $staffMember['name'],
             'image' => $staffMember['image'],
-            'role' => $role,
-            'description' => $staffMember['description'] ?? null,
-            'favourites' => $staffMember['favourites'] ?? 0,
-            'media' => $staffMember['staffMedia']['edges'] ?? [],
+            'roles_in_anime' => $rolesInAnime,
+            'description' => $fullStaffPage['description'] ?? null,
+            'favourites' => $fullStaffPage['favourites'] ?? 0,
+            'other_animes' => $otherAnimes,
         ];
 
-        return view('animes.staff.show', compact('staff'));
+        // Depuración opcional
+        // dd($staff['other_animes']);
+
+        return view('animes.staff.show', compact('staff', 'anime'));
     }
 }

@@ -195,23 +195,27 @@ query ($id: Int) {
     /**
      * Obtiene un miembro de staff por su ID.
      */
-    public function getStaffById(int $staffId)
-    {
-        $query = '
-            query ($id: Int) {
-                Staff(id: $id) {
-                    id
-                    name { full native }
-                    image { large medium }
-                    description
-                    favourites
-                    staffMedia { edges { role node { id title { romaji english } coverImage { large medium } } } }
+    public function getStaffById(int $staffId, int $page = 1, int $perPage = 25)
+{
+    $query = '
+        query ($id: Int, $page: Int, $perPage: Int) {
+            Staff(id: $id) {
+                id
+                name { full native }
+                image { large medium }
+                description
+                favourites
+                staffMedia(page: $page, perPage: $perPage, sort: POPULARITY_DESC) {
+                    pageInfo { total currentPage lastPage hasNextPage }
+                    edges { node { id title { romaji english } coverImage { large medium } } }
                 }
             }
-        ';
+        }
+    ';
 
-        return $this->query($query, ['id' => $staffId])['data']['Staff'] ?? null;
-    }
+    return $this->query($query, ['id' => $staffId, 'page' => $page, 'perPage' => $perPage])['data']['Staff'] ?? null;
+}
+
 
     /**
      * Obtiene episodios de un anime.
