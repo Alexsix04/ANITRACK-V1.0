@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\AniListService;
+use App\Models\AnimeComment;
 
 class AnimeController extends Controller
 {
@@ -101,12 +102,15 @@ class AnimeController extends Controller
     {
         $anime = $this->aniList->getAnimeById((int)$id);
 
-       // dd($anime);
-
         if (!$anime) abort(404, 'Anime no encontrado');
 
         $seccion = $seccion ?? 'general';
 
-        return view('animes.show', compact('anime', 'seccion'));
+        $comments = AnimeComment::where('anime_id', $id)
+                ->orderBy('likes_count', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+        return view('animes.show', compact('anime', 'seccion', 'comments'));
     }
 }

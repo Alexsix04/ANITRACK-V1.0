@@ -329,26 +329,217 @@
                         <p class="text-gray-500">Episodios no disponibles.</p>
                     @endif
                 </div>
-                <!--Comentarios-->
-                <div class="mt-8">
-                    <h3 class="text-xl font-bold mb-2 border-b border-gray-300 pb-2">Comentarios</h3>
+                <!-- =============== -->
+                <!-- Sección Comentarios -->
+                <!-- =============== -->
+                <div class="max-w-2xl mx-auto mt-10">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Comentarios</h2>
 
-                    <!-- Lista de comentarios -->
-                    <div id="commentsList" class="space-y-3 mb-4">
-                        <p class="text-gray-500">Sé el primero en comentar...</p>
-                    </div>
+                    <!-- Mensaje de éxito -->
+                    @if (session('success'))
+                        <div class="mb-4 rounded-md bg-green-100 p-3 text-green-700">
+                            {{ session('success') }}
+                        </div>
+                    @endif
 
-                    <!-- Formulario para añadir comentario -->
-                    <form id="commentForm" class="flex flex-col space-y-2">
-                        <textarea id="commentInput" rows="3" placeholder="Añadir un comentario..."
-                            class="border border-gray-300 rounded-md p-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    <!-- Errores de validación -->
+                    @if ($errors->any())
+                        <div class="mb-4 rounded-md bg-red-100 p-3 text-red-700">
+                            <ul class="list-disc list-inside">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <!-- Formulario de comentario -->
+                    <form action="{{ route('anime-comments.store') }}" method="POST" enctype="multipart/form-data"
+                        class="bg-white rounded-xl shadow-md p-4 mb-6 border border-gray-100">
+                        @csrf
+                        <input type="hidden" name="anime_id" value="{{ $anime['id'] }}">
+
+                        <!-- Nombre usuario -->
+                        @auth
+                            <p class="text-gray-700 mb-2">Comentando como: <span
+                                    class="font-semibold text-blue-600">{{ auth()->user()->name }}</span></p>
+                            <input type="hidden" name="user_name" value="{{ auth()->user()->name }}">
+                        @else
+                            <div class="mb-3">
+                                <input type="text" name="user_name" placeholder="Tu nombre"
+                                    class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                                    value="{{ old('user_name') }}">
+                            </div>
+                        @endauth
+
+                        <div class="mb-3">
+                            <textarea name="content" placeholder="Escribe algo..." rows="3"
+                                class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">{{ old('content') }}</textarea>
+                        </div>
+
+                        <!-- Subir imagen -->
+                        <div class="mb-3">
+                            <label class="block mb-1">Adjuntar imagen (opcional)</label>
+                            <input type="file" name="image" accept="image/*">
+                        </div>
+
+                        <!-- Spoiler -->
+                        <div class="mb-3 flex items-center gap-2">
+                            <input type="checkbox" name="is_spoiler" id="is_spoiler" value="1">
+                            <label for="is_spoiler">Marcar como spoiler</label>
+                        </div>
+
                         <button type="submit"
-                            class="bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600 transition">
-                            Comentar
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            💬 Publicar comentario
                         </button>
                     </form>
+
+                    <!-- Listado de comentarios -->
+                    @forelse ($comments as $comment)
+                        <div class="bg-white rounded-xl shadow-sm p-4 mb-4 border border-gray-100 flex gap-3">
+                            <!-- Avatar -->
+                            <div>
+                                @if ($comment->user)
+                                    <img src="{{ $comment->user->avatar_url }}" alt="{{ $comment->user->name }}"
+                                        class="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm">
+                                @else
+                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($comment->user_name ?? 'Anónimo') }}&background=0D8ABC&color=fff&bold=true"
+                                        alt="{{ $comment->user_name ?? 'Anónimo' }}"
+                                        class="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm">
+                                @endif
+                            </div>
+
+                            <!-- Contenido -->
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-2">
+                                    <strong class="text-gray-800">{{ $comment->user_name ?? 'Anónimo' }}</strong>
+                                    <small class="text-gray-500">{{ $comment->created_at->diffForHumans() }}</small>
+                                </div>
+
+                                <!-- Spoiler -->
+                                @if ($comment->is_spoiler)
+                                    <div class="p-2 bg-gray-200 rounded mb-2">
+                                        <button type="button"
+                                            class="show-spoiler-btn text-blue-600 hover:underline">⚠️ Contenido oculto
+                                            por spoiler. Mostrar</button>
+                                        <div class="spoiler-content hidden mt-2">{{ $comment->content }}</div>
+                                    </div>
+                                @else
+                                    <p class="text-gray-700 mb-2">{{ $comment->content }}</p>
+                                @endif
+
+                                <!-- Imagen adjunta -->
+                                @if ($comment->image)
+                                    <div class="mb-2">
+                                        <button type="button" class="show-image-btn text-blue-600 hover:underline">📷
+                                            Ver imagen</button>
+                                        <img src="{{ asset('storage/' . $comment->image) }}" alt="Imagen comentario"
+                                            class="mt-2 hidden max-w-full rounded">
+                                    </div>
+                                @endif
+
+                                <!-- Likes -->
+                                <div class="flex items-center gap-3">
+                                    <span class="text-gray-600 like-count" data-comment-id="{{ $comment->id }}">
+                                        {{ $comment->likes_count }} 👍
+                                    </span>
+
+                                    @auth
+                                        <button type="button"
+                                            class="toggle-like-btn animate-like text-sm font-medium transition-colors 
+                            {{ auth()->user()->hasLiked($comment) ? 'text-red-500 hover:text-red-600' : 'text-blue-500 hover:text-blue-600' }}"
+                                            data-comment-id="{{ $comment->id }}">
+                                            {{ auth()->user()->hasLiked($comment) ? '💔 Quitar like' : '👍 Me gusta' }}
+                                        </button>
+                                    @else
+                                        <button type="button"
+                                            class="toggle-like-btn text-blue-500 hover:text-blue-600 text-sm font-medium"
+                                            data-comment-id="{{ $comment->id }}">
+                                            👍 Me gusta
+                                        </button>
+                                    @endauth
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-gray-500">Sé el primero en comentar este anime 📝</p>
+                    @endforelse
                 </div>
 
+                <!-- JS para likes, spoilers e imagen -->
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+
+                        // Likes AJAX
+                        const likeButtons = document.querySelectorAll('.toggle-like-btn');
+                        likeButtons.forEach(button => {
+                            button.addEventListener('click', async () => {
+                                const commentId = button.dataset.commentId;
+                                try {
+                                    const response = await fetch(
+                                    `/anime-comments/${commentId}/toggle-like`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                            'Accept': 'application/json'
+                                        }
+                                    });
+                                    if (!response.ok) {
+                                        if (response.status === 403) alert(
+                                            'Debes iniciar sesión para dar like.');
+                                        return;
+                                    }
+                                    const data = await response.json();
+                                    const likeCountSpan = document.querySelector(
+                                        `.like-count[data-comment-id="${commentId}"]`);
+                                    if (likeCountSpan) likeCountSpan.textContent = `${data.likes_count} 👍`;
+                                    button.classList.add('scale-110');
+                                    setTimeout(() => button.classList.remove('scale-110'), 150);
+                                    if (data.liked) {
+                                        button.textContent = '💔 Quitar like';
+                                        button.classList.remove('text-blue-500', 'hover:text-blue-600');
+                                        button.classList.add('text-red-500', 'hover:text-red-600');
+                                    } else {
+                                        button.textContent = '👍 Me gusta';
+                                        button.classList.remove('text-red-500', 'hover:text-red-600');
+                                        button.classList.add('text-blue-500', 'hover:text-blue-600');
+                                    }
+                                } catch (error) {
+                                    console.error('Error al procesar el like:', error);
+                                }
+                            });
+                        });
+
+                        // Mostrar/ocultar spoiler
+                        document.querySelectorAll('.show-spoiler-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const content = btn.nextElementSibling;
+                                content.classList.toggle('hidden');
+                            });
+                        });
+
+                        // Mostrar/ocultar imagen
+                        document.querySelectorAll('.show-image-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const img = btn.nextElementSibling;
+                                img.classList.toggle('hidden');
+                            });
+                        });
+                    });
+                </script>
+
+                <!-- Tailwind: animación de like -->
+                <style>
+                    .toggle-like-btn {
+                        transition: transform 0.15s ease;
+                    }
+
+                    .toggle-like-btn.scale-110 {
+                        transform: scale(1.2);
+                    }
+                </style>
+                
                 <script>
                     // Obtener elementos
                     const form = document.getElementById('commentForm');
