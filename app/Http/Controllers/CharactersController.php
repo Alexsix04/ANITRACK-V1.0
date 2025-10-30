@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\AniListService;
 use Illuminate\Http\Request;
+use App\Models\CharacterComment;
 
 class CharactersController extends Controller
 {
@@ -219,7 +220,15 @@ class CharactersController extends Controller
             return in_array($item['relationType'], ['PREQUEL', 'SEQUEL']) && !empty($item['node']);
         });
 
+        // Traer comentarios asociados al personaje, más recientes primero
+        $comments = CharacterComment::where('character_id', $character['id'])
+            ->orderBy('likes_count', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->with('user') // opcional, si quieres mostrar avatar y nombre
+            ->get();
+
+
         // Enviar todo a la vista
-        return view('animes.characters.show', compact('character', 'anime', 'relatedMedia'));
+        return view('animes.characters.show', compact('character', 'anime', 'relatedMedia', 'comments'));
     }
 }

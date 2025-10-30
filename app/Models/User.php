@@ -79,4 +79,15 @@ class User extends Authenticatable
             ? asset('storage/' . $this->avatar)
             : "https://ui-avatars.com/api/?name=" . urlencode($this->name) . '&background=0D8ABC&color=fff&bold=true';
     }
+    public function characterCommentLikes()
+    {
+        return $this->hasMany(\App\Models\CharacterCommentLike::class);
+    }
+
+    public function hasLikedCharacter($comment)
+    {
+        return $this->characterCommentLikes()
+            ->where('character_comment_id', $comment->id)
+            ->exists();
+    }
 }

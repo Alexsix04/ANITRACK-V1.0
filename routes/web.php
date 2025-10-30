@@ -8,6 +8,7 @@ use App\Http\Controllers\EpisodesController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\VoiceActorsController;
 use App\Http\Controllers\AnimeCommentController;
+use App\Http\Controllers\CharacterCommentController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -48,6 +49,8 @@ Route::get('animes/Actores-de-voz/{id}', [VoiceActorsController::class, 'show'])
 //Rutas Comentarios
 Route::post('/anime-comments', [AnimeCommentController::class, 'store'])->name('anime-comments.store');
 Route::post('/anime-comments/{comment}/toggle-like', [AnimeCommentController::class, 'toggleLike'])->name('anime-comments.toggle-like');
+Route::post('/character-comments', [CharacterCommentController::class, 'store'])->name('characters.comments.store');
+Route::post('/character-comments/{comment}/toggle-like', [CharacterCommentController::class, 'toggleLike'])->name('characters.comments.toggle-like');
 
 //Rutas Listas
 Route::get('/listas', [AnimeController::class, 'index'])->name('listas.index');
