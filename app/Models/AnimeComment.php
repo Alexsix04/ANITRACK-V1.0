@@ -13,7 +13,9 @@ class AnimeComment extends Model
         'anime_id',
         'user_name',
         'content',
-        'likes_count'
+        'likes_count',
+        'image',
+        'is_spoiler'
     ];
     
     // Relación al usuario
