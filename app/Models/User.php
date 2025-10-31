@@ -99,9 +99,15 @@ class User extends Authenticatable
             ->where('character_comment_id', $comment->id)
             ->exists();
     }
-    // app/Models/User.php
+    // Relación con Animes Favoritos
     public function animeFavorites()
     {
         return $this->hasMany(AnimeFavorite::class);
+    }
+
+    //Relación con Personajes Favoritos
+    public function characterFavorites()
+    {
+        return $this->hasMany(CharacterFavorite::class);
     }
 }

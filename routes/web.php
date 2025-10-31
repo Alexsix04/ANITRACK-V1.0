@@ -10,6 +10,7 @@ use App\Http\Controllers\VoiceActorsController;
 use App\Http\Controllers\AnimeCommentController;
 use App\Http\Controllers\CharacterCommentController;
 use App\Http\Controllers\AnimeFavoriteController;
+ use App\Http\Controllers\CharacterFavoriteController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -57,6 +58,8 @@ Route::post('/character-comments/{comment}/toggle-like', [CharacterCommentContro
 Route::middleware(['auth'])->group(function () {
     Route::post('/favorites/anime', [AnimeFavoriteController::class, 'store'])->name('favorites.anime.store');
     Route::delete('/favorites/anime/{animeId}', [AnimeFavoriteController::class, 'destroy'])->name('favorites.anime.destroy');
+    Route::post('/favorites/character', [CharacterFavoriteController::class, 'store'])->name('favorites.character.store');
+    Route::delete('/favorites/character/{character_id}', [CharacterFavoriteController::class, 'destroy'])->name('favorites.character.destroy');
 });
 
 
