@@ -32,7 +32,8 @@
                             @php
                                 $isFavorite = auth()
                                     ->user()
-                                    ->characterFavorites->where('character_id', $character['id'])
+                                    ->characterFavorites
+                                    ->where('character_id', $character['id'])
                                     ->isNotEmpty();
                             @endphp
 
@@ -59,6 +60,7 @@
                                     <input type="hidden" name="character_name" value="{{ $character['name']['full'] }}">
                                     <input type="hidden" name="character_image"
                                         value="{{ $character['image']['large'] ?? $character['image']['medium'] }}">
+                                    <input type="hidden" name="anime_id" value="{{ $anime['id'] }}"> {{-- ✅ IMPORTANTE --}}
                                     <button type="submit"
                                         class="flex items-center justify-center w-10 h-10 bg-yellow-400 text-white rounded-sm hover:bg-yellow-500 transition"
                                         title="Añadir a favoritos">
@@ -111,7 +113,7 @@
                 </div>
             </div>
 
-            <!-- Apariciones en animes (más compacto) -->
+            <!-- Apariciones en animes -->
             <div class="bg-gray-100 bg-opacity-80 p-6 rounded-lg shadow-md mb-6">
                 <h2 class="text-2xl font-bold mb-4 border-b border-gray-300 pb-2">Apariciones en Animes</h2>
 
@@ -151,172 +153,173 @@
                     <p class="text-gray-500">No hay apariciones disponibles.</p>
                 @endif
             </div>
-        </div>
 
-        <!-- Actores de voz -->
-        @if (!empty($character['voiceActors']))
-            <div class="bg-gray-100 bg-opacity-80 p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-bold mb-4 border-b border-gray-300 pb-2">Actores de Voz</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    @foreach ($character['voiceActors'] as $actor)
-                        <a href="{{ route('animes.voiceactors.show', ['id' => $actor['id']]) }}"
-                            class="bg-white rounded-lg overflow-hidden shadow-sm p-2 flex flex-col items-center text-center hover:shadow-md hover:-translate-y-1 transform transition">
-                            <img src="{{ $actor['image']['medium'] ?? ($actor['image']['large'] ?? '') }}"
-                                alt="{{ $actor['name']['full'] }}" class="w-24 h-24 object-cover rounded-full mb-2">
-                            <p class="text-sm font-semibold text-gray-800">{{ $actor['name']['full'] }}</p>
-                            @if (!empty($actor['languageV2']))
-                                <p class="text-xs text-gray-500">{{ $actor['languageV2'] }}</p>
-                            @endif
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-        @endif
-
-        <!-- ================= -->
-        <!-- Sección Comentarios -->
-        <!-- ================= -->
-        <div class="max-w-2xl mx-auto mt-10">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Comentarios</h2>
-
-            <!-- Mensaje de éxito -->
-            @if (session('success'))
-                <div class="mb-4 rounded-md bg-green-100 p-3 text-green-700 shadow-sm">
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            <!-- Errores de validación -->
-            @if ($errors->any())
-                <div class="mb-4 rounded-md bg-red-100 p-3 text-red-700 shadow-sm">
-                    <ul class="list-disc list-inside">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
+            <!-- Actores de voz -->
+            @if (!empty($character['voiceActors']))
+                <div class="bg-gray-100 bg-opacity-80 p-6 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-4 border-b border-gray-300 pb-2">Actores de Voz</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        @foreach ($character['voiceActors'] as $actor)
+                            <a href="{{ route('animes.voiceactors.show', ['id' => $actor['id']]) }}"
+                                class="bg-white rounded-lg overflow-hidden shadow-sm p-2 flex flex-col items-center text-center hover:shadow-md hover:-translate-y-1 transform transition">
+                                <img src="{{ $actor['image']['medium'] ?? ($actor['image']['large'] ?? '') }}"
+                                    alt="{{ $actor['name']['full'] }}" class="w-24 h-24 object-cover rounded-full mb-2">
+                                <p class="text-sm font-semibold text-gray-800">{{ $actor['name']['full'] }}</p>
+                                @if (!empty($actor['languageV2']))
+                                    <p class="text-xs text-gray-500">{{ $actor['languageV2'] }}</p>
+                                @endif
+                            </a>
                         @endforeach
-                    </ul>
+                    </div>
                 </div>
             @endif
 
-            <!-- Formulario de comentario -->
-            <form action="{{ route('characters.comments.store') }}" method="POST" enctype="multipart/form-data"
-                class="bg-white rounded-2xl shadow-md p-5 mb-6 border border-gray-100">
-                @csrf
-                <input type="hidden" name="character_id" value="{{ $character['id'] }}">
+            <!-- ================= -->
+            <!-- Sección Comentarios -->
+            <!-- ================= -->
+            <div class="max-w-2xl mx-auto mt-10">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Comentarios</h2>
 
-                <!-- Nombre usuario -->
-                @auth
-                    <p class="text-gray-700 mb-3">
-                        Comentando como:
-                        <span class="font-semibold text-blue-600">{{ auth()->user()->name }}</span>
-                    </p>
-                    <input type="hidden" name="user_name" value="{{ auth()->user()->name }}">
-                @else
+                <!-- Mensaje de éxito -->
+                @if (session('success'))
+                    <div class="mb-4 rounded-md bg-green-100 p-3 text-green-700 shadow-sm">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
+                <!-- Errores de validación -->
+                @if ($errors->any())
+                    <div class="mb-4 rounded-md bg-red-100 p-3 text-red-700 shadow-sm">
+                        <ul class="list-disc list-inside">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <!-- Formulario de comentario -->
+                <form action="{{ route('characters.comments.store') }}" method="POST" enctype="multipart/form-data"
+                    class="bg-white rounded-2xl shadow-md p-5 mb-6 border border-gray-100">
+                    @csrf
+                    <input type="hidden" name="character_id" value="{{ $character['id'] }}">
+
+                    <!-- Nombre usuario -->
+                    @auth
+                        <p class="text-gray-700 mb-3">
+                            Comentando como:
+                            <span class="font-semibold text-blue-600">{{ auth()->user()->name }}</span>
+                        </p>
+                        <input type="hidden" name="user_name" value="{{ auth()->user()->name }}">
+                    @else
+                        <div class="mb-3">
+                            <input type="text" name="user_name" placeholder="Tu nombre"
+                                class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                                value="{{ old('user_name') }}">
+                        </div>
+                    @endauth
+
                     <div class="mb-3">
-                        <input type="text" name="user_name" placeholder="Tu nombre"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                            value="{{ old('user_name') }}">
-                    </div>
-                @endauth
-
-                <div class="mb-3">
-                    <textarea name="content" placeholder="Escribe algo..." rows="3"
-                        class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none resize-none">{{ old('content') }}</textarea>
-                </div>
-
-                <!-- Subir imagen -->
-                <div class="mb-3">
-                    <label class="block mb-1 font-medium text-gray-700">Adjuntar imagen (opcional)</label>
-                    <input type="file" name="image" accept="image/*"
-                        class="block text-sm text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                </div>
-
-                <!-- Spoiler -->
-                <div class="mb-3 flex items-center gap-2">
-                    <input type="checkbox" name="is_spoiler" id="is_spoiler" value="1"
-                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-400">
-                    <label for="is_spoiler" class="text-gray-700">Marcar como spoiler</label>
-                </div>
-
-                <button type="submit"
-                    class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition-all shadow-sm">
-                    💬 Publicar comentario
-                </button>
-            </form>
-
-            <!-- Listado de comentarios -->
-            @forelse ($comments as $comment)
-                <div
-                    class="bg-white rounded-xl shadow-sm p-4 mb-4 border border-gray-100 flex gap-4 hover:shadow-md transition-shadow">
-                    <!-- Avatar -->
-                    <div class="flex-shrink-0">
-                        @if ($comment->user && $comment->user->avatar_url)
-                            <img src="{{ $comment->user->avatar_url }}" alt="{{ $comment->user->name }}"
-                                class="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm">
-                        @else
-                            <img src="https://ui-avatars.com/api/?name={{ urlencode($comment->user_name ?? 'Anónimo') }}&background=0D8ABC&color=fff&bold=true"
-                                alt="{{ $comment->user_name ?? 'Anónimo' }}"
-                                class="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm">
-                        @endif
+                        <textarea name="content" placeholder="Escribe algo..." rows="3"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none resize-none">{{ old('content') }}</textarea>
                     </div>
 
-                    <!-- Contenido -->
-                    <div class="flex-1">
-                        <div class="flex items-center justify-between mb-2">
-                            <strong class="text-gray-800">{{ $comment->user_name ?? 'Anónimo' }}</strong>
-                            <small class="text-gray-500">{{ $comment->created_at->diffForHumans() }}</small>
-                        </div>
+                    <!-- Subir imagen -->
+                    <div class="mb-3">
+                        <label class="block mb-1 font-medium text-gray-700">Adjuntar imagen (opcional)</label>
+                        <input type="file" name="image" accept="image/*"
+                            class="block text-sm text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    </div>
 
-                        <!-- Spoiler -->
-                        @if ($comment->is_spoiler)
-                            <div class="p-2 bg-gray-100 rounded mb-2">
-                                <button type="button"
-                                    class="show-spoiler-btn text-blue-600 hover:underline font-medium">⚠️ Spoiler —
-                                    Mostrar</button>
-                                <div class="spoiler-content hidden mt-2 text-gray-700">{{ $comment->content }}
-                                </div>
-                            </div>
-                        @else
-                            <p class="text-gray-700 mb-2 leading-relaxed">{{ $comment->content }}</p>
-                        @endif
+                    <!-- Spoiler -->
+                    <div class="mb-3 flex items-center gap-2">
+                        <input type="checkbox" name="is_spoiler" id="is_spoiler" value="1"
+                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-400">
+                        <label for="is_spoiler" class="text-gray-700">Marcar como spoiler</label>
+                    </div>
 
-                        <!-- Imagen adjunta -->
-                        @if ($comment->image)
-                            <div class="mb-2">
-                                <button type="button"
-                                    class="show-image-btn text-blue-600 hover:underline text-sm font-medium">
-                                    📷 Ver imagen
-                                </button>
-                                <img src="{{ asset('storage/' . $comment->image) }}" alt="Imagen comentario"
-                                    class="mt-2 hidden max-w-full rounded-lg border border-gray-200 shadow-sm">
-                            </div>
-                        @endif
+                    <button type="submit"
+                        class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition-all shadow-sm">
+                        💬 Publicar comentario
+                    </button>
+                </form>
 
-                        <!-- Likes -->
-                        <div class="flex items-center gap-3 mt-2">
-                            <span class="text-gray-600 like-count text-sm" data-comment-id="{{ $comment->id }}">
-                                {{ $comment->likes_count }} 👍
-                            </span>
-
-                            @auth
-                                <button type="button"
-                                    class="toggle-like-btn animate-like text-sm font-medium transition-colors 
-                    {{ auth()->user()->hasLikedCharacter($comment) ? 'text-red-500 hover:text-red-600' : 'text-blue-500 hover:text-blue-600' }}"
-                                    data-comment-id="{{ $comment->id }}">
-                                    {{ auth()->user()->hasLikedCharacter($comment) ? '💔 Quitar like' : '👍 Me gusta' }}
-                                </button>
+                <!-- Listado de comentarios -->
+                @forelse ($comments as $comment)
+                    <div
+                        class="bg-white rounded-xl shadow-sm p-4 mb-4 border border-gray-100 flex gap-4 hover:shadow-md transition-shadow">
+                        <!-- Avatar -->
+                        <div class="flex-shrink-0">
+                            @if ($comment->user && $comment->user->avatar_url)
+                                <img src="{{ $comment->user->avatar_url }}" alt="{{ $comment->user->name }}"
+                                    class="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm">
                             @else
-                                <button type="button"
-                                    class="toggle-like-btn text-blue-500 hover:text-blue-600 text-sm font-medium"
-                                    data-comment-id="{{ $comment->id }}">
-                                    👍 Me gusta
-                                </button>
-                            @endauth
+                                <img src="https://ui-avatars.com/api/?name={{ urlencode($comment->user_name ?? 'Anónimo') }}&background=0D8ABC&color=fff&bold=true"
+                                    alt="{{ $comment->user_name ?? 'Anónimo' }}"
+                                    class="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm">
+                            @endif
+                        </div>
+
+                        <!-- Contenido -->
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-2">
+                                <strong class="text-gray-800">{{ $comment->user_name ?? 'Anónimo' }}</strong>
+                                <small class="text-gray-500">{{ $comment->created_at->diffForHumans() }}</small>
+                            </div>
+
+                            <!-- Spoiler -->
+                            @if ($comment->is_spoiler)
+                                <div class="p-2 bg-gray-100 rounded mb-2">
+                                    <button type="button"
+                                        class="show-spoiler-btn text-blue-600 hover:underline font-medium">⚠️ Spoiler —
+                                        Mostrar</button>
+                                    <div class="spoiler-content hidden mt-2 text-gray-700">{{ $comment->content }}
+                                    </div>
+                                </div>
+                            @else
+                                <p class="text-gray-700 mb-2 leading-relaxed">{{ $comment->content }}</p>
+                            @endif
+
+                            <!-- Imagen adjunta -->
+                            @if ($comment->image)
+                                <div class="mb-2">
+                                    <button type="button"
+                                        class="show-image-btn text-blue-600 hover:underline text-sm font-medium">
+                                        📷 Ver imagen
+                                    </button>
+                                    <img src="{{ asset('storage/' . $comment->image) }}" alt="Imagen comentario"
+                                        class="mt-2 hidden max-w-full rounded-lg border border-gray-200 shadow-sm">
+                                </div>
+                            @endif
+
+                            <!-- Likes -->
+                            <div class="flex items-center gap-3 mt-2">
+                                <span class="text-gray-600 like-count text-sm" data-comment-id="{{ $comment->id }}">
+                                    {{ $comment->likes_count }} 👍
+                                </span>
+
+                                @auth
+                                    <button type="button"
+                                        class="toggle-like-btn animate-like text-sm font-medium transition-colors 
+                    {{ auth()->user()->hasLikedCharacter($comment) ? 'text-red-500 hover:text-red-600' : 'text-blue-500 hover:text-blue-600' }}"
+                                        data-comment-id="{{ $comment->id }}">
+                                        {{ auth()->user()->hasLikedCharacter($comment) ? '💔 Quitar like' : '👍 Me gusta' }}
+                                    </button>
+                                @else
+                                    <button type="button"
+                                        class="toggle-like-btn text-blue-500 hover:text-blue-600 text-sm font-medium"
+                                        data-comment-id="{{ $comment->id }}">
+                                        👍 Me gusta
+                                    </button>
+                                @endauth
+                            </div>
                         </div>
                     </div>
-                </div>
-            @empty
-                <p class="text-gray-500 text-center">Sé el primero en comentar este personaje 📝</p>
-            @endforelse
+                @empty
+                    <p class="text-gray-500 text-center">Sé el primero en comentar este personaje 📝</p>
+                @endforelse
+            </div>
+
         </div>
 
         <!-- JS para likes, spoilers e imagen -->
@@ -385,6 +388,5 @@
                 transform: scale(1.2);
             }
         </style>
-    </div>
     </div>
 </x-app-layout>

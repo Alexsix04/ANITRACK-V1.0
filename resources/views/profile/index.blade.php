@@ -5,43 +5,58 @@
         </h2>
     </x-slot>
 
-    <div class="py-6">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            <div
-                class="bg-white shadow sm:rounded-lg p-6 flex flex-col md:flex-row items-center md:items-start gap-6 relative">
+    <!-- ========================================= -->
+    <!-- 🏞️ BANNER DE PERFIL -->
+    <!-- ========================================= -->
+    <div class="relative w-full h-64 bg-gradient-to-r from-indigo-400 to-indigo-600 overflow-hidden">
+        <!-- Imagen de banner -->
+        <img src="{{ $user->banner ? asset('storage/' . $user->banner) : asset('images/default-banner.jpg') }}"
+            class="absolute inset-0 w-full h-full object-cover opacity-90" alt="Banner de {{ $user->name }}">
+        <div class="absolute inset-0 bg-black bg-opacity-30"></div>
 
-                <!-- Foto de perfil -->
-                <div class="flex-shrink-0 relative group cursor-pointer" id="avatar-container">
-                    <img class="h-32 w-32 rounded-full object-cover border border-gray-300 shadow-sm"
-                        src="{{ $user->avatar_url }}" alt="Avatar de {{ $user->name }}">
-                    <div
-                        class="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                        <span class="text-white text-sm">Editar</span>
-                    </div>
+        <!-- Contenido -->
+        <div class="relative flex items-center justify-start h-full max-w-6xl mx-auto px-6 md:px-10">
+            <!-- Avatar -->
+            <div class="relative group cursor-pointer flex-shrink-0 mr-8" id="avatar-container">
+                <img class="h-36 w-36 rounded-full object-cover border-4 border-white shadow-lg"
+                    src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/avatar-default.png') }}"
+                    alt="Avatar de {{ $user->name }}">
+                <div
+                    class="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                    <span class="text-white text-sm font-medium">Editar</span>
                 </div>
+            </div>
 
-                <!-- Información del usuario -->
-                <div class="flex-1">
-                    <h3 class="text-2xl font-bold mb-2">{{ $user->name }}</h3>
-                    <p class="text-gray-600 mb-4">{{ $user->bio ?? 'Este usuario no ha agregado una descripción.' }}</p>
-
-                    <!-- Botón para editar perfil completo -->
-                    <a href="{{ route('profile.edit') }}"
-                        class="inline-block bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                        Editar Perfil
-                    </a>
-                </div>
+            <!-- Info -->
+            <div class="text-white">
+                <h1 class="text-3xl font-bold mb-2">{{ $user->name }}</h1>
+                <p class="text-gray-100 mb-4 max-w-lg">
+                    {{ $user->bio ?? 'Este usuario no ha agregado una descripción.' }}</p>
+                <button id="openEditModal"
+                    class="bg-white text-indigo-700 font-semibold px-5 py-2 rounded-full hover:bg-gray-100 transition">
+                    Editar Perfil
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal oculto -->
-    <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 class="text-lg font-semibold mb-4">Editar Avatar y Descripción</h2>
+    <!-- ========================================= -->
+    <!-- ✨ MODAL DE EDICIÓN -->
+    <!-- ========================================= -->
+    <div id="editModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 opacity-0 scale-95">
+        <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
+            <h2 class="text-lg font-semibold mb-4">Editar Perfil</h2>
 
             <form method="POST" action="{{ route('profile.updateBioAvatar') }}" enctype="multipart/form-data">
                 @csrf
+
+                <!-- Banner -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nueva imagen de portada</label>
+                    <input type="file" name="banner"
+                        class="block w-full text-sm border border-gray-300 rounded p-2">
+                </div>
 
                 <!-- Avatar -->
                 <div class="mb-4">
@@ -66,100 +81,204 @@
         </div>
     </div>
 
-    <script>
-        const avatarContainer = document.getElementById('avatar-container');
-        const modal = document.getElementById('editModal');
-        const closeModal = document.getElementById('closeModal');
+    <!-- ========================================= -->
+    <!-- 🌟 FAVORITOS (vista de colección con collage) -->
+    <!-- ========================================= -->
+    <div class="max-w-5xl mx-auto px-6 py-12 space-y-10">
 
-        avatarContainer.addEventListener('click', () => {
-            modal.classList.remove('hidden');
-        });
+        <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Favoritos</h2>
 
-        closeModal.addEventListener('click', () => {
-            modal.classList.add('hidden');
-        });
-    </script>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
 
-    <!-- ====================================================== -->
-    <!-- FAVORITOS -->
-    <!-- ====================================================== -->
-    <div class="max-w-6xl mx-auto p-8 space-y-16">
+            <!-- 🎬 ANIMES FAVORITOS -->
+            <div class="relative group cursor-pointer" id="openAnimesModal">
+                <div class="aspect-[16/9] rounded-2xl overflow-hidden shadow-lg relative">
+                    @php
+                        $animeImages = $animeFavorites->take(4)->pluck('anime_image');
+                    @endphp
 
-        <!-- 🎬 ANIMES FAVORITOS -->
-        <section>
-            <h2 class="text-3xl font-bold text-gray-800 mb-6">Animes Favoritos</h2>
+                    @if ($animeImages->isEmpty())
+                        <div class="flex items-center justify-center h-full bg-gray-200 text-gray-500">
+                            <span>Sin animes favoritos</span>
+                        </div>
+                    @else
+                        <div class="grid grid-cols-2 grid-rows-2 h-full w-full">
+                            @foreach ($animeImages as $img)
+                                <img src="{{ $img }}" alt="Anime favorito" class="object-cover w-full h-full">
+                            @endforeach
+                            @for ($i = $animeImages->count(); $i < 4; $i++)
+                                <div class="bg-gray-300"></div>
+                            @endfor
+                        </div>
+                    @endif
+
+                    <div
+                        class="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                        <h3 class="text-white text-2xl font-bold mb-1">Animes Favoritos</h3>
+                        @if (!$animeFavorites->isEmpty())
+                            <span class="text-white text-sm">Ver colección completa</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- 👤 PERSONAJES FAVORITOS -->
+            <div class="relative group cursor-pointer" id="openCharsModal">
+                <div class="aspect-[16/9] rounded-2xl overflow-hidden shadow-lg relative">
+                    @php
+                        $charImages = $characterFavorites->take(4)->pluck('character_image');
+                    @endphp
+
+                    @if ($charImages->isEmpty())
+                        <div class="flex items-center justify-center h-full bg-gray-200 text-gray-500">
+                            <span>Sin personajes favoritos</span>
+                        </div>
+                    @else
+                        <div class="grid grid-cols-2 grid-rows-2 h-full w-full">
+                            @foreach ($charImages as $img)
+                                <img src="{{ $img }}" alt="Personaje favorito" class="object-cover w-full h-full">
+                            @endforeach
+                            @for ($i = $charImages->count(); $i < 4; $i++)
+                                <div class="bg-gray-300"></div>
+                            @endfor
+                        </div>
+                    @endif
+
+                    <div
+                        class="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                        <h3 class="text-white text-2xl font-bold mb-1">Personajes Favoritos</h3>
+                        @if (!$characterFavorites->isEmpty())
+                            <span class="text-white text-sm">Ver colección completa</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- 🪄 MODALES DE COLECCIONES (con enlaces correctos) -->
+    <!-- ========================================= -->
+
+    <!-- Modal de Animes -->
+    <div id="animesModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
+        <div class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">Todos los Animes Favoritos</h2>
+                <button id="closeAnimesModal" class="text-gray-600 hover:text-gray-800">✕</button>
+            </div>
 
             @if ($animeFavorites->isEmpty())
                 <p class="text-gray-500">Aún no tienes animes en tus favoritos.</p>
             @else
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     @foreach ($animeFavorites as $fav)
-                        <div class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition">
+                        <a href="{{ route('animes.show', $fav->anime_id) }}"
+                            class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03]">
                             <img src="{{ $fav->anime_image }}" alt="{{ $fav->anime_title }}"
                                 class="w-full h-64 object-cover rounded-lg mb-4">
-                            <h3 class="text-xl font-bold mb-2">{{ $fav->anime_title }}</h3>
-
-                            <div class="flex justify-between items-center">
-                                <a href="{{ route('animes.show', $fav->anime_id) }}"
-                                    class="text-blue-400 hover:underline">Ver detalles</a>
-
-                                <form action="{{ route('favorites.anime.destroy', $fav->anime_id) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-yellow-400 hover:text-yellow-300"
-                                        title="Quitar de favoritos">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path
-                                                d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782 
-                                                     1.4 8.172L12 18.896l-7.334 3.868 
-                                                     1.4-8.172-5.934-5.782 8.2-1.192z" />
-                                        </svg>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
+                            <h3 class="text-lg font-bold mb-2 truncate">{{ $fav->anime_title }}</h3>
+                        </a>
                     @endforeach
                 </div>
             @endif
-        </section>
+        </div>
+    </div>
 
-        <!-- 👤 PERSONAJES FAVORITOS -->
-        <section>
-            <h2 class="text-3xl font-bold text-gray-800 mb-6">Personajes Favoritos</h2>
+    <!-- Modal de Personajes -->
+    <div id="charsModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
+        <div class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">Todos los Personajes Favoritos</h2>
+                <button id="closeCharsModal" class="text-gray-600 hover:text-gray-800">✕</button>
+            </div>
 
             @if ($characterFavorites->isEmpty())
                 <p class="text-gray-500">Aún no tienes personajes en tus favoritos.</p>
             @else
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     @foreach ($characterFavorites as $fav)
-                        <div class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition">
+                        <a href="{{ route('animes.characters.show', ['anime' => $fav->anime_id, 'character' => $fav->character_id]) }}"
+                            class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03]">
                             <img src="{{ $fav->character_image }}" alt="{{ $fav->character_name }}"
                                 class="w-full h-64 object-cover rounded-lg mb-4">
-                            <h3 class="text-xl font-bold mb-2">{{ $fav->character_name }}</h3>
-
-                            <div class="flex justify-end">
-                                <form action="{{ route('favorites.character.destroy', $fav->character_id) }}"
-                                    method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-yellow-400 hover:text-yellow-300"
-                                        title="Quitar de favoritos">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path
-                                                d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782 
-                                                     1.4 8.172L12 18.896l-7.334 3.868 
-                                                     1.4-8.172-5.934-5.782 8.2-1.192z" />
-                                        </svg>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
+                            <h3 class="text-lg font-bold mb-2 truncate">{{ $fav->character_name }}</h3>
+                        </a>
                     @endforeach
                 </div>
             @endif
-        </section>
-
+        </div>
     </div>
+
+    <!-- ========================================= -->
+    <!-- 🧩 JS DE MODALES CON CIERRE AL HACER CLIC FUERA -->
+    <!-- ========================================= -->
+    <script>
+        function setupModal(openBtn, modal, closeBtn) {
+            if (!openBtn || !modal || !closeBtn) return;
+
+            openBtn.addEventListener('click', () => {
+                modal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                modal.classList.add('opacity-100', 'scale-100');
+            });
+
+            closeBtn.addEventListener('click', () => {
+                modal.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => modal.classList.add('hidden'), 200);
+            });
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => modal.classList.add('hidden'), 200);
+                }
+            });
+
+            const modalContent = modal.querySelector('div');
+            if (modalContent) modalContent.addEventListener('click', (e) => e.stopPropagation());
+        }
+
+        setupModal(
+            document.getElementById('openEditModal'),
+            document.getElementById('editModal'),
+            document.getElementById('closeModal')
+        );
+
+        setupModal(
+            document.getElementById('openAnimesModal'),
+            document.getElementById('animesModal'),
+            document.getElementById('closeAnimesModal')
+        );
+
+        setupModal(
+            document.getElementById('openCharsModal'),
+            document.getElementById('charsModal'),
+            document.getElementById('closeCharsModal')
+        );
+
+        const avatarContainer = document.getElementById('avatar-container');
+        const editModal = document.getElementById('editModal');
+        if (avatarContainer && editModal) {
+            avatarContainer.addEventListener('click', () => {
+                editModal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                editModal.classList.add('opacity-100', 'scale-100');
+            });
+        }
+    </script>
+
+    <!-- ========================================= -->
+    <!-- ✨ ESTILOS DE TRANSICIÓN PARA MODALES -->
+    <!-- ========================================= -->
+    <style>
+        #editModal,
+        #animesModal,
+        #charsModal {
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            transform-origin: center;
+        }
+    </style>
+
 </x-app-layout>

@@ -35,36 +35,51 @@ class ProfileController extends Controller
         $request->validate([
             'bio' => 'nullable|string|max:500',
             'avatar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'banner' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
         ]);
 
         // Actualizar bio
         $user->bio = $request->bio;
 
-        // Si el usuario sube una nueva imagen
+        // ===================================================
+        // ACTUALIZAR AVATAR
+        // ===================================================
         if ($request->hasFile('avatar')) {
 
-            // Si ya tenía un avatar anterior (y no es el por defecto), eliminarlo del storage
+            // Si ya tenía un avatar anterior y no es el por defecto
             if ($user->avatar && !str_contains($user->avatar, 'avatar-default.png')) {
-                // Eliminamos del disco 'public' (usa la ruta relativa, no la URL)
-                $avatarPath = $user->avatar;
-
-                // Si en BD está guardada la URL completa, quitamos el dominio
-                $avatarPath = str_replace(asset('storage/') . '/', '', $avatarPath);
-
+                $avatarPath = str_replace(asset('storage/') . '/', '', $user->avatar);
                 \Storage::disk('public')->delete($avatarPath);
             }
 
-            // Guardar el nuevo avatar en 'storage/app/public/avatars'
-            $path = $request->file('avatar')->store('avatars', 'public');
-
-            // Guardamos solo la ruta relativa, NO la URL completa
-            $user->avatar = $path;
+            // Guardar el nuevo avatar
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = $avatarPath;
         }
 
+        // ===================================================
+        // ACTUALIZAR BANNER
+        // ===================================================
+        if ($request->hasFile('banner')) {
+
+            // Si ya tenía un banner anterior, eliminarlo
+            if ($user->banner) {
+                $bannerPath = str_replace(asset('storage/') . '/', '', $user->banner);
+                \Storage::disk('public')->delete($bannerPath);
+            }
+
+            // Guardar nuevo banner
+            $bannerPath = $request->file('banner')->store('banners', 'public');
+            $user->banner = $bannerPath;
+        }
+
+        // Guardar cambios
         $user->save();
 
         return back()->with('success', 'Perfil actualizado correctamente.');
     }
+
+
 
 
     /**

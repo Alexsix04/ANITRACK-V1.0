@@ -1,5 +1,4 @@
 <x-app-layout>
-
     <!-- Header con altura fija -->
     <header class="relative w-full h-128 overflow-hidden">
         <!-- Fondo -->
@@ -15,7 +14,6 @@
 
         <!-- Contenido principal -->
         <div class="relative flex flex-col lg:flex-row p-6 lg:p-12 h-full items-start">
-
             <!-- ============================================================= -->
             <!-- =========== COLUMNA IZQUIERDA: IMAGEN + BOTONES ============== -->
             <!-- ============================================================= -->
@@ -24,53 +22,44 @@
                 <img src="{{ $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}"
                     class="w-64 h-96 object-cover rounded-lg shadow-lg mb-4">
 
-                <!-- Bloque de botones -->
                 @auth
                     @php
-                        // Comprobamos si el usuario actual ya tiene este anime en favoritos
                         $isFavorite = auth()->user()->animeFavorites->where('anime_id', $anime['id'])->isNotEmpty();
                     @endphp
 
+                    <!-- Bloque de botones -->
                     <div class="flex space-x-4">
                         {{-- ===================================================== --}}
-                        {{-- ============ BOTÓN DE FAVORITOS (⭐ Estrella) ========= --}}
+                        {{-- ============ BOTÓN DE FAVORITOS (⭐ AJAX) ============ --}}
                         {{-- ===================================================== --}}
-                        @if ($isFavorite)
-                            <!-- Si YA es favorito, mostramos botón para QUITAR -->
-                            <form action="{{ route('favorites.anime.destroy', $anime['id']) }}" method="POST">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit"
-                                    class="flex items-center justify-center w-12 h-12 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg shadow-md transition"
-                                    title="Quitar de favoritos">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
+                        <button id="favoriteButton"
+                            data-anime-id="{{ $anime['id'] }}"
+                            data-anime-title="{{ $anime['title']['romaji'] }}"
+                            data-anime-image="{{ $anime['coverImage']['large'] }}"
+                            data-is-favorite="{{ $isFavorite ? 'true' : 'false' }}"
+                            class="flex items-center justify-center w-12 h-12 rounded-lg shadow-md transition
+                                   {{ $isFavorite ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-yellow-500 hover:bg-yellow-600' }} text-white"
+                            title="{{ $isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos' }}">
+                            
+                            @if ($isFavorite)
+                                {{-- Ícono relleno ⭐ --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path
+                                        d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
                                             1.4 8.172L12 18.896l-7.334 3.868
                                             1.4-8.172-5.934-5.782 8.2-1.192z" />
-                                    </svg>
-                                </button>
-                            </form>
-                        @else
-                            <!-- Si NO es favorito, mostramos botón para AÑADIR -->
-                            <form action="{{ route('favorites.anime.store') }}" method="POST">
-                                @csrf
-                                <!-- Campos ocultos con los datos necesarios del anime -->
-                                <input type="hidden" name="anime_id" value="{{ $anime['id'] }}">
-                                <input type="hidden" name="anime_title" value="{{ $anime['title']['romaji'] }}">
-                                <input type="hidden" name="anime_image" value="{{ $anime['coverImage']['large'] }}">
-                                <button type="submit"
-                                    class="flex items-center justify-center w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg shadow-md transition"
-                                    title="Agregar a favoritos">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
-                                            1.4 8.172L12 18.896l-7.334 3.868
-                                            1.4-8.172-5.934-5.782 8.2-1.192z" />
-                                    </svg>
-                                </button>
-                            </form>
-                        @endif
+                                </svg>
+                            @else
+                                {{-- Ícono vacío ☆ --}}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                    stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 
+                                        9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                </svg>
+                            @endif
+                        </button>
 
                         {{-- ===================================================== --}}
                         {{-- ======= BOTÓN "AÑADIR A MI LISTA" (sin lógica aún) ==== --}}
@@ -80,16 +69,16 @@
                         </button>
                     </div>
                 @else
-                    <!-- Si el usuario NO está autenticado -->
+                    <!-- Usuario no autenticado -->
                     <div class="flex space-x-4">
-                        <!-- Redirige al login si intenta guardar sin estar logueado -->
                         <a href="{{ route('login') }}"
                             class="flex items-center justify-center w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg shadow-md transition"
                             title="Inicia sesión para guardar favoritos">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
-                                    1.4 8.172L12 18.896l-7.334 3.868
-                                    1.4-8.172-5.934-5.782 8.2-1.192z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 
+                                    9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                             </svg>
                         </a>
 
@@ -104,23 +93,101 @@
             <!-- =========== COLUMNA DERECHA: INFORMACIÓN DEL ANIME =========== -->
             <!-- ============================================================= -->
             <div class="text-white lg:flex-1 max-w-3xl flex flex-col h-96">
-                <!-- Títulos -->
                 <h2 class="text-4xl lg:text-5xl font-bold mb-2">{{ $anime['title']['romaji'] }}</h2>
                 <h3 class="text-2xl mb-2 text-gray-300">{{ $anime['title']['english'] ?? '' }}</h3>
-
-                <!-- Número de episodios -->
                 <p class="mb-2 text-lg"><strong>Episodios:</strong> {{ $anime['episodes'] ?? 'N/A' }}</p>
 
-                <!-- Descripción del anime -->
                 <div
                     class="mt-4 p-6 bg-gray-800 bg-opacity-70 rounded-lg text-gray-100 text-lg leading-relaxed flex-1 overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
                     {!! $anime['description'] !!}
                 </div>
             </div>
         </div>
-
     </header>
 
+    {{-- ===================================================== --}}
+    {{-- ============ TOAST DE MENSAJE ======================== --}}
+    {{-- ===================================================== --}}
+    <div id="toast"
+        class="fixed top-5 right-5 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 pointer-events-none z-50">
+    </div>
+
+    {{-- ===================================================== --}}
+    {{-- ============ SCRIPT PARA FAVORITOS (AJAX) ============ --}}
+    {{-- ===================================================== --}}
+    @auth
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const button = document.getElementById('favoriteButton');
+                const toast = document.getElementById('toast');
+
+                async function showToast(message, color = 'bg-green-600') {
+                    toast.textContent = message;
+                    toast.className = `fixed top-5 right-5 ${color} text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 pointer-events-none z-50`;
+                    setTimeout(() => toast.classList.add('opacity-100'), 10);
+                    setTimeout(() => toast.classList.remove('opacity-100'), 3000);
+                }
+
+                button.addEventListener('click', async () => {
+                    const isFavorite = button.dataset.isFavorite === 'true';
+                    const animeId = button.dataset.animeId;
+                    const animeTitle = button.dataset.animeTitle;
+                    const animeImage = button.dataset.animeImage;
+
+                    try {
+                        const response = await fetch('{{ route('favorites.anime.toggle') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                anime_id: animeId,
+                                anime_title: animeTitle,
+                                anime_image: animeImage
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        // Actualizar el botón e ícono según respuesta
+                        if (data.status === 'added') {
+                            button.dataset.isFavorite = 'true';
+                            button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+                            button.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+                            button.title = 'Quitar de favoritos';
+                            button.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
+                                        1.4 8.172L12 18.896l-7.334 3.868
+                                        1.4-8.172-5.934-5.782 8.2-1.192z"/>
+                                </svg>`;
+                            showToast('✅ Anime añadido a favoritos', 'bg-green-600');
+                        } else if (data.status === 'removed') {
+                            button.dataset.isFavorite = 'false';
+                            button.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
+                            button.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+                            button.title = 'Agregar a favoritos';
+                            button.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                                    stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 
+                                        9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                </svg>`;
+                            showToast('❌ Anime eliminado de favoritos', 'bg-red-600');
+                        }
+
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showToast('⚠️ Error al procesar la solicitud', 'bg-yellow-600');
+                    }
+                });
+            });
+        </script>
+    @endauth
     <!-- Sección adicional ocupando todo el ancho -->
     <section class="w-full p-6 mt-8 flex gap-8">
         <!-- Columna izquierda: info del anime disponible -->
