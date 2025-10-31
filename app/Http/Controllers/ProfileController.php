@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\AnimeComment;
+use App\Models\AnimeFavorite;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +19,12 @@ class ProfileController extends Controller
     public function index()
     {
         $user = auth()->user();
-        return view('profile.index', compact('user'));
+
+        //Animes Favoritos
+
+        $favorites = AnimeFavorite::where('user_id', $user->id)->get();
+
+        return view('profile.index', compact('user', 'favorites'));
     }
 
     public function updateBioAvatar(Request $request)

@@ -15,34 +15,110 @@
 
         <!-- Contenido principal -->
         <div class="relative flex flex-col lg:flex-row p-6 lg:p-12 h-full items-start">
+
+            <!-- ============================================================= -->
+            <!-- =========== COLUMNA IZQUIERDA: IMAGEN + BOTONES ============== -->
+            <!-- ============================================================= -->
             <div class="flex-shrink-0 mb-4 lg:mb-0 lg:mr-8 flex flex-col items-start">
+                <!-- Imagen del anime -->
                 <img src="{{ $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}"
                     class="w-64 h-96 object-cover rounded-lg shadow-lg mb-4">
-                <div class="flex space-x-4">
-                    <button
-                        class="flex items-center justify-center w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg shadow-md transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path
-                                d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782 1.4 8.172L12 18.896l-7.334 3.868 1.4-8.172-5.934-5.782 8.2-1.192z" />
-                        </svg>
-                    </button>
-                    <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
-                        Añadir a mi lista
-                    </button>
-                </div>
+
+                <!-- Bloque de botones -->
+                @auth
+                    @php
+                        // Comprobamos si el usuario actual ya tiene este anime en favoritos
+                        $isFavorite = auth()->user()->animeFavorites->where('anime_id', $anime['id'])->isNotEmpty();
+                    @endphp
+
+                    <div class="flex space-x-4">
+                        {{-- ===================================================== --}}
+                        {{-- ============ BOTÓN DE FAVORITOS (⭐ Estrella) ========= --}}
+                        {{-- ===================================================== --}}
+                        @if ($isFavorite)
+                            <!-- Si YA es favorito, mostramos botón para QUITAR -->
+                            <form action="{{ route('favorites.anime.destroy', $anime['id']) }}" method="POST">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="flex items-center justify-center w-12 h-12 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg shadow-md transition"
+                                    title="Quitar de favoritos">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
+                                            1.4 8.172L12 18.896l-7.334 3.868
+                                            1.4-8.172-5.934-5.782 8.2-1.192z" />
+                                    </svg>
+                                </button>
+                            </form>
+                        @else
+                            <!-- Si NO es favorito, mostramos botón para AÑADIR -->
+                            <form action="{{ route('favorites.anime.store') }}" method="POST">
+                                @csrf
+                                <!-- Campos ocultos con los datos necesarios del anime -->
+                                <input type="hidden" name="anime_id" value="{{ $anime['id'] }}">
+                                <input type="hidden" name="anime_title" value="{{ $anime['title']['romaji'] }}">
+                                <input type="hidden" name="anime_image" value="{{ $anime['coverImage']['large'] }}">
+                                <button type="submit"
+                                    class="flex items-center justify-center w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg shadow-md transition"
+                                    title="Agregar a favoritos">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
+                                            1.4 8.172L12 18.896l-7.334 3.868
+                                            1.4-8.172-5.934-5.782 8.2-1.192z" />
+                                    </svg>
+                                </button>
+                            </form>
+                        @endif
+
+                        {{-- ===================================================== --}}
+                        {{-- ======= BOTÓN "AÑADIR A MI LISTA" (sin lógica aún) ==== --}}
+                        {{-- ===================================================== --}}
+                        <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
+                            Añadir a mi lista
+                        </button>
+                    </div>
+                @else
+                    <!-- Si el usuario NO está autenticado -->
+                    <div class="flex space-x-4">
+                        <!-- Redirige al login si intenta guardar sin estar logueado -->
+                        <a href="{{ route('login') }}"
+                            class="flex items-center justify-center w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg shadow-md transition"
+                            title="Inicia sesión para guardar favoritos">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
+                                    1.4 8.172L12 18.896l-7.334 3.868
+                                    1.4-8.172-5.934-5.782 8.2-1.192z" />
+                            </svg>
+                        </a>
+
+                        <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
+                            Añadir a mi lista
+                        </button>
+                    </div>
+                @endauth
             </div>
 
+            <!-- ============================================================= -->
+            <!-- =========== COLUMNA DERECHA: INFORMACIÓN DEL ANIME =========== -->
+            <!-- ============================================================= -->
             <div class="text-white lg:flex-1 max-w-3xl flex flex-col h-96">
+                <!-- Títulos -->
                 <h2 class="text-4xl lg:text-5xl font-bold mb-2">{{ $anime['title']['romaji'] }}</h2>
                 <h3 class="text-2xl mb-2 text-gray-300">{{ $anime['title']['english'] ?? '' }}</h3>
+
+                <!-- Número de episodios -->
                 <p class="mb-2 text-lg"><strong>Episodios:</strong> {{ $anime['episodes'] ?? 'N/A' }}</p>
 
+                <!-- Descripción del anime -->
                 <div
                     class="mt-4 p-6 bg-gray-800 bg-opacity-70 rounded-lg text-gray-100 text-lg leading-relaxed flex-1 overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
                     {!! $anime['description'] !!}
                 </div>
             </div>
         </div>
+
     </header>
 
     <!-- Sección adicional ocupando todo el ancho -->
@@ -480,13 +556,13 @@
                                 const commentId = button.dataset.commentId;
                                 try {
                                     const response = await fetch(
-                                    `/anime-comments/${commentId}/toggle-like`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                            'Accept': 'application/json'
-                                        }
-                                    });
+                                        `/anime-comments/${commentId}/toggle-like`, {
+                                            method: 'POST',
+                                            headers: {
+                                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                'Accept': 'application/json'
+                                            }
+                                        });
                                     if (!response.ok) {
                                         if (response.status === 403) alert(
                                             'Debes iniciar sesión para dar like.');

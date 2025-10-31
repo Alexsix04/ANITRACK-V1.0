@@ -9,6 +9,7 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\VoiceActorsController;
 use App\Http\Controllers\AnimeCommentController;
 use App\Http\Controllers\CharacterCommentController;
+use App\Http\Controllers\AnimeFavoriteController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -51,6 +52,13 @@ Route::post('/anime-comments', [AnimeCommentController::class, 'store'])->name('
 Route::post('/anime-comments/{comment}/toggle-like', [AnimeCommentController::class, 'toggleLike'])->name('anime-comments.toggle-like');
 Route::post('/character-comments', [CharacterCommentController::class, 'store'])->name('characters.comments.store');
 Route::post('/character-comments/{comment}/toggle-like', [CharacterCommentController::class, 'toggleLike'])->name('characters.comments.toggle-like');
+
+//Favoritos
+Route::middleware(['auth'])->group(function () {
+    Route::post('/favorites/anime', [AnimeFavoriteController::class, 'store'])->name('favorites.anime.store');
+    Route::delete('/favorites/anime/{animeId}', [AnimeFavoriteController::class, 'destroy'])->name('favorites.anime.destroy');
+});
+
 
 //Rutas Listas
 Route::get('/listas', [AnimeController::class, 'index'])->name('listas.index');
