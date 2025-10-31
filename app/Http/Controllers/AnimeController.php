@@ -106,10 +106,13 @@ class AnimeController extends Controller
 
         $seccion = $seccion ?? 'general';
 
-        $comments = AnimeComment::where('anime_id', $id)
-                ->orderBy('likes_count', 'desc')
-                ->orderBy('created_at', 'desc')
-                ->get();
+        $comments = AnimeComment::with('user')
+            ->where('anime_id', $id)
+            ->orderBy('likes_count', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+
 
         return view('animes.show', compact('anime', 'seccion', 'comments'));
     }

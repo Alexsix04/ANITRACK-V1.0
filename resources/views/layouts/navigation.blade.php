@@ -34,7 +34,7 @@
                         <x-dropdown align="right" width="48">
                             <x-slot name="trigger">
                                 <button class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
-                                    <img class="h-8 w-8 rounded-full" src="{{ Auth::user()->avatar ?? asset('images/avatars/default-avatar.png') }}" alt="Avatar">
+                                    <img class="h-8 w-8 rounded-full" src="{{ Auth::user()->avatar_url }}" alt="Avatar">
                                 </button>
                             </x-slot>
 

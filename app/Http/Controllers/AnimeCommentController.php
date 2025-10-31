@@ -4,42 +4,48 @@ namespace App\Http\Controllers;
 
 use App\Models\AnimeComment;
 use App\Models\AnimeCommentLike;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class AnimeCommentController extends Controller
 {
     public function store(Request $request)
-    {
-        // Validación
-        $data = $request->validate([
-            'anime_id' => 'required|integer',
-            'user_name' => 'nullable|string|max:100',
-            'content' => 'required|string|min:2',
-            'image' => 'nullable|image|max:2048',        // imagen opcional, max 2MB
-            'is_spoiler' => 'nullable|boolean',         // spoiler opcional
-        ]);
+{
+    // Validar los datos del formulario
+    $data = $request->validate([
+        'anime_id'   => 'required|integer',
+        'user_name'  => 'nullable|string|max:100',
+        'content'    => 'required|string|min:2',
+        'image'      => 'nullable|image|max:2048', // máx. 2MB
+        'is_spoiler' => 'nullable|boolean',
+    ]);
 
-        // Procesar imagen si se subió
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('comments', 'public');
-        }
+    // Crear instancia manualmente para evitar errores de mass-assignment
+    $comment = new \App\Models\AnimeComment();
+    $comment->anime_id = $data['anime_id'];
+    $comment->content = $data['content'];
+    $comment->is_spoiler = $request->filled('is_spoiler');
 
-        // Manejar el checkbox de spoiler
-        $data['is_spoiler'] = $request->filled('is_spoiler');
-
-        // Si el usuario está autenticado, usamos su nombre y id
-        if (auth()->check()) {
-            $data['user_id'] = auth()->id();
-            $data['user_name'] = auth()->user()->name;
-        }
-
-        // Crear el comentario
-        AnimeComment::create($data);
-
-        return redirect()->back()->with('success', 'Comentario agregado con éxito.');
+    // Guardar imagen si se adjunta
+    if ($request->hasFile('image')) {
+        $comment->image = $request->file('image')->store('comments', 'public');
     }
+
+    // Asignar usuario (autenticado o anónimo)
+    if (auth()->check()) {
+        $comment->user_id = auth()->id();                
+        $comment->user_name = auth()->user()->name;
+    } else {
+        $comment->user_name = $data['user_name'] ?? 'Anónimo';
+    }
+
+    // Guardar en base de datos
+    $comment->save();
+
+    // Redirigir con mensaje de éxito
+    return redirect()->back()->with('success', 'Comentario agregado con éxito.');
+}
+
 
     // Toggle like: intenta crear like, si ya existe lo borra (unlike).
     public function toggleLike(Request $request, $commentId)

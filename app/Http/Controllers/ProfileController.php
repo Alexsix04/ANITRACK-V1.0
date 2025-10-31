@@ -34,18 +34,30 @@ class ProfileController extends Controller
 
         // Si el usuario sube una nueva imagen
         if ($request->hasFile('avatar')) {
+
+            // Si ya tenía un avatar anterior (y no es el por defecto), eliminarlo del storage
             if ($user->avatar && !str_contains($user->avatar, 'avatar-default.png')) {
-                \Storage::disk('public')->delete(str_replace('storage/', '', $user->avatar));
+                // Eliminamos del disco 'public' (usa la ruta relativa, no la URL)
+                $avatarPath = $user->avatar;
+
+                // Si en BD está guardada la URL completa, quitamos el dominio
+                $avatarPath = str_replace(asset('storage/') . '/', '', $avatarPath);
+
+                \Storage::disk('public')->delete($avatarPath);
             }
 
+            // Guardar el nuevo avatar en 'storage/app/public/avatars'
             $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar = asset('storage/' . $path);
+
+            // Guardamos solo la ruta relativa, NO la URL completa
+            $user->avatar = $path;
         }
 
         $user->save();
 
         return back()->with('success', 'Perfil actualizado correctamente.');
     }
+
 
     /**
      * Display the user's profile form.

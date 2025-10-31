@@ -11,6 +11,7 @@ class CharacterComment extends Model
 
     protected $fillable = [
         'character_id',
+        'user_id',
         'user_name',
         'content',
         'likes_count',

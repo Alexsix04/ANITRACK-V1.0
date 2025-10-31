@@ -361,8 +361,10 @@
 
                         <!-- Nombre usuario -->
                         @auth
-                            <p class="text-gray-700 mb-2">Comentando como: <span
-                                    class="font-semibold text-blue-600">{{ auth()->user()->name }}</span></p>
+                            <p class="text-gray-700 mb-2">
+                                Comentando como:
+                                <span class="font-semibold text-blue-600">{{ auth()->user()->name }}</span>
+                            </p>
                             <input type="hidden" name="user_name" value="{{ auth()->user()->name }}">
                         @else
                             <div class="mb-3">
@@ -413,16 +415,18 @@
                             <!-- Contenido -->
                             <div class="flex-1">
                                 <div class="flex items-center justify-between mb-2">
-                                    <strong class="text-gray-800">{{ $comment->user_name ?? 'Anónimo' }}</strong>
+                                    <strong class="text-gray-800">
+                                        {{ $comment->user->name ?? ($comment->user_name ?? 'Anónimo') }}
+                                    </strong>
                                     <small class="text-gray-500">{{ $comment->created_at->diffForHumans() }}</small>
                                 </div>
 
                                 <!-- Spoiler -->
                                 @if ($comment->is_spoiler)
                                     <div class="p-2 bg-gray-200 rounded mb-2">
-                                        <button type="button"
-                                            class="show-spoiler-btn text-blue-600 hover:underline">⚠️ Contenido oculto
-                                            por spoiler. Mostrar</button>
+                                        <button type="button" class="show-spoiler-btn text-blue-600 hover:underline">
+                                            ⚠️ Contenido oculto por spoiler. Mostrar
+                                        </button>
                                         <div class="spoiler-content hidden mt-2">{{ $comment->content }}</div>
                                     </div>
                                 @else
@@ -448,7 +452,7 @@
                                     @auth
                                         <button type="button"
                                             class="toggle-like-btn animate-like text-sm font-medium transition-colors 
-                            {{ auth()->user()->hasLiked($comment) ? 'text-red-500 hover:text-red-600' : 'text-blue-500 hover:text-blue-600' }}"
+                                {{ auth()->user()->hasLiked($comment) ? 'text-red-500 hover:text-red-600' : 'text-blue-500 hover:text-blue-600' }}"
                                             data-comment-id="{{ $comment->id }}">
                                             {{ auth()->user()->hasLiked($comment) ? '💔 Quitar like' : '👍 Me gusta' }}
                                         </button>
@@ -467,13 +471,11 @@
                     @endforelse
                 </div>
 
-                <!-- JS para likes, spoilers e imagen -->
+                <!-- JS -->
                 <script>
                     document.addEventListener('DOMContentLoaded', () => {
-
                         // Likes AJAX
-                        const likeButtons = document.querySelectorAll('.toggle-like-btn');
-                        likeButtons.forEach(button => {
+                        document.querySelectorAll('.toggle-like-btn').forEach(button => {
                             button.addEventListener('click', async () => {
                                 const commentId = button.dataset.commentId;
                                 try {
@@ -491,19 +493,19 @@
                                         return;
                                     }
                                     const data = await response.json();
-                                    const likeCountSpan = document.querySelector(
+                                    const likeCount = document.querySelector(
                                         `.like-count[data-comment-id="${commentId}"]`);
-                                    if (likeCountSpan) likeCountSpan.textContent = `${data.likes_count} 👍`;
+                                    if (likeCount) likeCount.textContent = `${data.likes_count} 👍`;
+
                                     button.classList.add('scale-110');
                                     setTimeout(() => button.classList.remove('scale-110'), 150);
+
                                     if (data.liked) {
                                         button.textContent = '💔 Quitar like';
-                                        button.classList.remove('text-blue-500', 'hover:text-blue-600');
-                                        button.classList.add('text-red-500', 'hover:text-red-600');
+                                        button.classList.replace('text-blue-500', 'text-red-500');
                                     } else {
                                         button.textContent = '👍 Me gusta';
-                                        button.classList.remove('text-red-500', 'hover:text-red-600');
-                                        button.classList.add('text-blue-500', 'hover:text-blue-600');
+                                        button.classList.replace('text-red-500', 'text-blue-500');
                                     }
                                 } catch (error) {
                                     console.error('Error al procesar el like:', error);
@@ -529,7 +531,6 @@
                     });
                 </script>
 
-                <!-- Tailwind: animación de like -->
                 <style>
                     .toggle-like-btn {
                         transition: transform 0.15s ease;
@@ -539,7 +540,7 @@
                         transform: scale(1.2);
                     }
                 </style>
-                
+
                 <script>
                     // Obtener elementos
                     const form = document.getElementById('commentForm');

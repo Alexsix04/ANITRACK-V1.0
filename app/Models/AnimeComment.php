@@ -11,6 +11,7 @@ class AnimeComment extends Model
 
     protected $fillable = [
         'anime_id',
+        'user_id',
         'user_name',
         'content',
         'likes_count',
@@ -24,7 +25,7 @@ class AnimeComment extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    //Relación con likes
+    // Relación con likes
     public function likes()
     {
         return $this->hasMany(AnimeCommentLike::class);

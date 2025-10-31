@@ -73,12 +73,21 @@ class User extends Authenticatable
             ->exists();
     }
     // === Accessor ===
-    public function getAvatarUrlAttribute()
-    {
-        return $this->avatar
-            ? asset('storage/' . $this->avatar)
-            : "https://ui-avatars.com/api/?name=" . urlencode($this->name) . '&background=0D8ABC&color=fff&bold=true';
+   public function getAvatarUrlAttribute()
+{
+    if (!$this->avatar) {
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=0D8ABC&color=fff&bold=true';
     }
+
+    // Si es una URL completa (por ejemplo, guardada con asset() o storage path)
+    if (str_starts_with($this->avatar, 'http')) {
+        return $this->avatar;
+    }
+
+    // Si es una ruta relativa (por ejemplo, 'avatars/user1.jpg')
+    return asset('storage/' . $this->avatar);
+}
+
     public function characterCommentLikes()
     {
         return $this->hasMany(\App\Models\CharacterCommentLike::class);

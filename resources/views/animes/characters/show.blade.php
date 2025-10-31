@@ -130,14 +130,14 @@
 
                 <!-- Mensaje de éxito -->
                 @if (session('success'))
-                    <div class="mb-4 rounded-md bg-green-100 p-3 text-green-700">
+                    <div class="mb-4 rounded-md bg-green-100 p-3 text-green-700 shadow-sm">
                         {{ session('success') }}
                     </div>
                 @endif
 
                 <!-- Errores de validación -->
                 @if ($errors->any())
-                    <div class="mb-4 rounded-md bg-red-100 p-3 text-red-700">
+                    <div class="mb-4 rounded-md bg-red-100 p-3 text-red-700 shadow-sm">
                         <ul class="list-disc list-inside">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -148,14 +148,16 @@
 
                 <!-- Formulario de comentario -->
                 <form action="{{ route('characters.comments.store') }}" method="POST" enctype="multipart/form-data"
-                    class="bg-white rounded-xl shadow-md p-4 mb-6 border border-gray-100">
+                    class="bg-white rounded-2xl shadow-md p-5 mb-6 border border-gray-100">
                     @csrf
                     <input type="hidden" name="character_id" value="{{ $character['id'] }}">
 
                     <!-- Nombre usuario -->
                     @auth
-                        <p class="text-gray-700 mb-2">Comentando como: <span
-                                class="font-semibold text-blue-600">{{ auth()->user()->name }}</span></p>
+                        <p class="text-gray-700 mb-3">
+                            Comentando como:
+                            <span class="font-semibold text-blue-600">{{ auth()->user()->name }}</span>
+                        </p>
                         <input type="hidden" name="user_name" value="{{ auth()->user()->name }}">
                     @else
                         <div class="mb-3">
@@ -167,33 +169,36 @@
 
                     <div class="mb-3">
                         <textarea name="content" placeholder="Escribe algo..." rows="3"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">{{ old('content') }}</textarea>
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none resize-none">{{ old('content') }}</textarea>
                     </div>
 
                     <!-- Subir imagen -->
                     <div class="mb-3">
-                        <label class="block mb-1">Adjuntar imagen (opcional)</label>
-                        <input type="file" name="image" accept="image/*">
+                        <label class="block mb-1 font-medium text-gray-700">Adjuntar imagen (opcional)</label>
+                        <input type="file" name="image" accept="image/*"
+                            class="block text-sm text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                     </div>
 
                     <!-- Spoiler -->
                     <div class="mb-3 flex items-center gap-2">
-                        <input type="checkbox" name="is_spoiler" id="is_spoiler" value="1">
-                        <label for="is_spoiler">Marcar como spoiler</label>
+                        <input type="checkbox" name="is_spoiler" id="is_spoiler" value="1"
+                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-400">
+                        <label for="is_spoiler" class="text-gray-700">Marcar como spoiler</label>
                     </div>
 
                     <button type="submit"
-                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition-all shadow-sm">
                         💬 Publicar comentario
                     </button>
                 </form>
 
                 <!-- Listado de comentarios -->
                 @forelse ($comments as $comment)
-                    <div class="bg-white rounded-xl shadow-sm p-4 mb-4 border border-gray-100 flex gap-3">
+                    <div
+                        class="bg-white rounded-xl shadow-sm p-4 mb-4 border border-gray-100 flex gap-4 hover:shadow-md transition-shadow">
                         <!-- Avatar -->
-                        <div>
-                            @if ($comment->user)
+                        <div class="flex-shrink-0">
+                            @if ($comment->user && $comment->user->avatar_url)
                                 <img src="{{ $comment->user->avatar_url }}" alt="{{ $comment->user->name }}"
                                     class="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm">
                             @else
@@ -212,36 +217,39 @@
 
                             <!-- Spoiler -->
                             @if ($comment->is_spoiler)
-                                <div class="p-2 bg-gray-200 rounded mb-2">
+                                <div class="p-2 bg-gray-100 rounded mb-2">
                                     <button type="button"
-                                        class="show-spoiler-btn text-blue-600 hover:underline">⚠️ Contenido oculto
-                                        por spoiler. Mostrar</button>
-                                    <div class="spoiler-content hidden mt-2">{{ $comment->content }}</div>
+                                        class="show-spoiler-btn text-blue-600 hover:underline font-medium">⚠️ Spoiler —
+                                        Mostrar</button>
+                                    <div class="spoiler-content hidden mt-2 text-gray-700">{{ $comment->content }}
+                                    </div>
                                 </div>
                             @else
-                                <p class="text-gray-700 mb-2">{{ $comment->content }}</p>
+                                <p class="text-gray-700 mb-2 leading-relaxed">{{ $comment->content }}</p>
                             @endif
 
                             <!-- Imagen adjunta -->
                             @if ($comment->image)
                                 <div class="mb-2">
-                                    <button type="button" class="show-image-btn text-blue-600 hover:underline">📷
-                                        Ver imagen</button>
+                                    <button type="button"
+                                        class="show-image-btn text-blue-600 hover:underline text-sm font-medium">
+                                        📷 Ver imagen
+                                    </button>
                                     <img src="{{ asset('storage/' . $comment->image) }}" alt="Imagen comentario"
-                                        class="mt-2 hidden max-w-full rounded">
+                                        class="mt-2 hidden max-w-full rounded-lg border border-gray-200 shadow-sm">
                                 </div>
                             @endif
 
                             <!-- Likes -->
-                            <div class="flex items-center gap-3">
-                                <span class="text-gray-600 like-count" data-comment-id="{{ $comment->id }}">
+                            <div class="flex items-center gap-3 mt-2">
+                                <span class="text-gray-600 like-count text-sm" data-comment-id="{{ $comment->id }}">
                                     {{ $comment->likes_count }} 👍
                                 </span>
 
                                 @auth
                                     <button type="button"
                                         class="toggle-like-btn animate-like text-sm font-medium transition-colors 
-                                {{ auth()->user()->hasLikedCharacter($comment) ? 'text-red-500 hover:text-red-600' : 'text-blue-500 hover:text-blue-600' }}"
+                    {{ auth()->user()->hasLikedCharacter($comment) ? 'text-red-500 hover:text-red-600' : 'text-blue-500 hover:text-blue-600' }}"
                                         data-comment-id="{{ $comment->id }}">
                                         {{ auth()->user()->hasLikedCharacter($comment) ? '💔 Quitar like' : '👍 Me gusta' }}
                                     </button>
@@ -256,7 +264,7 @@
                         </div>
                     </div>
                 @empty
-                    <p class="text-gray-500">Sé el primero en comentar este personaje 📝</p>
+                    <p class="text-gray-500 text-center">Sé el primero en comentar este personaje 📝</p>
                 @endforelse
             </div>
 
@@ -265,30 +273,30 @@
                 document.addEventListener('DOMContentLoaded', () => {
 
                     // Likes AJAX
-                    const likeButtons = document.querySelectorAll('.toggle-like-btn');
-                    likeButtons.forEach(button => {
+                    document.querySelectorAll('.toggle-like-btn').forEach(button => {
                         button.addEventListener('click', async () => {
                             const commentId = button.dataset.commentId;
                             try {
                                 const response = await fetch(
-                                `/character-comments/${commentId}/toggle-like`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'Accept': 'application/json'
-                                    }
-                                });
+                                    `/character-comments/${commentId}/toggle-like`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                            'Accept': 'application/json'
+                                        }
+                                    });
                                 if (!response.ok) {
                                     if (response.status === 403) alert(
                                         'Debes iniciar sesión para dar like.');
                                     return;
                                 }
                                 const data = await response.json();
-                                const likeCountSpan = document.querySelector(
+                                const likeCount = document.querySelector(
                                     `.like-count[data-comment-id="${commentId}"]`);
-                                if (likeCountSpan) likeCountSpan.textContent = `${data.likes_count} 👍`;
+                                if (likeCount) likeCount.textContent = `${data.likes_count} 👍`;
                                 button.classList.add('scale-110');
                                 setTimeout(() => button.classList.remove('scale-110'), 150);
+
                                 if (data.liked) {
                                     button.textContent = '💔 Quitar like';
                                     button.classList.remove('text-blue-500', 'hover:text-blue-600');
@@ -306,18 +314,12 @@
 
                     // Mostrar/ocultar spoiler
                     document.querySelectorAll('.show-spoiler-btn').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const content = btn.nextElementSibling;
-                            content.classList.toggle('hidden');
-                        });
+                        btn.addEventListener('click', () => btn.nextElementSibling.classList.toggle('hidden'));
                     });
 
                     // Mostrar/ocultar imagen
                     document.querySelectorAll('.show-image-btn').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            const img = btn.nextElementSibling;
-                            img.classList.toggle('hidden');
-                        });
+                        btn.addEventListener('click', () => btn.nextElementSibling.classList.toggle('hidden'));
                     });
                 });
             </script>
