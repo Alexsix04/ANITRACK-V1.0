@@ -44,46 +44,34 @@
                                 {{-- Ícono relleno ⭐ --}}
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
                                     viewBox="0 0 24 24">
-                                    <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
-                                                        1.4 8.172L12 18.896l-7.334 3.868
-                                                        1.4-8.172-5.934-5.782 8.2-1.192z" />
+                                    <path
+                                        d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
+                                                                                                            1.4 8.172L12 18.896l-7.334 3.868
+                                                                                                            1.4-8.172-5.934-5.782 8.2-1.192z" />
                                 </svg>
                             @else
                                 {{-- Ícono vacío ☆ --}}
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
                                     stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                                                    9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
+                                                                                                        9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                                 </svg>
                             @endif
                         </button>
 
                         {{-- ===================================================== --}}
-                        {{-- ====== BOTÓN "AÑADIR A MI LISTA" (sin AJAX) ========= --}}
+                        {{-- ====== BOTÓN "AÑADIR A MI LISTA" (abre modal) ======= --}}
                         {{-- ===================================================== --}}
 
-                        <form action="{{ route('anime.addToList') }}" method="POST" class="flex items-center space-x-2">
-                            @csrf
-                            <input type="hidden" name="anime_id" value="{{ $anime['id'] }}">
-                            <input type="hidden" name="anime_title" value="{{ $anime['title']['romaji'] }}">
-                            <input type="hidden" name="anime_image" value="{{ $anime['coverImage']['large'] }}">
-
-                            <select name="list_name"
-                                class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="Pendientes">Pendientes</option>
-                                <option value="Vistos">Vistos</option>
-                            </select>
-
-                            <button type="submit"
-                                class="flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none"
-                                    stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                                </svg>
-                                Añadir a mi lista
-                            </button>
-                        </form>
-
+                        <button id="openAddToListModal"
+                            class="flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none"
+                                stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Añadir a mi lista
+                        </button>
 
                         {{-- Mensaje de éxito --}}
                         @if (session('success'))
@@ -102,8 +90,9 @@
                             title="Inicia sesión para guardar favoritos">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
                                 stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                                                9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
+                                                                                                    9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                             </svg>
                         </a>
 
@@ -214,10 +203,255 @@
             });
         </script>
     @endauth
-    <!-- Sección adicional ocupando todo el ancho -->
+    <!-- ===================================================== -->
+    <!-- 🧩 MODAL PRINCIPAL: AÑADIR A MI LISTA (versión ampliada) -->
+    <!-- ===================================================== -->
+    <div id="addToListModal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 transition-all opacity-0 scale-95">
+        <div
+            class="bg-gray-900 text-white p-8 rounded-2xl shadow-2xl w-full max-w-4xl relative flex flex-col md:flex-row gap-8">
+
+            <!-- ✖ Botón cerrar -->
+            <button id="closeAddToListModal"
+                class="absolute top-4 right-4 text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+
+            <!-- Columna izquierda: imagen + título -->
+            <div
+                class="flex flex-col items-center justify-start w-full md:w-2/5 border-b md:border-b-0 md:border-r border-gray-700 pb-6 md:pb-0 md:pr-6">
+                <img src="{{ $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}"
+                    class="w-56 h-80 object-cover rounded-xl shadow-lg mb-4">
+                <h3 class="text-xl font-semibold text-center leading-tight">{{ $anime['title']['romaji'] }}</h3>
+            </div>
+
+            <!-- Columna derecha: formulario -->
+            <div class="flex-1">
+                <h2 class="text-3xl font-semibold mb-6">Añadir a mi lista</h2>
+
+                <form action="{{ route('anime.addToList') }}" method="POST" id="addToListForm">
+                    @csrf
+                    <input type="hidden" name="anime_id" value="{{ $anime['id'] }}">
+                    <input type="hidden" name="anime_title" value="{{ $anime['title']['romaji'] }}">
+                    <input type="hidden" name="anime_image" value="{{ $anime['coverImage']['large'] }}">
+
+                    <!-- Selector de lista -->
+                    <label for="list_name" class="block mb-2 text-sm text-gray-300">Selecciona una lista</label>
+                    <select id="list_name" name="list_name"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-blue-500 text-base">
+                        @foreach (auth()->user()->animeLists as $list)
+                            <option value="{{ $list->name }}">{{ $list->name }}</option>
+                        @endforeach
+                        <option value="__new__">+ Crear nueva lista...</option>
+                    </select>
+
+                    <!-- Estado -->
+                    <label for="status" class="block mb-2 text-sm text-gray-300">Estado</label>
+                    <select id="status" name="status"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-blue-500 text-base">
+                        <option value="watching">Viendo</option>
+                        <option value="completed">Completado</option>
+                        <option value="on_hold">En pausa</option>
+                        <option value="dropped">Dropeado</option>
+                        <option value="plan_to_watch" selected>Pendiente</option>
+                    </select>
+
+                    <!-- Progreso -->
+                    <label for="episode_progress" class="block mb-2 text-sm text-gray-300">Progreso de
+                        episodios</label>
+                    <input type="number" id="episode_progress" name="episode_progress" min="0"
+                        max="{{ $anime['episodes'] ?? 0 }}"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 text-base"
+                        placeholder="Ej: 5">
+
+                    <!-- Puntuación -->
+                    <label for="score" class="block mb-2 text-sm text-gray-300">Puntuación (0-10)</label>
+                    <input type="number" id="score" name="score" min="0" max="10"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 text-base">
+
+                    <!-- Notas -->
+                    <label for="notes" class="block mb-2 text-sm text-gray-300">Notas / observaciones</label>
+                    <textarea id="notes" name="notes" rows="2"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 text-base" placeholder="Anota algo aquí..."></textarea>
+
+                    <!-- Rewatch (con campo oculto para asegurar envío de 0 si no se marca) -->
+                    <input type="hidden" name="is_rewatch" value="0">
+                    <div class="flex items-center mb-4">
+                        <input type="checkbox" id="is_rewatch" name="is_rewatch" value="1"
+                            class="w-5 h-5 text-blue-600 border-gray-300 rounded">
+                        <label for="is_rewatch" class="ml-2 text-sm text-gray-300">Rewatch</label>
+                    </div>
+
+                    <label for="rewatch_count" class="block mb-2 text-sm text-gray-300">Veces rewatch</label>
+                    <input type="number" id="rewatch_count" name="rewatch_count" min="0"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 text-base"
+                        placeholder="Ej: 1">
+
+                    <!-- Botones -->
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" id="cancelAddToList"
+                            class="px-5 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-base">Cancelar</button>
+                        <button type="submit"
+                            class="px-5 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-base font-semibold">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- 🟢 SUB-MODAL: CREAR NUEVA LISTA -->
+    <!-- ===================================================== -->
+    <div id="createListModal"
+        class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-[100] transition-all opacity-0 scale-95">
+        <div class="bg-gray-900 text-white p-6 rounded-2xl shadow-xl w-full max-w-sm relative">
+            <button id="closeCreateListModal"
+                class="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl">&times;</button>
+            <h2 class="text-xl font-semibold mb-4">Crear nueva lista</h2>
+
+            <form id="createListForm">
+                @csrf
+                <label for="list_name_new" class="block mb-2 text-sm text-gray-300">Nombre de la lista</label>
+                <input type="text" id="list_name_new" name="name"
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 mb-3"
+                    placeholder="Ej: En curso, Mis favoritos..." required>
+
+                <label for="is_public" class="block mb-2 text-sm text-gray-300">Visibilidad</label>
+                <select id="is_public" name="is_public"
+                    class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 mb-4">
+                    <option value="1">Pública</option>
+                    <option value="0">Privada</option>
+                </select>
+
+                <div class="flex justify-end space-x-2">
+                    <button type="button" id="cancelCreateList"
+                        class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg">Cancelar</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white">Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- ===================================================== -->
+<!-- ⚙️ SCRIPT DE MODALES -->
+<!-- ===================================================== -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const openAddBtn = document.getElementById('openAddToListModal');
+        const addModal = document.getElementById('addToListModal');
+        const closeAddBtn = document.getElementById('closeAddToListModal');
+        const cancelAddBtn = document.getElementById('cancelAddToList');
+
+        const createModal = document.getElementById('createListModal');
+        const closeCreateBtn = document.getElementById('closeCreateListModal');
+        const cancelCreateBtn = document.getElementById('cancelCreateList');
+        const createForm = document.getElementById('createListForm');
+
+        const listSelect = document.getElementById('list_name');
+
+        // Mostrar modal principal
+        openAddBtn.addEventListener('click', () => {
+            addModal.classList.remove('hidden', 'opacity-0', 'scale-95');
+            addModal.classList.add('flex', 'opacity-100', 'scale-100');
+
+            // Por defecto seleccionar "Pendientes" (si existe)
+            const defaultOption = Array.from(listSelect.options).find(opt => opt.value === 'Pendientes');
+            if (defaultOption) {
+                listSelect.value = 'Pendientes';
+            } else {
+                listSelect.selectedIndex = 0; // fallback
+            }
+        });
+
+        // Cerrar modal principal
+        [closeAddBtn, cancelAddBtn].forEach(btn => btn.addEventListener('click', () => {
+            addModal.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => addModal.classList.add('hidden'), 200);
+        }));
+
+        // Abrir submodal
+        listSelect.addEventListener('change', e => {
+            if (e.target.value === '__new__') {
+                createModal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                createModal.classList.add('flex', 'opacity-100', 'scale-100');
+                addModal.classList.add('pointer-events-none'); // Bloquea interacción con fondo
+            }
+        });
+
+        // Cerrar submodal
+        [closeCreateBtn, cancelCreateBtn].forEach(btn => btn.addEventListener('click', () => {
+            createModal.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => createModal.classList.add('hidden'), 200);
+            addModal.classList.remove('pointer-events-none'); // Desbloquea modal principal
+            listSelect.value = '';
+        }));
+
+        // Crear nueva lista por AJAX
+        createForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(createForm);
+
+            const response = await fetch("{{ route('anime.list.create') }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: formData
+            });
+
+            const result = await response.json();
+            if (result.success && result.list) {
+                const option = new Option(result.list.name, result.list.name, true, true);
+
+                // Insertar justo antes de la opción "Crear nueva lista..."
+                const createOption = listSelect.querySelector('option[value="__new__"]');
+                listSelect.insertBefore(option, createOption);
+
+                // Cerrar submodal y desbloquear el modal principal
+                createModal.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => createModal.classList.add('hidden'), 200);
+                addModal.classList.remove('pointer-events-none');
+
+            } else {
+                alert(result.message || 'Error al crear la lista.');
+            }
+        });
+
+        // Autoajustar datos si se elige la lista "Vistos"
+        const episodeInput = document.getElementById('episode_progress');
+        const statusSelect = document.getElementById('status');
+        const maxEpisodes = parseInt(episodeInput.getAttribute('max')) || 0;
+
+        listSelect.addEventListener('change', e => {
+            const selected = e.target.value;
+
+            if (selected === 'Vistos') {
+                // Rellenar datos automáticamente
+                if (maxEpisodes > 0) episodeInput.value = maxEpisodes;
+                statusSelect.value = 'completed';
+
+                // Bloquear campos visualmente sin impedir envío
+                episodeInput.readOnly = true;
+                episodeInput.classList.add('opacity-70', 'cursor-not-allowed');
+
+                statusSelect.style.pointerEvents = 'none';
+                statusSelect.classList.add('opacity-70', 'cursor-not-allowed');
+            } else if (selected && selected !== '__new__') {
+                // Restaurar campos si cambia a otra lista
+                episodeInput.readOnly = false;
+                episodeInput.classList.remove('opacity-70', 'cursor-not-allowed');
+
+                statusSelect.style.pointerEvents = '';
+                statusSelect.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
+        });
+    });
+</script>
+    {{-- ===================================================== --}}
+    {{-- ============ SECCIÓN PRINCIPAL ====================== --}}
+    {{-- ===================================================== --}}
     <section class="w-full p-6 mt-8 flex gap-8">
         <!-- Columna izquierda: info del anime disponible -->
-        <div class="w-64 flex-shrink-0 bg-gray-100 p-6 rounded-lg shadow-md space-y-4" style="align-self: flex-start;">
+        <div class="w-64 flex-shrink-0 bg-gray-100 p-6 rounded-lg shadow-md space-y-4"
+            style="align-self: flex-start;">
             <!-- Aquí eliminamos sticky y limitamos altura -->
             <h2 class="text-xl font-bold mb-4">Detalles del Anime</h2>
 

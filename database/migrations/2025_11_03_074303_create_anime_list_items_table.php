@@ -17,6 +17,13 @@ return new class extends Migration
             $table->unsignedBigInteger('anime_id');
             $table->string('anime_title');
             $table->string('anime_image')->nullable();
+            $table->unsignedBigInteger('episode_progress')->default(0);
+            $table->unsignedTinyInteger('score')->nullable();
+            $table->enum('status', ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'])->default('plan_to_watch');
+            $table->text('notes')->nullable();
+            $table->boolean('is_rewatch')->default(false);
+            $table->unsignedInteger('rewatch_count')->default(0);
+            //$table->unique(['anime_list_id', 'anime_id']);
             $table->timestamps();
         });
     }

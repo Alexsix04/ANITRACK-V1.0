@@ -18,6 +18,6 @@ class AnimeList extends Model
 
     public function items()
     {
-        return $this->hasMany(AnimeListItem::class);
+        return $this->hasMany(AnimeListItem::class, 'anime_list_id');
     }
 }
