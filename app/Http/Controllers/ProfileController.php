@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\AnimeComment;
 use App\Models\AnimeFavorite;
+use App\Models\AnimeList;
 use App\Models\CharacterFavorite;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,8 +25,15 @@ class ProfileController extends Controller
         //Animes Favoritos
         $animeFavorites = AnimeFavorite::where('user_id', $user->id)->get();
         $characterFavorites = CharacterFavorite::where('user_id', $user->id)->get();
+        
 
-        return view('profile.index', compact('user', 'animeFavorites', 'characterFavorites'));
+        // Listas por defecto (Vistos y Pendientes)
+        $defaultLists = AnimeList::with(['items'])
+        ->where('user_id', $user->id)
+        ->whereIn('name', ['Vistos', 'Pendientes'])
+        ->get();
+
+        return view('profile.index', compact('user', 'animeFavorites', 'characterFavorites', 'defaultLists'));
     }
 
     public function updateBioAvatar(Request $request)

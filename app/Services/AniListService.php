@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 class AniListService
 {
     protected $endpoint = 'https://graphql.anilist.co';
-    protected $excludedGenres = ['Ecchi', 'Hentai'];
+    protected $excludedGenres = ['Yuri', 'Hentai', 'Yaoi',];
 
     /**
      * Método genérico para enviar consultas a la API.

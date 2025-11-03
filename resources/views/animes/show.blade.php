@@ -32,41 +32,67 @@
                         {{-- ===================================================== --}}
                         {{-- ============ BOTÓN DE FAVORITOS (⭐ AJAX) ============ --}}
                         {{-- ===================================================== --}}
-                        <button id="favoriteButton"
-                            data-anime-id="{{ $anime['id'] }}"
+                        <button id="favoriteButton" data-anime-id="{{ $anime['id'] }}"
                             data-anime-title="{{ $anime['title']['romaji'] }}"
                             data-anime-image="{{ $anime['coverImage']['large'] }}"
                             data-is-favorite="{{ $isFavorite ? 'true' : 'false' }}"
                             class="flex items-center justify-center w-12 h-12 rounded-lg shadow-md transition
                                    {{ $isFavorite ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-yellow-500 hover:bg-yellow-600' }} text-white"
                             title="{{ $isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos' }}">
-                            
+
                             @if ($isFavorite)
                                 {{-- Ícono relleno ⭐ --}}
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
                                     viewBox="0 0 24 24">
-                                    <path
-                                        d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
-                                            1.4 8.172L12 18.896l-7.334 3.868
-                                            1.4-8.172-5.934-5.782 8.2-1.192z" />
+                                    <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
+                                                        1.4 8.172L12 18.896l-7.334 3.868
+                                                        1.4-8.172-5.934-5.782 8.2-1.192z" />
                                 </svg>
                             @else
                                 {{-- Ícono vacío ☆ --}}
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                    stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 
-                                        9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
+                                    stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
+                                                    9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                                 </svg>
                             @endif
                         </button>
 
                         {{-- ===================================================== --}}
-                        {{-- ======= BOTÓN "AÑADIR A MI LISTA" (sin lógica aún) ==== --}}
+                        {{-- ====== BOTÓN "AÑADIR A MI LISTA" (sin AJAX) ========= --}}
                         {{-- ===================================================== --}}
-                        <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
-                            Añadir a mi lista
-                        </button>
+
+                        <form action="{{ route('anime.addToList') }}" method="POST" class="flex items-center space-x-2">
+                            @csrf
+                            <input type="hidden" name="anime_id" value="{{ $anime['id'] }}">
+                            <input type="hidden" name="anime_title" value="{{ $anime['title']['romaji'] }}">
+                            <input type="hidden" name="anime_image" value="{{ $anime['coverImage']['large'] }}">
+
+                            <select name="list_name"
+                                class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="Pendientes">Pendientes</option>
+                                <option value="Vistos">Vistos</option>
+                            </select>
+
+                            <button type="submit"
+                                class="flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none"
+                                    stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Añadir a mi lista
+                            </button>
+                        </form>
+
+
+                        {{-- Mensaje de éxito --}}
+                        @if (session('success'))
+                            <div class="mt-3 bg-green-100 text-green-800 px-4 py-2 rounded-lg shadow">
+                                {{ session('success') }}
+                            </div>
+                        @endif
+
+
                     </div>
                 @else
                     <!-- Usuario no autenticado -->
@@ -74,11 +100,10 @@
                         <a href="{{ route('login') }}"
                             class="flex items-center justify-center w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg shadow-md transition"
                             title="Inicia sesión para guardar favoritos">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 
-                                    9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
+                                stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
+                                                9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                             </svg>
                         </a>
 
@@ -123,7 +148,8 @@
 
                 async function showToast(message, color = 'bg-green-600') {
                     toast.textContent = message;
-                    toast.className = `fixed top-5 right-5 ${color} text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 pointer-events-none z-50`;
+                    toast.className =
+                        `fixed top-5 right-5 ${color} text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 pointer-events-none z-50`;
                     setTimeout(() => toast.classList.add('opacity-100'), 10);
                     setTimeout(() => toast.classList.remove('opacity-100'), 3000);
                 }

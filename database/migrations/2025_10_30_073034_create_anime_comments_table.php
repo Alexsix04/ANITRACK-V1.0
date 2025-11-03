@@ -14,9 +14,12 @@ return new class extends Migration
         Schema::create('anime_comments', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('anime_id');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('user_name')->nullable();
             $table->text('content');
             $table->unsignedBigInteger('likes_count')->default(0);
+            $table->string('image')->nullable();
+            $table->boolean('is_spoiler')->default(false); 
             $table->timestamps();
         });
     }

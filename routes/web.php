@@ -10,7 +10,8 @@ use App\Http\Controllers\VoiceActorsController;
 use App\Http\Controllers\AnimeCommentController;
 use App\Http\Controllers\CharacterCommentController;
 use App\Http\Controllers\AnimeFavoriteController;
- use App\Http\Controllers\CharacterFavoriteController;
+use App\Http\Controllers\CharacterFavoriteController;
+use App\Http\Controllers\AnimeListController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -67,6 +68,17 @@ Route::middleware(['auth'])->group(function () {
 
 //Rutas Listas
 Route::get('/listas', [AnimeController::class, 'index'])->name('listas.index');
+
+//Rutas de listas de usuario
+Route::middleware(['auth'])->group(function () {
+    // Listas personales del usuario (para profile.index)
+    Route::get('/profile/lists', [AnimeListController::class, 'myLists'])->name('profile.lists');
+    Route::post('/lists/create', [AnimeListController::class, 'create'])->name('lists.create');
+
+    // Añadir o eliminar desde animes.show
+    Route::post('/anime/add-to-list', [AnimeListController::class, 'addAnimeToList'])->name('anime.addToList');
+    Route::delete('/anime/remove-from-list', [AnimeListController::class, 'removeFromList'])->name('anime.removeFromList');
+});
 
 
 require __DIR__.'/auth.php';

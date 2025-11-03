@@ -83,7 +83,7 @@
     </div>
 
     <!-- ========================================= -->
-    <!-- 🌟 FAVORITOS (vista de colección con collage) -->
+    <!-- 🌟 FAVORITOS -->
     <!-- ========================================= -->
     <div class="max-w-5xl mx-auto px-6 py-12 space-y-10">
         <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Favoritos</h2>
@@ -128,7 +128,8 @@
                     @else
                         <div class="grid grid-cols-2 grid-rows-2 h-full w-full">
                             @foreach ($charImages as $img)
-                                <img src="{{ $img }}" alt="Personaje favorito" class="object-cover w-full h-full">
+                                <img src="{{ $img }}" alt="Personaje favorito"
+                                    class="object-cover w-full h-full">
                             @endforeach
                             @for ($i = $charImages->count(); $i < 4; $i++)
                                 <div class="bg-gray-300"></div>
@@ -148,9 +149,52 @@
     </div>
 
     <!-- ========================================= -->
-    <!-- 🪄 MODALES DE COLECCIONES -->
+    <!-- 📋 LISTAS PERSONALES -->
     <!-- ========================================= -->
-    <!-- Modal de Animes -->
+    <div class="max-w-5xl mx-auto px-6 py-12 space-y-10">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Mis Listas</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            @foreach ($defaultLists as $list)
+                <div class="relative group cursor-pointer open-list-modal" data-list-id="{{ $list->id }}">
+                    <div class="aspect-[16/9] rounded-2xl overflow-hidden shadow-lg relative">
+                        @php
+                            $animeImages = $list->items->take(4)->pluck('anime_image');
+                        @endphp
+
+                        @if ($animeImages->isEmpty())
+                            <div class="flex items-center justify-center h-full bg-gray-200 text-gray-500">
+                                <span>Sin animes en {{ $list->name }}</span>
+                            </div>
+                        @else
+                            <div class="grid grid-cols-2 grid-rows-2 h-full w-full">
+                                @foreach ($animeImages as $img)
+                                    <img src="{{ $img }}" alt="Anime en {{ $list->name }}"
+                                        class="object-cover w-full h-full">
+                                @endforeach
+                                @for ($i = $animeImages->count(); $i < 4; $i++)
+                                    <div class="bg-gray-300"></div>
+                                @endfor
+                            </div>
+                        @endif
+
+                        <div
+                            class="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                            <h3 class="text-white text-2xl font-bold mb-1">{{ $list->name }}</h3>
+                            @if (!$list->items->isEmpty())
+                                <span class="text-white text-sm">Ver colección completa</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- 🪄 MODALES -->
+    <!-- ========================================= -->
+    <!-- MODALES DE FAVORITOS -->
     <div id="animesModal"
         class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
         <div class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto">
@@ -175,7 +219,6 @@
         </div>
     </div>
 
-    <!-- Modal de Personajes -->
     <div id="charsModal"
         class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
         <div class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto">
@@ -200,43 +243,58 @@
         </div>
     </div>
 
+    <!-- MODALES DE LISTAS -->
+    @foreach ($defaultLists as $list)
+        <div id="listModal-{{ $list->id }}"
+            class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
+            <div class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto relative">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">{{ $list->name }}</h2>
+                    <button class="text-gray-600 hover:text-gray-800 close-list-modal">✕</button>
+                </div>
+
+                @if ($list->items->isEmpty())
+                    <p class="text-gray-500">Esta lista está vacía.</p>
+                @else
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        @foreach ($list->items as $item)
+                            <a href="{{ route('animes.show', $item->anime_id) }}"
+                                class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03]">
+                                <img src="{{ $item->anime_image }}" alt="{{ $item->anime_title }}"
+                                    class="w-full h-64 object-cover rounded-lg mb-4">
+                                <h3 class="text-lg font-bold mb-2 truncate">{{ $item->anime_title }}</h3>
+                            </a>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endforeach
+
     <!-- ========================================= -->
-    <!-- 🧩 JS DE MODALES -->
+    <!-- 🧩 JS DE MODALES (favoritos + listas) -->
     <!-- ========================================= -->
     <script>
         function setupModal(openBtn, modal, closeBtn) {
             if (!modal) return;
-
-            // abrir modal
             if (openBtn) openBtn.addEventListener('click', () => {
                 modal.classList.remove('hidden', 'opacity-0', 'scale-95');
                 modal.classList.add('opacity-100', 'scale-100');
             });
-
-            // cerrar modal con botón
-            if (closeBtn) closeBtn.addEventListener('click', () => {
-                modal.classList.add('opacity-0', 'scale-95');
-                setTimeout(() => modal.classList.add('hidden'), 200);
-            });
-
-            // cerrar modal al hacer clic fuera
+            if (closeBtn) closeBtn.addEventListener('click', () => closeModal(modal));
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.classList.add('opacity-0', 'scale-95');
-                    setTimeout(() => modal.classList.add('hidden'), 200);
-                }
+                if (e.target === modal) closeModal(modal);
             });
-
-            // evitar cerrar al hacer clic dentro del contenido
             const modalContent = modal.querySelector('div');
             if (modalContent) modalContent.addEventListener('click', e => e.stopPropagation());
         }
 
-        setupModal(
-            document.getElementById('openEditModal'),
-            document.getElementById('editModal'),
-            document.getElementById('closeEditModal')
-        );
+        function closeModal(modal) {
+            modal.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+
+        // === FAVORITOS ===
         setupModal(
             document.getElementById('openAnimesModal'),
             document.getElementById('animesModal'),
@@ -247,17 +305,41 @@
             document.getElementById('charsModal'),
             document.getElementById('closeCharsModal')
         );
+
+        // === LISTAS ===
+        document.querySelectorAll('.open-list-modal').forEach(button => {
+            button.addEventListener('click', () => {
+                const listId = button.dataset.listId;
+                const modal = document.getElementById(`listModal-${listId}`);
+                if (!modal) return;
+                modal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                modal.classList.add('opacity-100', 'scale-100');
+
+                // cerrar al clicar fuera del modal
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeModal(modal);
+                });
+            });
+        });
+
+        document.querySelectorAll('.close-list-modal').forEach(button => {
+            button.addEventListener('click', () => {
+                const modal = button.closest('.fixed');
+                closeModal(modal);
+            });
+        });
     </script>
 
     <!-- ========================================= -->
-    <!-- ✨ ESTILOS DE TRANSICIÓN PARA MODALES -->
+    <!-- ✨ ESTILOS DE TRANSICIÓN -->
     <!-- ========================================= -->
     <style>
-        #editModal,
         #animesModal,
-        #charsModal {
+        #charsModal,
+        [id^="listModal-"] {
             transition: opacity 0.2s ease, transform 0.2s ease;
             transform-origin: center;
         }
     </style>
+
 </x-app-layout>

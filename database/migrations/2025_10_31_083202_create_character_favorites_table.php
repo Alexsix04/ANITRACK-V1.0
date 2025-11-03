@@ -17,6 +17,7 @@ return new class extends Migration
 
             // Datos básicos del personaje
             $table->unsignedBigInteger('character_id'); // ID del personaje en la API
+            $table->unsignedBigInteger('anime_id');
             $table->string('character_name');
             $table->string('character_image')->nullable();
 
