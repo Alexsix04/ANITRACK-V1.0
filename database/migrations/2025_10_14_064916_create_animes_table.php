@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('anime', function (Blueprint $table) {
+        Schema::create('animes', function (Blueprint $table) {
             $table->id();
-            $table->integer('anilist_id')->unique(); // ID de Anilist
+            $table->unsignedBigInteger('anilist_id')->unique()->index(); // ID de Anilist
             $table->string('title');
             $table->text('description')->nullable();
             $table->string('cover_image')->nullable();
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('season')->nullable();
             $table->integer('season_year')->nullable();
             $table->string('status')->nullable();
-            $table->date('average_score')->nullable();
+            $table->integer('average_score')->nullable();
             $table->json('genres')->nullable();
             $table->json('studios')->nullable();
             $table->json('tags')->nullable();

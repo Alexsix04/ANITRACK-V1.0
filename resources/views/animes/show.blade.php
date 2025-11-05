@@ -32,33 +32,39 @@
                         {{-- ===================================================== --}}
                         {{-- ============ BOTÓN DE FAVORITOS (⭐ AJAX) ============ --}}
                         {{-- ===================================================== --}}
-                        <button id="favoriteButton" data-anime-id="{{ $anime['id'] }}"
-                            data-anime-title="{{ $anime['title']['romaji'] }}"
-                            data-anime-image="{{ $anime['coverImage']['large'] }}"
-                            data-is-favorite="{{ $isFavorite ? 'true' : 'false' }}"
-                            class="flex items-center justify-center w-12 h-12 rounded-lg shadow-md transition
-                                   {{ $isFavorite ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-yellow-500 hover:bg-yellow-600' }} text-white"
-                            title="{{ $isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos' }}">
+                        @php
+    $isFavorite = false;
+    if(auth()->check()) {
+        $isFavorite = \App\Models\AnimeFavorite::where('user_id', auth()->id())
+            ->where('anilist_id', $anime['id']) // siempre anilist_id
+            ->exists();
+    }
+@endphp
 
-                            @if ($isFavorite)
-                                {{-- Ícono relleno ⭐ --}}
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path
-                                        d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
-                                                                                                            1.4 8.172L12 18.896l-7.334 3.868
-                                                                                                            1.4-8.172-5.934-5.782 8.2-1.192z" />
-                                </svg>
-                            @else
-                                {{-- Ícono vacío ☆ --}}
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
-                                    stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                                                                                                        9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                                </svg>
-                            @endif
-                        </button>
+<button class="favoriteButton flex items-center justify-center w-12 h-12 rounded-lg shadow-md transition
+        {{ $isFavorite ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-yellow-500 hover:bg-yellow-600' }} text-white"
+    data-anilist-id="{{ $anime['id'] }}"
+    data-anime-title="{{ $anime['title']['romaji'] }}"
+    data-anime-image="{{ $anime['coverImage']['large'] }}"
+    data-is-favorite="{{ $isFavorite ? 'true' : 'false' }}"
+    title="{{ $isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos' }}">
+    @if ($isFavorite)
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
+                     1.4 8.172L12 18.896l-7.334 3.868
+                     1.4-8.172-5.934-5.782 8.2-1.192z"/>
+        </svg>
+    @else
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
+             stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
+                     9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+        </svg>
+    @endif
+</button>
+
+
 
                         {{-- ===================================================== --}}
                         {{-- ====== BOTÓN "AÑADIR A MI LISTA" (abre modal) ======= --}}
@@ -92,7 +98,7 @@
                                 stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                                                                                                    9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                                                                                            9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                             </svg>
                         </a>
 
@@ -129,80 +135,88 @@
     {{-- ===================================================== --}}
     {{-- ============ SCRIPT PARA FAVORITOS (AJAX) ============ --}}
     {{-- ===================================================== --}}
-    @auth
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const button = document.getElementById('favoriteButton');
-                const toast = document.getElementById('toast');
+   @auth
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const buttons = document.querySelectorAll('.favoriteButton');
+    const toast = document.getElementById('toast');
 
-                async function showToast(message, color = 'bg-green-600') {
-                    toast.textContent = message;
-                    toast.className =
-                        `fixed top-5 right-5 ${color} text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 pointer-events-none z-50`;
-                    setTimeout(() => toast.classList.add('opacity-100'), 10);
-                    setTimeout(() => toast.classList.remove('opacity-100'), 3000);
+    function showToast(message, color = 'bg-green-600') {
+        toast.textContent = message;
+        toast.className =
+            `fixed top-5 right-5 ${color} text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 pointer-events-none z-50`;
+        setTimeout(() => toast.classList.add('opacity-100'), 10);
+        setTimeout(() => toast.classList.remove('opacity-100'), 3000);
+    }
+
+    buttons.forEach(button => {
+        // Inicializar estado
+        if(button.dataset.isFavorite === 'true') {
+            button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+            button.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+        }
+
+        button.addEventListener('click', async () => {
+            const animeAnilistId = button.dataset.anilistId;
+            const animeTitle = button.dataset.animeTitle;
+            const animeImage = button.dataset.animeImage;
+            const isFavorite = button.dataset.isFavorite === 'true';
+
+            try {
+                const response = await fetch('{{ route('favorites.anime.toggle') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        anilist_id: animeAnilistId, // CORRECTO
+                        anime_title: animeTitle,
+                        anime_image: animeImage
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'added') {
+                    button.dataset.isFavorite = 'true';
+                    button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+                    button.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+                    button.title = 'Quitar de favoritos';
+                    button.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
+                                1.4 8.172L12 18.896l-7.334 3.868
+                                1.4-8.172-5.934-5.782 8.2-1.192z"/>
+                        </svg>`;
+                    showToast('✅ Anime añadido a favoritos', 'bg-green-600');
+                } else if (data.status === 'removed') {
+                    button.dataset.isFavorite = 'false';
+                    button.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
+                    button.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+                    button.title = 'Agregar a favoritos';
+                    button.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 
+                                   9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                        </svg>`;
+                    showToast('❌ Anime eliminado de favoritos', 'bg-red-600');
                 }
 
-                button.addEventListener('click', async () => {
-                    const isFavorite = button.dataset.isFavorite === 'true';
-                    const animeId = button.dataset.animeId;
-                    const animeTitle = button.dataset.animeTitle;
-                    const animeImage = button.dataset.animeImage;
-
-                    try {
-                        const response = await fetch('{{ route('favorites.anime.toggle') }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                anime_id: animeId,
-                                anime_title: animeTitle,
-                                anime_image: animeImage
-                            })
-                        });
-
-                        const data = await response.json();
-
-                        // Actualizar el botón e ícono según respuesta
-                        if (data.status === 'added') {
-                            button.dataset.isFavorite = 'true';
-                            button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
-                            button.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
-                            button.title = 'Quitar de favoritos';
-                            button.innerHTML = `
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
-                                        1.4 8.172L12 18.896l-7.334 3.868
-                                        1.4-8.172-5.934-5.782 8.2-1.192z"/>
-                                </svg>`;
-                            showToast('✅ Anime añadido a favoritos', 'bg-green-600');
-                        } else if (data.status === 'removed') {
-                            button.dataset.isFavorite = 'false';
-                            button.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
-                            button.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
-                            button.title = 'Agregar a favoritos';
-                            button.innerHTML = `
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-                                    stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 
-                                        9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                                </svg>`;
-                            showToast('❌ Anime eliminado de favoritos', 'bg-red-600');
-                        }
-
-                    } catch (error) {
-                        console.error('Error:', error);
-                        showToast('⚠️ Error al procesar la solicitud', 'bg-yellow-600');
-                    }
-                });
-            });
-        </script>
-    @endauth
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('⚠️ Error al procesar la solicitud', 'bg-yellow-600');
+            }
+        });
+    });
+});
+</script>
+@endauth
+    {{--
     <!-- ===================================================== -->
     <!-- 🧩 MODAL PRINCIPAL: AÑADIR A MI LISTA (versión ampliada) -->
     <!-- ===================================================== -->
@@ -330,7 +344,7 @@
             </form>
         </div>
     </div>
-    <!-- ===================================================== -->
+<!-- ===================================================== -->
 <!-- ⚙️ SCRIPT DE MODALES -->
 <!-- ===================================================== -->
 <script>
@@ -444,14 +458,13 @@
             }
         });
     });
-</script>
+</script> --}}
     {{-- ===================================================== --}}
     {{-- ============ SECCIÓN PRINCIPAL ====================== --}}
     {{-- ===================================================== --}}
     <section class="w-full p-6 mt-8 flex gap-8">
         <!-- Columna izquierda: info del anime disponible -->
-        <div class="w-64 flex-shrink-0 bg-gray-100 p-6 rounded-lg shadow-md space-y-4"
-            style="align-self: flex-start;">
+        <div class="w-64 flex-shrink-0 bg-gray-100 p-6 rounded-lg shadow-md space-y-4" style="align-self: flex-start;">
             <!-- Aquí eliminamos sticky y limitamos altura -->
             <h2 class="text-xl font-bold mb-4">Detalles del Anime</h2>
 

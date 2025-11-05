@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\AniListService;
 use App\Models\AnimeComment;
+use App\Models\AnimeFavorite;
 
 class AnimeController extends Controller
 {
@@ -112,8 +113,15 @@ class AnimeController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // ======== COMPROBAR SI ES FAVORITO ========
+        $isFavorite = false;
+        if (auth()->check()) {
+            $anilist_id = $anime['id']; // obtenemos el id de la API
+            $isFavorite = \App\Models\AnimeFavorite::where('user_id', auth()->id())
+                ->where('anilist_id', $anilist_id)
+                ->exists();
+        }
 
-
-        return view('animes.show', compact('anime', 'seccion', 'comments'));
+        return view('animes.show', compact('anime', 'seccion', 'comments', 'isFavorite'));
     }
 }

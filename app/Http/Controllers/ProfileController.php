@@ -22,16 +22,22 @@ class ProfileController extends Controller
     {
         $user = auth()->user();
 
-        //Animes Favoritos
-        $animeFavorites = AnimeFavorite::where('user_id', $user->id)->get();
-        $characterFavorites = CharacterFavorite::where('user_id', $user->id)->get();
-        
+        // ⚙️ Relación con los animes locales
+        $animeFavorites = $user->animeFavorites()
+            ->with('anime') // trae la info del anime local
+            ->get();
+
+        // ⚙️ Relación con los personajes (si la tienes)
+        $characterFavorites = $user->characterFavorites()
+            ->with('character')
+            ->get();
+
 
         // Listas por defecto (Vistos y Pendientes)
         $defaultLists = AnimeList::with(['items'])
-        ->where('user_id', $user->id)
-        ->whereIn('name', ['Vistos', 'Pendientes'])
-        ->get();
+            ->where('user_id', $user->id)
+            ->whereIn('name', ['Vistos', 'Pendientes'])
+            ->get();
 
         return view('profile.index', compact('user', 'animeFavorites', 'characterFavorites', 'defaultLists'));
     }

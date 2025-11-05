@@ -35,4 +35,9 @@ class Anime extends Model
     {
         return $this->belongsToMany(Character::class, 'anime_character', 'anime_id', 'character_id');
     }
+    // Relación uno a muchos con AnimeFavorite
+    public function favorites()
+    {
+        return $this->hasMany(AnimeFavorite::class);
+    }
 }

@@ -10,15 +10,15 @@ class AnimeFavorite extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'anime_id',
-        'anime_title',
-        'anime_image',
-    ];
+    protected $fillable = ['user_id', 'anime_id', 'anilist_id'];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function anime()
+    {
+        return $this->belongsTo(Anime::class);
     }
 }

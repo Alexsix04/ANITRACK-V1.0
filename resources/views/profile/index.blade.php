@@ -82,11 +82,18 @@
     <div class="max-w-5xl mx-auto px-6 py-12 space-y-10">
         <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Favoritos</h2>
 
+        <!-- 🎬 ANIMES FAVORITOS + 👤 PERSONAJES FAVORITOS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
             <!-- 🎬 ANIMES FAVORITOS -->
-            <div class="relative group cursor-pointer" id="openAnimesModal">
+            <div class="relative group cursor-pointer open-favorites-modal" id="openAnimesModal">
                 <div class="aspect-[16/9] rounded-2xl overflow-hidden shadow-lg relative">
-                    @php $animeImages = $animeFavorites->take(4)->pluck('anime_image'); @endphp
+                    @php
+                        $animeImages = $animeFavorites
+                            ->take(4)
+                            ->map(fn($fav) => $fav->anime->cover_image ?? $fav->anime_image)
+                            ->filter();
+                    @endphp
+
                     @if ($animeImages->isEmpty())
                         <div class="flex items-center justify-center h-full bg-gray-200 text-gray-500">
                             <span>Sin animes favoritos</span>
@@ -101,6 +108,7 @@
                             @endfor
                         </div>
                     @endif
+
                     <div
                         class="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition">
                         <h3 class="text-white text-2xl font-bold mb-1">Animes Favoritos</h3>
@@ -112,9 +120,11 @@
             </div>
 
             <!-- 👤 PERSONAJES FAVORITOS -->
-            <div class="relative group cursor-pointer" id="openCharsModal">
+            <div class="relative group cursor-pointer open-favorites-modal" id="openCharsModal">
                 <div class="aspect-[16/9] rounded-2xl overflow-hidden shadow-lg relative">
-                    @php $charImages = $characterFavorites->take(4)->pluck('character_image'); @endphp
+                    @php
+                        $charImages = $characterFavorites->take(4)->pluck('character_image');
+                    @endphp
                     @if ($charImages->isEmpty())
                         <div class="flex items-center justify-center h-full bg-gray-200 text-gray-500">
                             <span>Sin personajes favoritos</span>
@@ -141,7 +151,6 @@
             </div>
         </div>
     </div>
-
     <!-- ========================================= -->
     <!-- 📋 LISTAS ANIMES -->
     <!-- ========================================= -->
@@ -196,17 +205,28 @@
                 <h2 class="text-2xl font-bold text-gray-800">Todos los Animes Favoritos</h2>
                 <button id="closeAnimesModal" class="text-gray-600 hover:text-gray-800">✕</button>
             </div>
+
             @if ($animeFavorites->isEmpty())
                 <p class="text-gray-500">Aún no tienes animes en tus favoritos.</p>
             @else
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     @foreach ($animeFavorites as $fav)
-                        <a href="{{ route('animes.show', $fav->anime_id) }}"
-                            class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03]">
-                            <img src="{{ $fav->anime_image }}" alt="{{ $fav->anime_title }}"
-                                class="w-full h-64 object-cover rounded-lg mb-4">
-                            <h3 class="text-lg font-bold mb-2 truncate">{{ $fav->anime_title }}</h3>
-                        </a>
+                        @php
+                            $anime = $fav->anime; // relación con la tabla animes
+                        @endphp
+
+                        @if ($anime)
+                            {{-- ✅ Cambiamos el enlace para que use el anilist_id --}}
+                            <a href="{{ url('/animes/' . $anime->anilist_id) }}"
+                                class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03]">
+                                <img src="{{ $anime->cover_image ?? $fav->anime_image }}"
+                                    alt="{{ $anime->title ?? $fav->anime_title }}"
+                                    class="w-full h-64 object-cover rounded-lg mb-4">
+                                <h3 class="text-lg font-bold mb-2 truncate">
+                                    {{ $anime->title ?? $fav->anime_title }}
+                                </h3>
+                            </a>
+                        @endif
                     @endforeach
                 </div>
             @endif

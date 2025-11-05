@@ -6,29 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('anime_favorites', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('user_name')->nullable();
+            
+            // Usuario que guarda el favorito
+            $table->foreignId('user_id')
+                  ->constrained()
+                  ->onDelete('cascade');
 
-            // Identificador del anime en la API
-            $table->unsignedBigInteger('anime_id');
-            $table->string('anime_title');
-            $table->string('anime_image')->nullable();
+            // Referencia al anime local
+            $table->foreignId('anime_id')
+                  ->constrained('animes')  // referencia a la tabla animes
+                  ->onDelete('cascade');
+            // Referencia al anime en Anilist
+            $table->integer('anilist_id');
 
             $table->timestamps();
-
-            $table->unique(['user_id', 'anime_id']);
         });
     }
-    /**
-     * Reverse the migrations.
-     */
+
     public function down(): void
     {
         Schema::dropIfExists('anime_favorites');
