@@ -1,10 +1,4 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Perfil de {{ $user->name }}
-        </h2>
-    </x-slot>
-
     <!-- ========================================= -->
     <!-- 🏞️ BANNER DE PERFIL -->
     <!-- ========================================= -->
@@ -149,7 +143,7 @@
     </div>
 
     <!-- ========================================= -->
-    <!-- 📋 LISTAS PERSONALES -->
+    <!-- 📋 LISTAS ANIMES -->
     <!-- ========================================= -->
     <div class="max-w-5xl mx-auto px-6 py-12 space-y-10">
         <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Mis Listas</h2>
@@ -258,18 +252,78 @@
                 @else
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         @foreach ($list->items as $item)
-                            <a href="{{ route('animes.show', $item->anime_id) }}"
-                                class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03]">
+                            <div class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03] cursor-pointer open-submodal"
+                                data-item-id="{{ $item->id }}" data-anime-id="{{ $item->anime_id }}"
+                                data-anime-title="{{ $item->anime_title }}"
+                                data-anime-image="{{ $item->anime_image }}" data-anime-status="{{ $item->status }}"
+                                data-anime-score="{{ $item->score }}"
+                                data-anime-episode_progress="{{ $item->episode_progress }}"
+                                data-anime-is_rewatch="{{ $item->is_rewatch }}"
+                                data-anime-rewatch_count="{{ $item->rewatch_count }}"
+                                data-anime-notes="{{ $item->notes }}">
+
                                 <img src="{{ $item->anime_image }}" alt="{{ $item->anime_title }}"
                                     class="w-full h-64 object-cover rounded-lg mb-4">
                                 <h3 class="text-lg font-bold mb-2 truncate">{{ $item->anime_title }}</h3>
-                            </a>
+                            </div>
                         @endforeach
                     </div>
                 @endif
             </div>
         </div>
     @endforeach
+    <!-- SUBMODAL DE ANIME EN LISTA -->
+    <div id="animeSubmodal"
+        class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60] opacity-0 scale-95">
+        <div
+            class="bg-gray-100 p-8 rounded-2xl shadow-2xl w-11/12 max-w-4xl relative flex flex-col md:flex-row gap-6 transition-all duration-200">
+            <button id="closeSubmodal"
+                class="absolute top-4 right-5 text-gray-600 hover:text-gray-800 text-3xl font-bold">✕</button>
+
+            <!-- Imagen -->
+            <div class="relative flex-shrink-0 w-full md:w-1/3 group cursor-pointer" id="submodalImageContainer">
+                <img id="submodalImage" src="" alt=""
+                    class="w-full h-80 object-cover rounded-xl shadow-md transition-transform duration-300 group-hover:scale-105">
+                <div
+                    class="absolute inset-0 bg-black bg-opacity-40 rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                    <span class="text-white text-lg font-semibold">Ver anime completo</span>
+                </div>
+            </div>
+
+            <!-- Información -->
+            <div class="flex-1 text-gray-800 space-y-3" id="submodalInfo">
+                <h3 id="submodalTitle" class="text-3xl font-extrabold text-gray-900 mb-3"></h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2">
+                    <p><span class="font-semibold">Estado:</span> <span id="submodalStatus">—</span></p>
+                    <p><span class="font-semibold">Puntuación:</span> <span id="submodalScore">—</span></p>
+                    <p><span class="font-semibold">Progreso:</span> <span id="submodalProgress">—</span></p>
+                    <p><span class="font-semibold">Reviendo:</span> <span id="submodalRewatch">—</span></p>
+                    <p><span class="font-semibold">Veces visto:</span> <span id="submodalRewatchCount">—</span></p>
+                </div>
+
+                <div class="mt-4">
+                    <h4 class="font-semibold text-lg mb-1">Notas:</h4>
+                    <p id="submodalNotes"
+                        class="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200 shadow-inner">
+                        Sin notas
+                    </p>
+                </div>
+
+                <!-- Botones -->
+                <div class="mt-6 flex gap-3">
+                    <button id="editInfoBtn"
+                        class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-5 py-2 rounded-lg shadow transition">
+                        Editar info
+                    </button>
+                    <button
+                        class="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2 rounded-lg shadow transition">
+                        Eliminar de la lista
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- ========================================= -->
     <!-- 🧩 JS DE MODALES (favoritos + listas) -->
@@ -326,6 +380,231 @@
             button.addEventListener('click', () => {
                 const modal = button.closest('.fixed');
                 closeModal(modal);
+            });
+        });
+    </script>
+
+    <!-- ===================================================== -->
+    <!-- ⚙️ SCRIPT MODAL DE EDICIÓN DE PERFIL -->
+    <!-- ===================================================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const openEditBtn = document.getElementById('openEditModal');
+            const editModal = document.getElementById('editModal');
+            const closeEditBtn = document.getElementById('closeEditModal');
+
+            if (!openEditBtn || !editModal) return;
+
+            //  Abrir modal
+            openEditBtn.addEventListener('click', () => {
+                editModal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                editModal.classList.add('flex', 'opacity-100', 'scale-100');
+            });
+
+            //  Cerrar modal (botón o clic fuera)
+            closeEditBtn.addEventListener('click', () => {
+                editModal.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => editModal.classList.add('hidden'), 200);
+            });
+
+            editModal.addEventListener('click', (e) => {
+                if (e.target === editModal) {
+                    editModal.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => editModal.classList.add('hidden'), 200);
+                }
+            });
+        });
+    </script>
+    <!-- ===================================================== -->
+    <!-- ⚙️ SCRIPT SUBMODAL DE LISTAS ANIME -->
+    <!-- ===================================================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const submodal = document.getElementById('animeSubmodal');
+            const closeBtn = document.getElementById('closeSubmodal');
+            const editBtn = document.getElementById('editInfoBtn');
+            const img = document.getElementById('submodalImage');
+            const title = document.getElementById('submodalTitle');
+            const imgContainer = document.getElementById('submodalImageContainer');
+
+            const statusMap = {
+                'watching': 'Viendo',
+                'completed': 'Completado',
+                'on_hold': 'En pausa',
+                'dropped': 'Abandonado',
+                'plan_to_watch': 'Pendiente'
+            };
+
+            let currentAnime = null;
+            let editing = false;
+
+            // === Abrir submodal ===
+            document.querySelectorAll('.open-submodal').forEach(card => {
+                card.addEventListener('click', () => {
+                    currentAnime = {
+                        itemId: card.dataset.itemId,
+                        animeId: card.dataset.animeId,
+                        title: card.dataset.animeTitle,
+                        image: card.dataset.animeImage,
+                        status: card.dataset.animeStatus,
+                        score: card.dataset.animeScore,
+                        progress: card.dataset.animeEpisode_progress,
+                        rewatch: card.dataset.animeIs_rewatch,
+                        rewatchCount: card.dataset.animeRewatch_count,
+                        notes: card.dataset.animeNotes
+                    };
+
+                    if (!currentAnime.itemId) {
+                        console.error("❌ FALTA data-item-id en el elemento .open-submodal");
+                        alert("Error interno: falta el ID del registro en la lista.");
+                        return;
+                    }
+
+                    // Mostrar datos
+                    img.src = currentAnime.image;
+                    title.textContent = currentAnime.title;
+                    document.getElementById('submodalStatus').textContent = statusMap[currentAnime
+                        .status?.toLowerCase()] || '—';
+                    document.getElementById('submodalScore').textContent = currentAnime.score ||
+                        '—';
+                    document.getElementById('submodalProgress').textContent = currentAnime
+                        .progress || '—';
+                    document.getElementById('submodalRewatch').textContent = currentAnime.rewatch ==
+                        '1' ? 'Sí' : 'No';
+                    document.getElementById('submodalRewatchCount').textContent = currentAnime
+                        .rewatchCount || '—';
+                    document.getElementById('submodalNotes').textContent = currentAnime.notes ||
+                        'Sin notas';
+
+                    // Click en imagen = ir al anime
+                    imgContainer.onclick = () => window.location.href =
+                        `/animes/${currentAnime.animeId}`;
+
+                    // Mostrar modal
+                    submodal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                    submodal.classList.add('opacity-100', 'scale-100');
+                });
+            });
+
+            // === Cerrar modal ===
+            closeBtn.addEventListener('click', closeModal);
+            submodal.addEventListener('click', e => {
+                if (e.target === submodal) closeModal();
+            });
+
+            function closeModal() {
+                submodal.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => submodal.classList.add('hidden'), 200);
+            }
+
+            // === Modo edición ===
+            editBtn.addEventListener('click', async () => {
+                if (!currentAnime) return alert("No hay anime seleccionado.");
+
+                let status = document.getElementById('submodalStatus');
+                let score = document.getElementById('submodalScore');
+                let progress = document.getElementById('submodalProgress');
+                let rewatch = document.getElementById('submodalRewatch');
+                let rewatchCount = document.getElementById('submodalRewatchCount');
+                let notes = document.getElementById('submodalNotes');
+
+                if (!editing) {
+                    editing = true;
+                    editBtn.textContent = 'Guardar cambios';
+
+                    status.outerHTML = `
+                <select id="submodalStatus" class="border rounded-lg px-2 py-1 text-sm">
+                    <option value="watching">Viendo</option>
+                    <option value="completed">Completado</option>
+                    <option value="on_hold">En pausa</option>
+                    <option value="dropped">Abandonado</option>
+                    <option value="plan_to_watch">Pendiente</option>
+                </select>`;
+                    document.getElementById('submodalStatus').value = currentAnime.status;
+
+                    score.outerHTML =
+                        `<input id="submodalScore" type="number" min="0" max="10" value="${currentAnime.score || ''}" class="border rounded-lg px-2 py-1 w-16">`;
+                    progress.outerHTML =
+                        `<input id="submodalProgress" type="number" min="0" value="${currentAnime.progress || ''}" class="border rounded-lg px-2 py-1 w-20">`;
+                    rewatch.outerHTML = `
+                <select id="submodalRewatch" class="border rounded-lg px-2 py-1 text-sm">
+                    <option value="0" ${currentAnime.rewatch == '0' ? 'selected' : ''}>No</option>
+                    <option value="1" ${currentAnime.rewatch == '1' ? 'selected' : ''}>Sí</option>
+                </select>`;
+                    rewatchCount.outerHTML =
+                        `<input id="submodalRewatchCount" type="number" min="0" value="${currentAnime.rewatchCount || ''}" class="border rounded-lg px-2 py-1 w-20">`;
+                    notes.outerHTML =
+                        `<textarea id="submodalNotes" class="w-full border rounded-lg px-3 py-2 text-sm">${currentAnime.notes || ''}</textarea>`;
+
+                } else {
+                    // === Guardar cambios ===
+                    editing = false;
+                    editBtn.textContent = 'Editar info';
+
+                    const newData = {
+                        status: document.getElementById('submodalStatus').value,
+                        score: document.getElementById('submodalScore').value,
+                        episode_progress: document.getElementById('submodalProgress').value,
+                        is_rewatch: document.getElementById('submodalRewatch').value,
+                        rewatch_count: document.getElementById('submodalRewatchCount').value,
+                        notes: document.getElementById('submodalNotes').value,
+                    };
+
+                    try {
+                        const res = await fetch(`/anime-list/${currentAnime.itemId}/update`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector(
+                                    'meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify(newData)
+                        });
+
+                        const result = await res.json();
+
+                        if (!res.ok) {
+                            console.error("Error al actualizar:", res.status, result);
+                            alert(`Error ${res.status}: no se pudieron guardar los cambios.`);
+                            return;
+                        }
+
+                        // Caso especial: se movió automáticamente de Pendientes a Vistos
+                        if (result.action === 'moved_new' || result.action === 'moved_existing') {
+                            alert(result.message);
+                            closeModal();
+                            location.reload();
+                            return;
+                        }
+
+                        // Si no se movió, solo actualizamos visualmente los campos
+                        status = document.getElementById('submodalStatus');
+                        score = document.getElementById('submodalScore');
+                        progress = document.getElementById('submodalProgress');
+                        rewatch = document.getElementById('submodalRewatch');
+                        rewatchCount = document.getElementById('submodalRewatchCount');
+                        notes = document.getElementById('submodalNotes');
+
+                        status.outerHTML =
+                            `<span id="submodalStatus">${statusMap[newData.status] || '—'}</span>`;
+                        score.outerHTML = `<span id="submodalScore">${newData.score || '—'}</span>`;
+                        progress.outerHTML =
+                            `<span id="submodalProgress">${newData.episode_progress || '—'}</span>`;
+                        rewatch.outerHTML =
+                            `<span id="submodalRewatch">${newData.is_rewatch == '1' ? 'Sí' : 'No'}</span>`;
+                        rewatchCount.outerHTML =
+                            `<span id="submodalRewatchCount">${newData.rewatch_count || '—'}</span>`;
+                        notes.outerHTML =
+                            `<p id="submodalNotes" class="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200 shadow-inner">${newData.notes || 'Sin notas'}</p>`;
+
+                        alert(result.message || 'Cambios guardados correctamente.');
+
+                    } catch (err) {
+                        console.error("Error de conexión:", err);
+                        alert('Error de conexión con el servidor.');
+                    }
+
+                }
             });
         });
     </script>

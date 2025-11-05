@@ -73,6 +73,9 @@ Route::get('/listas', [AnimeController::class, 'index'])->name('listas.index');
 Route::middleware(['auth'])->group(function () {
     // Listas personales del usuario (para profile.index)
     Route::get('/profile/lists', [AnimeListController::class, 'myLists'])->name('profile.lists');
+    // Actualizar datos de un anime dentro de una lista (desde el perfil)
+    Route::put('/anime-list/{item}/update', [AnimeListController::class, 'updateAnimeInList'])->name('anime-list.update');
+
     Route::post('/lists/create', [AnimeListController::class, 'create'])->name('lists.create');
 
     // Añadir o eliminar desde animes.show
