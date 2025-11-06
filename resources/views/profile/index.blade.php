@@ -240,12 +240,13 @@
                 <h2 class="text-2xl font-bold text-gray-800">Todos los Personajes Favoritos</h2>
                 <button id="closeCharsModal" class="text-gray-600 hover:text-gray-800">✕</button>
             </div>
+
             @if ($characterFavorites->isEmpty())
                 <p class="text-gray-500">Aún no tienes personajes en tus favoritos.</p>
             @else
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     @foreach ($characterFavorites as $fav)
-                        <a href="{{ route('animes.characters.show', ['anime' => $fav->anime_id, 'character' => $fav->character_id]) }}"
+                        <a href="{{ route('animes.characters.show', ['anime' => $fav->anime_anilist_id, 'character' => $fav->anilist_id]) }}"
                             class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03]">
                             <img src="{{ $fav->character_image }}" alt="{{ $fav->character_name }}"
                                 class="w-full h-64 object-cover rounded-lg mb-4">
@@ -256,6 +257,7 @@
             @endif
         </div>
     </div>
+
 
     <!-- MODALES DE LISTAS -->
     @foreach ($defaultLists as $list)

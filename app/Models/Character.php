@@ -10,6 +10,8 @@ class Character extends Model
 
     protected $fillable = [
         'anilist_id',
+        'anime_id',
+        'anime_anilist_id',
         'name',
         'native_name',
         'image',

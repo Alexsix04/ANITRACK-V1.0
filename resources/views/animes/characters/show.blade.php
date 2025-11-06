@@ -26,52 +26,42 @@
                     <div class="flex space-x-2 justify-center mt-2">
 
                         {{-- ============================================= --}}
-                        {{-- BOTÓN DE FAVORITO FUNCIONAL --}}
+                        {{-- BOTÓN DE FAVORITO FUNCIONAL (AJAX) --}}
                         {{-- ============================================= --}}
                         @auth
                             @php
                                 $isFavorite = auth()
                                     ->user()
-                                    ->characterFavorites
-                                    ->where('character_id', $character['id'])
+                                    ->characterFavorites->where('anilist_id', $character['id'])
                                     ->isNotEmpty();
                             @endphp
 
-                            @if ($isFavorite)
-                                <!-- Quitar de favoritos -->
-                                <form action="{{ route('favorites.character.destroy', $character['id']) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                        class="flex items-center justify-center w-10 h-10 bg-yellow-600 text-white rounded-sm hover:bg-yellow-700 transition"
-                                        title="Quitar de favoritos">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path
-                                                d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888 1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278-6.064-5.888 8.332-1.151z" />
-                                        </svg>
-                                    </button>
-                                </form>
-                            @else
-                                <!-- Añadir a favoritos -->
-                                <form action="{{ route('favorites.character.store') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="character_id" value="{{ $character['id'] }}">
-                                    <input type="hidden" name="character_name" value="{{ $character['name']['full'] }}">
-                                    <input type="hidden" name="character_image"
-                                        value="{{ $character['image']['large'] ?? $character['image']['medium'] }}">
-                                    <input type="hidden" name="anime_id" value="{{ $anime['id'] }}"> {{-- ✅ IMPORTANTE --}}
-                                    <button type="submit"
-                                        class="flex items-center justify-center w-10 h-10 bg-yellow-400 text-white rounded-sm hover:bg-yellow-500 transition"
-                                        title="Añadir a favoritos">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path
-                                                d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888 1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278-6.064-5.888 8.332-1.151z" />
-                                        </svg>
-                                    </button>
-                                </form>
-                            @endif
+                            <button
+                                class="favoriteCharacterButton flex items-center justify-center w-10 h-10 rounded-sm shadow-md transition
+        {{ $isFavorite ? 'bg-yellow-600 hover:bg-yellow-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700' }}"
+                                data-character-id="{{ $character['id'] }}"
+                                data-character-anilist-id="{{ $character['id'] }}"
+                                data-character-name="{{ $character['name']['full'] }}"
+                                data-character-image="{{ $character['image']['large'] ?? ($character['image']['medium'] ?? '') }}"
+                                data-anime-id="{{ $anime['id'] ?? '' }}" data-anime-anilist-id="{{ $anime['id'] ?? '' }}"
+                                data-anime-name="{{ $anime['title']['romaji'] ?? '' }}"
+                                data-anime-image="{{ $anime['coverImage']['large'] ?? '' }}"
+                                data-is-favorite="{{ $isFavorite ? 'true' : 'false' }}"
+                                title="{{ $isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos' }}">
+                                @if ($isFavorite)
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path
+                                            d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888 1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278-6.064-5.888 8.332-1.151z" />
+                                    </svg>
+                                @else
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                    </svg>
+                                @endif
+                            </button>
                         @else
                             <!-- Si no está autenticado -->
                             <a href="{{ route('login') }}"
@@ -84,6 +74,8 @@
                                 </svg>
                             </a>
                         @endauth
+
+
                         {{-- ============================================= --}}
 
                         <!-- Botón Añadir a Lista -->
@@ -163,7 +155,8 @@
                             <a href="{{ route('animes.voiceactors.show', ['id' => $actor['id']]) }}"
                                 class="bg-white rounded-lg overflow-hidden shadow-sm p-2 flex flex-col items-center text-center hover:shadow-md hover:-translate-y-1 transform transition">
                                 <img src="{{ $actor['image']['medium'] ?? ($actor['image']['large'] ?? '') }}"
-                                    alt="{{ $actor['name']['full'] }}" class="w-24 h-24 object-cover rounded-full mb-2">
+                                    alt="{{ $actor['name']['full'] }}"
+                                    class="w-24 h-24 object-cover rounded-full mb-2">
                                 <p class="text-sm font-semibold text-gray-800">{{ $actor['name']['full'] }}</p>
                                 @if (!empty($actor['languageV2']))
                                     <p class="text-xs text-gray-500">{{ $actor['languageV2'] }}</p>
@@ -374,6 +367,99 @@
                 // Mostrar/ocultar imagen
                 document.querySelectorAll('.show-image-btn').forEach(btn => {
                     btn.addEventListener('click', () => btn.nextElementSibling.classList.toggle('hidden'));
+                });
+            });
+        </script>
+
+        <!-- SCRIPT FAVORITOS-->
+        <div id="toast"
+            class="fixed top-5 right-5 z-50 opacity-0 transition-opacity duration-500 pointer-events-none"></div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const buttons = document.querySelectorAll('.favoriteCharacterButton');
+                const toast = document.getElementById('toast');
+
+                function showToast(message, color = 'bg-green-600') {
+                    toast.textContent = message;
+                    toast.className =
+                        `fixed top-5 right-5 ${color} text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 pointer-events-none z-50`;
+                    setTimeout(() => toast.classList.add('opacity-100'), 10);
+                    setTimeout(() => toast.classList.remove('opacity-100'), 3000);
+                }
+
+                buttons.forEach(button => {
+                    // Estado inicial del botón
+                    if (button.dataset.isFavorite === 'true') {
+                        button.classList.remove('bg-gray-200', 'hover:bg-gray-300', 'text-gray-700');
+                        button.classList.add('bg-yellow-600', 'hover:bg-yellow-700', 'text-white');
+                    }
+
+                    button.addEventListener('click', async () => {
+                        const payload = {
+                            character_id: button.dataset.characterId,
+                            character_anilist_id: button.dataset.characterAnilistId,
+                            character_name: button.dataset.characterName,
+                            character_image: button.dataset.characterImage,
+                            anime_id: button.dataset.animeId,
+                            anime_anilist_id: button.dataset.animeAnilistId,
+                            anime_name: button.dataset.animeName,
+                            anime_image: button.dataset.animeImage
+                        };
+
+                        try {
+                            const response = await fetch(
+                                '{{ route('favorites.character.toggle') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: JSON.stringify(payload)
+                                });
+
+                            const data = await response.json();
+
+                            if (data.status === 'added') {
+                                // Estilo de favorito activo
+                                button.dataset.isFavorite = 'true';
+                                button.classList.remove('bg-gray-200', 'hover:bg-gray-300',
+                                    'text-gray-700');
+                                button.classList.add('bg-yellow-600', 'hover:bg-yellow-700',
+                                    'text-white');
+                                button.title = 'Quitar de favoritos';
+                                button.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888 
+                            1.444 8.278L12 18.896l-7.38 3.976 
+                            1.444-8.278-6.064-5.888 8.332-1.151z"/>
+                        </svg>`;
+                                showToast('✅ Personaje añadido a favoritos', 'bg-green-600');
+
+                            } else if (data.status === 'removed') {
+                                // Estilo de favorito inactivo
+                                button.dataset.isFavorite = 'false';
+                                button.classList.remove('bg-yellow-600', 'hover:bg-yellow-700',
+                                    'text-white');
+                                button.classList.add('bg-gray-200', 'hover:bg-gray-300',
+                                    'text-gray-700');
+                                button.title = 'Agregar a favoritos';
+                                button.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61
+                                L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                        </svg>`;
+                                showToast('❌ Personaje eliminado de favoritos', 'bg-red-600');
+                            }
+
+                        } catch (error) {
+                            console.error('Error:', error);
+                            showToast('⚠️ Error al procesar la solicitud', 'bg-yellow-600');
+                        }
+                    });
                 });
             });
         </script>

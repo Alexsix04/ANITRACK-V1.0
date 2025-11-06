@@ -62,7 +62,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/favorites/anime/toggle', [AnimeFavoriteController::class, 'toggleAnime'])->name('favorites.anime.toggle');
     Route::post('/favorites/character', [CharacterFavoriteController::class, 'store'])->name('favorites.character.store');
     Route::delete('/favorites/character/{character_id}', [CharacterFavoriteController::class, 'destroy'])->name('favorites.character.destroy');
-    Route::post('/favorites/character/toggle', [CharacterFavoriteController::class, 'toggle'])->name('favorites.character.toggle');
+    Route::post('/favorites/character/toggle', [CharacterFavoriteController::class, 'toggleCharacter'])->name('favorites.character.toggle');
 });
 
 

@@ -10,13 +10,15 @@ return new class extends Migration
     {
         Schema::create('characters', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('anilist_id')->unique(); // ID de Anilist
+            $table->unsignedBigInteger('anime_id'); // ID de Anime en la base de datos local
+            $table->unsignedBigInteger('anime_anilist_id'); // ID de Anime en Anilist
+            $table->unsignedBigInteger('anilist_id')->unique(); // ID del personaje en Anilist
             $table->string('name');
             $table->string('native_name')->nullable();
             $table->text('description')->nullable();
             $table->string('role')->nullable();
             $table->string('gender')->nullable();
-            $table->string('age')->nullable(); // cambiado de date() → string()
+            $table->string('age')->nullable(); 
             $table->string('image_url')->nullable();
             $table->timestamps();
         });

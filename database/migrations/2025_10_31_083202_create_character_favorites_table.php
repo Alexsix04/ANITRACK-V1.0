@@ -16,8 +16,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
             // Datos básicos del personaje
-            $table->unsignedBigInteger('character_id'); // ID del personaje en la API
-            $table->unsignedBigInteger('anime_id');
+            $table->foreignId('character_id')->constrained('characters')->onDelete('cascade');
+            $table->unsignedBigInteger('anilist_id'); // ID del personaje en Anilist
+            $table->unsignedBigInteger('anime_id'); // ID de Anime en la base de datos local
+            $table->unsignedBigInteger('anime_anilist_id'); // ID de Anime en Anilist
             $table->string('character_name');
             $table->string('character_image')->nullable();
 
