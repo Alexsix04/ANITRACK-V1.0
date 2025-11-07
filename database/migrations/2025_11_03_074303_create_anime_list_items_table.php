@@ -13,20 +13,32 @@ return new class extends Migration
     {
         Schema::create('anime_list_items', function (Blueprint $table) {
             $table->id();
+
+            // Relación con la lista del usuario
             $table->foreignId('anime_list_id')->constrained()->cascadeOnDelete();
-            $table->unsignedBigInteger('anime_id');
-            $table->string('anime_title');
-            $table->string('anime_image')->nullable();
-            $table->unsignedBigInteger('episode_progress')->default(0);
+
+            // Relación con el anime local
+            $table->foreignId('anime_id')->constrained('animes')->cascadeOnDelete();
+
+            // ID original de AniList (para poder seguir mostrando/enlazando desde la API)
+            $table->unsignedBigInteger('anilist_id');
+
+            // Datos del seguimiento
+            $table->unsignedInteger('episode_progress')->default(0);
             $table->unsignedTinyInteger('score')->nullable();
-            $table->enum('status', ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'])->default('plan_to_watch');
+            $table->enum('status', ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'])
+                ->default('plan_to_watch');
             $table->text('notes')->nullable();
             $table->boolean('is_rewatch')->default(false);
             $table->unsignedInteger('rewatch_count')->default(0);
-            //$table->unique(['anime_list_id', 'anime_id']);
+
+            // Evitar duplicados del mismo anime en la misma lista
+            $table->unique(['anime_list_id', 'anime_id']);
+
             $table->timestamps();
         });
     }
+
 
     /**
      * Reverse the migrations.

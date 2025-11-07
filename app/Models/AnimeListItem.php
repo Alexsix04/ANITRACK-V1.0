@@ -12,8 +12,7 @@ class AnimeListItem extends Model
     protected $fillable = [
         'anime_list_id',
         'anime_id',
-        'anime_title',
-        'anime_image',
+        'anilist_id',
         'episode_progress',
         'score',
         'status',
@@ -22,16 +21,19 @@ class AnimeListItem extends Model
         'rewatch_count',
     ];
 
-    protected $casts = [
-        'episode_progress' => 'integer',
-        'score' => 'integer',
-        'is_rewatch' => 'boolean',
-        'rewatch_count' => 'integer',
-    ];
-
-    // Relaciones
+    /**
+     * Relación con la lista a la que pertenece este item.
+     */
     public function list()
     {
         return $this->belongsTo(AnimeList::class, 'anime_list_id');
+    }
+
+    /**
+     * Relación con el anime local (en la tabla animes).
+     */
+    public function anime()
+    {
+        return $this->belongsTo(Anime::class);
     }
 }

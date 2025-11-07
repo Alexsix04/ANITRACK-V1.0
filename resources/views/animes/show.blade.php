@@ -33,36 +33,36 @@
                         {{-- ============ BOTÓN DE FAVORITOS (⭐ AJAX) ============ --}}
                         {{-- ===================================================== --}}
                         @php
-    $isFavorite = false;
-    if(auth()->check()) {
-        $isFavorite = \App\Models\AnimeFavorite::where('user_id', auth()->id())
-            ->where('anilist_id', $anime['id']) // siempre anilist_id
-            ->exists();
-    }
-@endphp
+                            $isFavorite = false;
+                            if (auth()->check()) {
+                                $isFavorite = \App\Models\AnimeFavorite::where('user_id', auth()->id())
+                                    ->where('anilist_id', $anime['id']) // siempre anilist_id
+                                    ->exists();
+                            }
+                        @endphp
 
-<button class="favoriteButton flex items-center justify-center w-12 h-12 rounded-lg shadow-md transition
+                        <button
+                            class="favoriteButton flex items-center justify-center w-12 h-12 rounded-lg shadow-md transition
         {{ $isFavorite ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-yellow-500 hover:bg-yellow-600' }} text-white"
-    data-anilist-id="{{ $anime['id'] }}"
-    data-anime-title="{{ $anime['title']['romaji'] }}"
-    data-anime-image="{{ $anime['coverImage']['large'] }}"
-    data-is-favorite="{{ $isFavorite ? 'true' : 'false' }}"
-    title="{{ $isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos' }}">
-    @if ($isFavorite)
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
-                     1.4 8.172L12 18.896l-7.334 3.868
-                     1.4-8.172-5.934-5.782 8.2-1.192z"/>
-        </svg>
-    @else
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
-             stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                     9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-        </svg>
-    @endif
-</button>
+                            data-anilist-id="{{ $anime['id'] }}" data-anime-title="{{ $anime['title']['romaji'] }}"
+                            data-anime-image="{{ $anime['coverImage']['large'] }}"
+                            data-is-favorite="{{ $isFavorite ? 'true' : 'false' }}"
+                            title="{{ $isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos' }}">
+                            @if ($isFavorite)
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
+                         1.4 8.172L12 18.896l-7.334 3.868
+                         1.4-8.172-5.934-5.782 8.2-1.192z" />
+                                </svg>
+                            @else
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
+                                    stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
+                         9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                </svg>
+                            @endif
+                        </button>
 
 
 
@@ -98,7 +98,7 @@
                                 stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                                                                                                                            9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                                                                                                9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                             </svg>
                         </a>
 
@@ -135,90 +135,89 @@
     {{-- ===================================================== --}}
     {{-- ============ SCRIPT PARA FAVORITOS (AJAX) ============ --}}
     {{-- ===================================================== --}}
-   @auth
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const buttons = document.querySelectorAll('.favoriteButton');
-    const toast = document.getElementById('toast');
+    @auth
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const buttons = document.querySelectorAll('.favoriteButton');
+                const toast = document.getElementById('toast');
 
-    function showToast(message, color = 'bg-green-600') {
-        toast.textContent = message;
-        toast.className =
-            `fixed top-5 right-5 ${color} text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 pointer-events-none z-50`;
-        setTimeout(() => toast.classList.add('opacity-100'), 10);
-        setTimeout(() => toast.classList.remove('opacity-100'), 3000);
-    }
+                function showToast(message, color = 'bg-green-600') {
+                    toast.textContent = message;
+                    toast.className =
+                        `fixed top-5 right-5 ${color} text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 pointer-events-none z-50`;
+                    setTimeout(() => toast.classList.add('opacity-100'), 10);
+                    setTimeout(() => toast.classList.remove('opacity-100'), 3000);
+                }
 
-    buttons.forEach(button => {
-        // Inicializar estado
-        if(button.dataset.isFavorite === 'true') {
-            button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
-            button.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
-        }
+                buttons.forEach(button => {
+                    // Inicializar estado
+                    if (button.dataset.isFavorite === 'true') {
+                        button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+                        button.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+                    }
 
-        button.addEventListener('click', async () => {
-            const animeAnilistId = button.dataset.anilistId;
-            const animeTitle = button.dataset.animeTitle;
-            const animeImage = button.dataset.animeImage;
-            const isFavorite = button.dataset.isFavorite === 'true';
+                    button.addEventListener('click', async () => {
+                        const animeAnilistId = button.dataset.anilistId;
+                        const animeTitle = button.dataset.animeTitle;
+                        const animeImage = button.dataset.animeImage;
+                        const isFavorite = button.dataset.isFavorite === 'true';
 
-            try {
-                const response = await fetch('{{ route('favorites.anime.toggle') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        anilist_id: animeAnilistId, // CORRECTO
-                        anime_title: animeTitle,
-                        anime_image: animeImage
-                    })
-                });
+                        try {
+                            const response = await fetch('{{ route('favorites.anime.toggle') }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    anilist_id: animeAnilistId, // CORRECTO
+                                    anime_title: animeTitle,
+                                    anime_image: animeImage
+                                })
+                            });
 
-                const data = await response.json();
+                            const data = await response.json();
 
-                if (data.status === 'added') {
-                    button.dataset.isFavorite = 'true';
-                    button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
-                    button.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
-                    button.title = 'Quitar de favoritos';
-                    button.innerHTML = `
+                            if (data.status === 'added') {
+                                button.dataset.isFavorite = 'true';
+                                button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+                                button.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+                                button.title = 'Quitar de favoritos';
+                                button.innerHTML = `
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
                             viewBox="0 0 24 24">
                             <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
                                 1.4 8.172L12 18.896l-7.334 3.868
                                 1.4-8.172-5.934-5.782 8.2-1.192z"/>
                         </svg>`;
-                    showToast('✅ Anime añadido a favoritos', 'bg-green-600');
-                } else if (data.status === 'removed') {
-                    button.dataset.isFavorite = 'false';
-                    button.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
-                    button.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
-                    button.title = 'Agregar a favoritos';
-                    button.innerHTML = `
+                                showToast('✅ Anime añadido a favoritos', 'bg-green-600');
+                            } else if (data.status === 'removed') {
+                                button.dataset.isFavorite = 'false';
+                                button.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
+                                button.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+                                button.title = 'Agregar a favoritos';
+                                button.innerHTML = `
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                             stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 
                                    9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                         </svg>`;
-                    showToast('❌ Anime eliminado de favoritos', 'bg-red-600');
-                }
+                                showToast('❌ Anime eliminado de favoritos', 'bg-red-600');
+                            }
 
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('⚠️ Error al procesar la solicitud', 'bg-yellow-600');
-            }
-        });
-    });
-});
-</script>
-@endauth
-    {{--
+                        } catch (error) {
+                            console.error('Error:', error);
+                            showToast('⚠️ Error al procesar la solicitud', 'bg-yellow-600');
+                        }
+                    });
+                });
+            });
+        </script>
+    @endauth
     <!-- ===================================================== -->
-    <!-- 🧩 MODAL PRINCIPAL: AÑADIR A MI LISTA (versión ampliada) -->
+    <!-- 🧩 MODAL PRINCIPAL: AÑADIR A MI LISTA (versión ampliada adaptada) -->
     <!-- ===================================================== -->
     <div id="addToListModal"
         class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 transition-all opacity-0 scale-95">
@@ -243,7 +242,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 <form action="{{ route('anime.addToList') }}" method="POST" id="addToListForm">
                     @csrf
-                    <input type="hidden" name="anime_id" value="{{ $anime['id'] }}">
+                    <!-- Enviar opcionalmente anime_id si ya existe en base local -->
+                    <input type="hidden" name="anime_id" value="{{ $anime['id'] ?? '' }}">
+                    <!-- Siempre enviar AniList ID -->
+                    <input type="hidden" name="anilist_id" value="{{ $anime['anilist_id'] ?? $anime['id'] }}">
                     <input type="hidden" name="anime_title" value="{{ $anime['title']['romaji'] }}">
                     <input type="hidden" name="anime_image" value="{{ $anime['coverImage']['large'] }}">
 
@@ -311,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     </div>
 
+
     <!-- ===================================================== -->
     <!-- 🟢 SUB-MODAL: CREAR NUEVA LISTA -->
     <!-- ===================================================== -->
@@ -344,127 +347,129 @@ document.addEventListener('DOMContentLoaded', () => {
             </form>
         </div>
     </div>
-<!-- ===================================================== -->
-<!-- ⚙️ SCRIPT DE MODALES -->
-<!-- ===================================================== -->
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const openAddBtn = document.getElementById('openAddToListModal');
-        const addModal = document.getElementById('addToListModal');
-        const closeAddBtn = document.getElementById('closeAddToListModal');
-        const cancelAddBtn = document.getElementById('cancelAddToList');
+    <!-- ===================================================== -->
+    <!-- ⚙️ SCRIPT DE MODALES -->
+    <!-- ===================================================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const openAddBtn = document.getElementById('openAddToListModal');
+            const addModal = document.getElementById('addToListModal');
+            const closeAddBtn = document.getElementById('closeAddToListModal');
+            const cancelAddBtn = document.getElementById('cancelAddToList');
 
-        const createModal = document.getElementById('createListModal');
-        const closeCreateBtn = document.getElementById('closeCreateListModal');
-        const cancelCreateBtn = document.getElementById('cancelCreateList');
-        const createForm = document.getElementById('createListForm');
+            const createModal = document.getElementById('createListModal');
+            const closeCreateBtn = document.getElementById('closeCreateListModal');
+            const cancelCreateBtn = document.getElementById('cancelCreateList');
+            const createForm = document.getElementById('createListForm');
 
-        const listSelect = document.getElementById('list_name');
+            const listSelect = document.getElementById('list_name');
 
-        // Mostrar modal principal
-        openAddBtn.addEventListener('click', () => {
-            addModal.classList.remove('hidden', 'opacity-0', 'scale-95');
-            addModal.classList.add('flex', 'opacity-100', 'scale-100');
+            // Mostrar modal principal
+            openAddBtn.addEventListener('click', () => {
+                addModal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                addModal.classList.add('flex', 'opacity-100', 'scale-100');
 
-            // Por defecto seleccionar "Pendientes" (si existe)
-            const defaultOption = Array.from(listSelect.options).find(opt => opt.value === 'Pendientes');
-            if (defaultOption) {
-                listSelect.value = 'Pendientes';
-            } else {
-                listSelect.selectedIndex = 0; // fallback
-            }
-        });
-
-        // Cerrar modal principal
-        [closeAddBtn, cancelAddBtn].forEach(btn => btn.addEventListener('click', () => {
-            addModal.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => addModal.classList.add('hidden'), 200);
-        }));
-
-        // Abrir submodal
-        listSelect.addEventListener('change', e => {
-            if (e.target.value === '__new__') {
-                createModal.classList.remove('hidden', 'opacity-0', 'scale-95');
-                createModal.classList.add('flex', 'opacity-100', 'scale-100');
-                addModal.classList.add('pointer-events-none'); // Bloquea interacción con fondo
-            }
-        });
-
-        // Cerrar submodal
-        [closeCreateBtn, cancelCreateBtn].forEach(btn => btn.addEventListener('click', () => {
-            createModal.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => createModal.classList.add('hidden'), 200);
-            addModal.classList.remove('pointer-events-none'); // Desbloquea modal principal
-            listSelect.value = '';
-        }));
-
-        // Crear nueva lista por AJAX
-        createForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(createForm);
-
-            const response = await fetch("{{ route('anime.list.create') }}", {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: formData
+                // Por defecto seleccionar "Pendientes" (si existe)
+                const defaultOption = Array.from(listSelect.options).find(opt => opt.value ===
+                'Pendientes');
+                if (defaultOption) {
+                    listSelect.value = 'Pendientes';
+                } else {
+                    listSelect.selectedIndex = 0; // fallback
+                }
             });
 
-            const result = await response.json();
-            if (result.success && result.list) {
-                const option = new Option(result.list.name, result.list.name, true, true);
+            // Cerrar modal principal
+            [closeAddBtn, cancelAddBtn].forEach(btn => btn.addEventListener('click', () => {
+                addModal.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => addModal.classList.add('hidden'), 200);
+            }));
 
-                // Insertar justo antes de la opción "Crear nueva lista..."
-                const createOption = listSelect.querySelector('option[value="__new__"]');
-                listSelect.insertBefore(option, createOption);
+            // Abrir submodal
+            listSelect.addEventListener('change', e => {
+                if (e.target.value === '__new__') {
+                    createModal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                    createModal.classList.add('flex', 'opacity-100', 'scale-100');
+                    addModal.classList.add('pointer-events-none'); // Bloquea interacción con fondo
+                }
+            });
 
-                // Cerrar submodal y desbloquear el modal principal
+            // Cerrar submodal
+            [closeCreateBtn, cancelCreateBtn].forEach(btn => btn.addEventListener('click', () => {
                 createModal.classList.add('opacity-0', 'scale-95');
                 setTimeout(() => createModal.classList.add('hidden'), 200);
-                addModal.classList.remove('pointer-events-none');
+                addModal.classList.remove('pointer-events-none'); // Desbloquea modal principal
+                listSelect.value = '';
+            }));
 
-            } else {
-                alert(result.message || 'Error al crear la lista.');
-            }
+            // Crear nueva lista por AJAX
+            createForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(createForm);
+
+                const response = await fetch("{{ route('anime.list.create') }}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success && result.list) {
+                    const option = new Option(result.list.name, result.list.name, true, true);
+
+                    // Insertar justo antes de la opción "Crear nueva lista..."
+                    const createOption = listSelect.querySelector('option[value="__new__"]');
+                    listSelect.insertBefore(option, createOption);
+
+                    // Cerrar submodal y desbloquear el modal principal
+                    createModal.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => createModal.classList.add('hidden'), 200);
+                    addModal.classList.remove('pointer-events-none');
+
+                } else {
+                    alert(result.message || 'Error al crear la lista.');
+                }
+            });
+
+            // Autoajustar datos si se elige la lista "Vistos"
+            const episodeInput = document.getElementById('episode_progress');
+            const statusSelect = document.getElementById('status');
+            const maxEpisodes = parseInt(episodeInput.getAttribute('max')) || 0;
+
+            listSelect.addEventListener('change', e => {
+                const selected = e.target.value;
+
+                if (selected === 'Vistos') {
+                    // Rellenar datos automáticamente
+                    if (maxEpisodes > 0) episodeInput.value = maxEpisodes;
+                    statusSelect.value = 'completed';
+
+                    // Bloquear campos visualmente sin impedir envío
+                    episodeInput.readOnly = true;
+                    episodeInput.classList.add('opacity-70', 'cursor-not-allowed');
+
+                    statusSelect.style.pointerEvents = 'none';
+                    statusSelect.classList.add('opacity-70', 'cursor-not-allowed');
+                } else if (selected && selected !== '__new__') {
+                    // Restaurar campos si cambia a otra lista
+                    episodeInput.readOnly = false;
+                    episodeInput.classList.remove('opacity-70', 'cursor-not-allowed');
+
+                    statusSelect.style.pointerEvents = '';
+                    statusSelect.classList.remove('opacity-70', 'cursor-not-allowed');
+                }
+            });
         });
-
-        // Autoajustar datos si se elige la lista "Vistos"
-        const episodeInput = document.getElementById('episode_progress');
-        const statusSelect = document.getElementById('status');
-        const maxEpisodes = parseInt(episodeInput.getAttribute('max')) || 0;
-
-        listSelect.addEventListener('change', e => {
-            const selected = e.target.value;
-
-            if (selected === 'Vistos') {
-                // Rellenar datos automáticamente
-                if (maxEpisodes > 0) episodeInput.value = maxEpisodes;
-                statusSelect.value = 'completed';
-
-                // Bloquear campos visualmente sin impedir envío
-                episodeInput.readOnly = true;
-                episodeInput.classList.add('opacity-70', 'cursor-not-allowed');
-
-                statusSelect.style.pointerEvents = 'none';
-                statusSelect.classList.add('opacity-70', 'cursor-not-allowed');
-            } else if (selected && selected !== '__new__') {
-                // Restaurar campos si cambia a otra lista
-                episodeInput.readOnly = false;
-                episodeInput.classList.remove('opacity-70', 'cursor-not-allowed');
-
-                statusSelect.style.pointerEvents = '';
-                statusSelect.classList.remove('opacity-70', 'cursor-not-allowed');
-            }
-        });
-    });
-</script> --}}
+    </script> 
     {{-- ===================================================== --}}
     {{-- ============ SECCIÓN PRINCIPAL ====================== --}}
     {{-- ===================================================== --}}
     <section class="w-full p-6 mt-8 flex gap-8">
         <!-- Columna izquierda: info del anime disponible -->
-        <div class="w-64 flex-shrink-0 bg-gray-100 p-6 rounded-lg shadow-md space-y-4" style="align-self: flex-start;">
+        <div class="w-64 flex-shrink-0 bg-gray-100 p-6 rounded-lg shadow-md space-y-4"
+            style="align-self: flex-start;">
             <!-- Aquí eliminamos sticky y limitamos altura -->
             <h2 class="text-xl font-bold mb-4">Detalles del Anime</h2>
 

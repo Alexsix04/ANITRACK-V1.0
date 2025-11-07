@@ -13,8 +13,10 @@
             <!-- Avatar -->
             <div class="relative group cursor-pointer flex-shrink-0 mr-8" id="openEditModal">
                 <img class="h-36 w-36 rounded-full object-cover border-4 border-white shadow-lg"
-                    src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/avatar-default.png') }}"
+                    src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/avatars/default-avatar.png') }}"
                     alt="Avatar de {{ $user->name }}">
+
+
                 <div
                     class="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
                     <span class="text-white text-sm font-medium">Editar</span>
@@ -162,7 +164,11 @@
                 <div class="relative group cursor-pointer open-list-modal" data-list-id="{{ $list->id }}">
                     <div class="aspect-[16/9] rounded-2xl overflow-hidden shadow-lg relative">
                         @php
-                            $animeImages = $list->items->take(4)->pluck('anime_image');
+                            // 👇 igual que en tu ejemplo de favoritos
+                            $animeImages = $list->items
+                                ->take(4)
+                                ->map(fn($item) => $item->anime->cover_image ?? $item->anime_image)
+                                ->filter();
                         @endphp
 
                         @if ($animeImages->isEmpty())
@@ -193,7 +199,6 @@
             @endforeach
         </div>
     </div>
-
     <!-- ========================================= -->
     <!-- 🪄 MODALES -->
     <!-- ========================================= -->
@@ -274,19 +279,47 @@
                 @else
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         @foreach ($list->items as $item)
+                            @php
+                                // 🔹 Obtener imagen (cover del modelo Anime o la guardada en el item)
+                                $image = $item->anime->cover_image ?? $item->anime_image;
+                            @endphp
+
                             <div class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03] cursor-pointer open-submodal"
                                 data-item-id="{{ $item->id }}" data-anime-id="{{ $item->anime_id }}"
-                                data-anime-title="{{ $item->anime_title }}"
-                                data-anime-image="{{ $item->anime_image }}" data-anime-status="{{ $item->status }}"
-                                data-anime-score="{{ $item->score }}"
+                                data-anime-title="{{ $item->anime_title }}" data-anime-image="{{ $image }}"
+                                data-anime-anilist_id="{{ $item->anime->anilist_id ?? '' }}"
+                                data-anime-episodes="{{ $item->anime->episodes ?? 0 }}"
+                                data-anime-status="{{ $item->status }}" data-anime-score="{{ $item->score }}"
                                 data-anime-episode_progress="{{ $item->episode_progress }}"
                                 data-anime-is_rewatch="{{ $item->is_rewatch }}"
                                 data-anime-rewatch_count="{{ $item->rewatch_count }}"
                                 data-anime-notes="{{ $item->notes }}">
 
-                                <img src="{{ $item->anime_image }}" alt="{{ $item->anime_title }}"
-                                    class="w-full h-64 object-cover rounded-lg mb-4">
-                                <h3 class="text-lg font-bold mb-2 truncate">{{ $item->anime_title }}</h3>
+                                {{-- 🔸 Imagen del anime o fallback --}}
+                                @if ($image)
+                                    <img src="{{ $image }}" alt="{{ $item->anime_title }}"
+                                        class="w-full h-64 object-cover rounded-lg mb-4">
+                                @else
+                                    <div
+                                        class="w-full h-64 bg-gray-600 flex items-center justify-center rounded-lg mb-4">
+                                        <span class="text-gray-300 text-sm">Sin imagen</span>
+                                    </div>
+                                @endif
+
+                                {{-- 🔸 Título del anime --}}
+                                <h3 class="text-lg font-bold mb-1 truncate">
+                                    {{ $item->anime->title ?? $item->anime_title }}</h3>
+
+                                {{-- 🔸 Información adicional (opcional, puedes quitar si no quieres) --}}
+                                <div class="text-sm text-gray-300 space-y-1">
+                                    @if ($item->score)
+                                        <p>Puntuación: <span class="font-semibold">{{ $item->score }}/10</span></p>
+                                    @endif
+                                    @if ($item->episode_progress)
+                                        <p>Episodios vistos: <span
+                                                class="font-semibold">{{ $item->episode_progress }}</span></p>
+                                    @endif
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -294,6 +327,7 @@
             </div>
         </div>
     @endforeach
+
     <!-- SUBMODAL DE ANIME EN LISTA -->
     <div id="animeSubmodal"
         class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60] opacity-0 scale-95">
@@ -338,10 +372,11 @@
                         class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-5 py-2 rounded-lg shadow transition">
                         Editar info
                     </button>
-                    <button
+                    <button id="deleteFromListBtn"
                         class="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2 rounded-lg shadow transition">
                         Eliminar de la lista
                     </button>
+
                 </div>
             </div>
         </div>
@@ -466,6 +501,8 @@
                     currentAnime = {
                         itemId: card.dataset.itemId,
                         animeId: card.dataset.animeId,
+                        anilist_id: card.dataset.animeAnilist_id,
+                        episodes: card.dataset.animeEpisodes,
                         title: card.dataset.animeTitle,
                         image: card.dataset.animeImage,
                         status: card.dataset.animeStatus,
@@ -499,8 +536,12 @@
                         'Sin notas';
 
                     // Click en imagen = ir al anime
-                    imgContainer.onclick = () => window.location.href =
-                        `/animes/${currentAnime.animeId}`;
+                    imgContainer.onclick = () => {
+                        window.location.href = `/animes/${currentAnime.anilist_id}`;
+                    };
+
+
+
 
                     // Mostrar modal
                     submodal.classList.remove('hidden', 'opacity-0', 'scale-95');
@@ -546,8 +587,14 @@
 
                     score.outerHTML =
                         `<input id="submodalScore" type="number" min="0" max="10" value="${currentAnime.score || ''}" class="border rounded-lg px-2 py-1 w-16">`;
-                    progress.outerHTML =
-                        `<input id="submodalProgress" type="number" min="0" value="${currentAnime.progress || ''}" class="border rounded-lg px-2 py-1 w-20">`;
+                    const maxEpisodes = currentAnime.episodes && currentAnime.episodes > 0 ?
+                        currentAnime.episodes : 9999;
+                    progress.outerHTML = `
+                    <input id="submodalProgress" type="number" min="0" max="${maxEpisodes}"
+                    value="${currentAnime.progress || ''}" 
+                    class="border rounded-lg px-2 py-1 w-20"
+                    title="Máximo: ${maxEpisodes} episodios">`;
+
                     rewatch.outerHTML = `
                 <select id="submodalRewatch" class="border rounded-lg px-2 py-1 text-sm">
                     <option value="0" ${currentAnime.rewatch == '0' ? 'selected' : ''}>No</option>
@@ -563,13 +610,29 @@
                     editing = false;
                     editBtn.textContent = 'Editar info';
 
+                    const statusValue = document.getElementById('submodalStatus').value;
+                    const scoreValue = document.getElementById('submodalScore').value;
+                    let progressValue = document.getElementById('submodalProgress').value;
+                    const rewatchValue = document.getElementById('submodalRewatch').value;
+                    const rewatchCountValue = document.getElementById('submodalRewatchCount').value;
+                    const notesValue = document.getElementById('submodalNotes').value;
+
+                    // ✅ Si el estado es "completed", forzar progreso al total de episodios
+                    if (statusValue === 'completed') {
+                        const totalEpisodes = currentAnime.episodes && currentAnime.episodes > 0 ?
+                            currentAnime.episodes : null;
+                        if (totalEpisodes) {
+                            progressValue = totalEpisodes;
+                        }
+                    }
+
                     const newData = {
-                        status: document.getElementById('submodalStatus').value,
-                        score: document.getElementById('submodalScore').value,
-                        episode_progress: document.getElementById('submodalProgress').value,
-                        is_rewatch: document.getElementById('submodalRewatch').value,
-                        rewatch_count: document.getElementById('submodalRewatchCount').value,
-                        notes: document.getElementById('submodalNotes').value,
+                        status: statusValue,
+                        score: scoreValue,
+                        episode_progress: progressValue,
+                        is_rewatch: rewatchValue,
+                        rewatch_count: rewatchCountValue,
+                        notes: notesValue,
                     };
 
                     try {
@@ -625,9 +688,49 @@
                         console.error("Error de conexión:", err);
                         alert('Error de conexión con el servidor.');
                     }
+                }
 
+            });
+            // === Eliminar de la lista ===
+            const deleteBtn = document.getElementById('deleteFromListBtn');
+
+            deleteBtn.addEventListener('click', async () => {
+                if (!currentAnime || !currentAnime.itemId) {
+                    alert("❌ No hay anime seleccionado para eliminar.");
+                    return;
+                }
+
+                if (!confirm(`¿Seguro que quieres eliminar "${currentAnime.title}" de tu lista?`))
+                    return;
+
+                try {
+                    const res = await fetch(`/anime-list/${currentAnime.itemId}/delete`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .content
+                        }
+                    });
+
+                    const result = await res.json();
+
+                    if (!res.ok) {
+                        console.error("Error al eliminar:", result);
+                        alert(result.message || 'Error al eliminar el anime.');
+                        return;
+                    }
+
+                    alert(result.message || '✅ Anime eliminado correctamente.');
+                    closeModal(); // Cierra el submodal
+                    location.reload(); // Recarga para actualizar la lista
+
+                } catch (err) {
+                    console.error("Error de conexión:", err);
+                    alert('Error de conexión con el servidor.');
                 }
             });
+
+
         });
     </script>
 

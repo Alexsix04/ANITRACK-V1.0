@@ -52,46 +52,25 @@ class ProfileController extends Controller
             'banner' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
         ]);
 
-        // Actualizar bio
-        $user->bio = $request->bio;
-
-        // ===================================================
-        // ACTUALIZAR AVATAR
-        // ===================================================
+        // Subida de avatar
         if ($request->hasFile('avatar')) {
-
-            // Si ya tenía un avatar anterior y no es el por defecto
-            if ($user->avatar && !str_contains($user->avatar, 'avatar-default.png')) {
-                $avatarPath = str_replace(asset('storage/') . '/', '', $user->avatar);
-                \Storage::disk('public')->delete($avatarPath);
-            }
-
-            // Guardar el nuevo avatar
             $avatarPath = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar = $avatarPath;
+            $user->avatar = $avatarPath; //  SOLO guardamos "avatars/archivo.png"
         }
 
-        // ===================================================
-        // ACTUALIZAR BANNER
-        // ===================================================
+        // Subida de banner
         if ($request->hasFile('banner')) {
-
-            // Si ya tenía un banner anterior, eliminarlo
-            if ($user->banner) {
-                $bannerPath = str_replace(asset('storage/') . '/', '', $user->banner);
-                \Storage::disk('public')->delete($bannerPath);
-            }
-
-            // Guardar nuevo banner
             $bannerPath = $request->file('banner')->store('banners', 'public');
             $user->banner = $bannerPath;
         }
 
-        // Guardar cambios
+        // Actualizar bio
+        $user->bio = $request->bio;
         $user->save();
 
-        return back()->with('success', 'Perfil actualizado correctamente.');
+        return redirect()->back()->with('success', 'Perfil actualizado correctamente.');
     }
+
 
 
 

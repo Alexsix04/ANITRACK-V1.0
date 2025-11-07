@@ -80,7 +80,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Añadir o eliminar desde animes.show
     Route::post('/anime/add-to-list', [AnimeListController::class, 'addAnimeToList'])->name('anime.addToList');
-    Route::delete('/anime/remove-from-list', [AnimeListController::class, 'removeFromList'])->name('anime.removeFromList');
+    Route::delete('/anime-list/{id}/delete', [AnimeListController::class, 'destroy'])->name('anime-list.delete');
 
     //Crear una lista nueva desde animes.show
     Route::post('/anime/list/create', [AnimeListController::class, 'store'])->name('anime.list.create');
