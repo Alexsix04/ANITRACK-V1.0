@@ -12,6 +12,7 @@ use App\Http\Controllers\CharacterCommentController;
 use App\Http\Controllers\AnimeFavoriteController;
 use App\Http\Controllers\CharacterFavoriteController;
 use App\Http\Controllers\AnimeListController;
+use App\Http\Controllers\CharacterListController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -84,6 +85,24 @@ Route::middleware(['auth'])->group(function () {
 
     //Crear una lista nueva desde animes.show
     Route::post('/anime/list/create', [AnimeListController::class, 'store'])->name('anime.list.create');
+});
+
+Route::middleware(['auth'])->group(function () {
+    // Listas de personajes
+    Route::get('/character-lists/my', [CharacterListController::class, 'myLists'])->name('characterlists.my');
+    Route::post('/character-lists/create', [CharacterListController::class, 'create'])->name('characterlists.create');
+    Route::post('/character-lists/store', [CharacterListController::class, 'store'])->name('characterlists.store');
+
+    // Añadir personaje a una lista
+    Route::post('/character-lists/add', [CharacterListController::class, 'addCharacterToList'])->name('characterlists.add');
+
+    // Actualizar y eliminar
+    Route::put('/character-lists/item/{item}', [CharacterListController::class, 'updateCharacterInList'])->name('characterlists.update');
+    Route::delete('/character-lists/item/{id}', [CharacterListController::class, 'destroy'])->name('characterlists.destroy');
+
+    Route::post('/character/add-to-list', [CharacterListController::class, 'addCharacterToList'])->name('character.addToList');
+
+    Route::post('/character-lists/create', [CharacterListController::class, 'store'])->name('character.list.create');
 });
 
 

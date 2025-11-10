@@ -200,6 +200,52 @@
         </div>
     </div>
     <!-- ========================================= -->
+    <!-- 📋 LISTAS DE PERSONAJES -->
+    <!-- ========================================= -->
+<div class="max-w-5xl mx-auto px-6 py-12 space-y-10">
+    <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Mis Listas de Personajes</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+        @foreach ($characterLists as $list)
+            <div class="relative group cursor-pointer open-character-list-modal" data-list-id="{{ $list->id }}">
+                <div class="aspect-[16/9] rounded-2xl overflow-hidden shadow-lg relative">
+                    @php
+                        // Tomar hasta 4 personajes para previsualizar
+                        $characterImages = $list->items
+                            ->take(4)
+                            ->map(fn($item) => $item->character->image_url ?? $item->character_image)
+                            ->filter();
+                    @endphp
+
+                    @if ($characterImages->isEmpty())
+                        <div class="flex items-center justify-center h-full bg-gray-200 text-gray-500">
+                            <span>Sin personajes en {{ $list->name }}</span>
+                        </div>
+                    @else
+                        <div class="grid grid-cols-2 grid-rows-2 h-full w-full">
+                            @foreach ($characterImages as $img)
+                                <img src="{{ $img }}" alt="Personaje en {{ $list->name }}"
+                                    class="object-cover w-full h-full">
+                            @endforeach
+                            @for ($i = $characterImages->count(); $i < 4; $i++)
+                                <div class="bg-gray-300"></div>
+                            @endfor
+                        </div>
+                    @endif
+
+                    <div
+                        class="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                        <h3 class="text-white text-2xl font-bold mb-1">{{ $list->name }}</h3>
+                        @if (!$list->items->isEmpty())
+                            <span class="text-white text-sm">Ver colección completa</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+</div>
+    <!-- ========================================= -->
     <!-- 🪄 MODALES -->
     <!-- ========================================= -->
     <!-- MODALES DE FAVORITOS -->

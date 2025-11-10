@@ -21,19 +21,32 @@ document.addEventListener('DOMContentLoaded', () => {
         noResults.classList.add('hidden');
 
         animes.forEach(anime => {
-            const card = document.createElement('a');
-            card.href = `/animes/${anime.id}`;
+            // Contenedor principal de la tarjeta
+            const card = document.createElement('div');
+            card.className = "relative group rounded-xl overflow-hidden shadow-md hover:shadow-xl transition";
+
             card.innerHTML = `
-                <div class="bg-gray-100 rounded-lg overflow-hidden shadow hover:shadow-lg transition">
-                    <img src="${anime.coverImage.large}" alt="${anime.title.romaji}" class="w-full h-64 object-cover">
-                    <div class="p-2">
-                        <h3 class="text-lg font-bold truncate">${anime.title.romaji}</h3>
-                        <p class="text-sm text-gray-600">
-                            ⭐ ${anime.averageScore ?? 'N/A'} | ${anime.format ?? ''}
-                        </p>
-                    </div>
+            <a href="/animes/${anime.id}" class="block bg-gray-100 rounded-xl overflow-hidden">
+                <img src="${anime.coverImage.large}" alt="${anime.title.romaji}" class="w-full h-64 object-cover">
+                <div class="p-2.5">
+                    <h3 class="text-base font-semibold truncate">${anime.title.romaji}</h3>
+                    <p class="text-sm text-gray-600">
+                        ⭐ ${anime.averageScore ?? 'N/A'} | ${anime.format ?? ''}
+                    </p>
                 </div>
-            `;
+            </a>
+
+            <!-- Botón pequeño en la esquina superior derecha -->
+            <button
+                class="absolute top-2 right-2 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center text-lg font-bold opacity-0 group-hover:opacity-100 transition-shadow shadow-md"
+                data-anime-id="${anime.id ?? ''}"
+                data-anilist-id="${anime.anilist_id ?? (anime.id ?? '')}"
+                data-anime-title="${anime.title.romaji}"
+                data-anime-image="${anime.coverImage.large}">
+                +
+            </button>
+        `;
+
             grid.appendChild(card);
         });
     };

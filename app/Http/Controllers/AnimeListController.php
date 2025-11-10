@@ -74,7 +74,7 @@ class AnimeListController extends Controller
                 'season'      => $animeData['season'] ?? null,
             ]
         );
-
+ 
 
         // 3️⃣ Obtener la lista destino del usuario
         $list = $user->animeLists()->where('name', $listName)->firstOrFail();

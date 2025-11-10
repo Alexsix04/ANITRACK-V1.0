@@ -39,7 +39,12 @@ class ProfileController extends Controller
             ->whereIn('name', ['Vistos', 'Pendientes'])
             ->get();
 
-        return view('profile.index', compact('user', 'animeFavorites', 'characterFavorites', 'defaultLists'));
+        //  Listas de personajes 
+        $characterLists = \App\Models\CharacterList::with(['items.character'])
+            ->where('user_id', $user->id)
+            ->get();
+
+        return view('profile.index', compact('user', 'animeFavorites', 'characterFavorites', 'defaultLists',  'characterLists'));
     }
 
     public function updateBioAvatar(Request $request)

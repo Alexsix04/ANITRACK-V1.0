@@ -116,4 +116,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(AnimeList::class);
     }
+    // Relación con listas de personajes
+    public function characterLists()
+{
+    return $this->hasMany(\App\Models\CharacterList::class);
+}
+
 }

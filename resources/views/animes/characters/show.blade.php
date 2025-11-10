@@ -75,13 +75,15 @@
                             </a>
                         @endauth
 
-
                         {{-- ============================================= --}}
-
-                        <!-- Botón Añadir a Lista -->
-                        <button class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-                            Añadir a Lista
-                        </button>
+                        {{-- BOTÓN DE AÑADIR A LISTA FUNCIONAL (AJAX) --}}
+                        {{-- ============================================= --}}
+                        @auth
+                            <button id="openAddCharacterModal"
+                                class="flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
+                                Añadir a mi lista
+                            </button>
+                        @endauth
                     </div>
 
                 </div>
@@ -371,95 +373,201 @@
             });
         </script>
 
-        <!-- SCRIPT FAVORITOS-->
-        <div id="toast"
-            class="fixed top-5 right-5 z-50 opacity-0 transition-opacity duration-500 pointer-events-none"></div>
 
+        {{-- MODAL PRINCIPAL --}}
+        <div id="addCharacterModal"
+            class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 transition-all opacity-0 scale-95">
+            <div
+                class="bg-gray-900 text-white p-8 rounded-2xl shadow-2xl w-full max-w-3xl relative flex flex-col md:flex-row gap-6">
+
+                <!-- Botón cerrar -->
+                <button id="closeAddCharacterModal"
+                    class="absolute top-4 right-4 text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+
+                <!-- Columna izquierda: imagen + nombre del personaje -->
+                <div
+                    class="flex flex-col items-center justify-start w-full md:w-2/5 border-b md:border-b-0 md:border-r border-gray-700 pb-6 md:pb-0 md:pr-6">
+                    <img id="modalCharacterImage" src="" alt=""
+                        class="w-48 h-64 object-cover rounded-xl shadow-lg mb-4">
+                    <h3 id="modalCharacterName" class="text-xl font-semibold text-center leading-tight"></h3>
+                </div>
+
+                <!-- Columna derecha: formulario -->
+                <div class="flex-1">
+                    <h2 class="text-2xl font-semibold mb-6">Añadir a mi lista</h2>
+
+                    <form id="addCharacterForm" method="POST" action="{{ route('character.addToList') }}">
+                        @csrf
+                        <input type="hidden" name="character_anilist_id" id="character_anilist_id">
+                        <input type="hidden" name="character_name" id="character_name">
+                        <input type="hidden" name="character_image" id="character_image">
+                        <input type="hidden" name="anime_anilist_id" id="anime_anilist_id">
+                        <input type="hidden" name="anime_title" id="anime_title">
+                        <input type="hidden" name="anime_image" id="anime_image">
+
+                        <!-- Selector de lista con opción de crear nueva -->
+                        <label for="list_name" class="block mb-2 text-sm text-gray-300">Selecciona una lista</label>
+                        <select id="list_name" name="list_name"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-blue-500 text-base">
+                            @foreach (auth()->user()->characterLists as $list)
+                                <option value="{{ $list->name }}">{{ $list->name }}</option>
+                            @endforeach
+                            <option value="__new__">+ Crear nueva lista...</option>
+                        </select>
+
+                        <!-- Puntuación -->
+                        <label for="score" class="block mb-2 text-sm text-gray-300">Puntuación (0-10)</label>
+                        <input type="number" id="score" name="score" min="0" max="10"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 text-base">
+
+                        <!-- Notas -->
+                        <label for="notes" class="block mb-2 text-sm text-gray-300">Notas / observaciones</label>
+                        <textarea id="notes" name="notes" rows="2"
+                            class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 text-base" placeholder="Anota algo aquí..."></textarea>
+
+                        <!-- Botones -->
+                        <div class="flex justify-end space-x-3 mt-6">
+                            <button type="button" id="cancelAddCharacter"
+                                class="px-5 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-base">Cancelar</button>
+                            <button type="submit"
+                                class="px-5 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-base font-semibold">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- SUBMODAL PARA CREAR NUEVA LISTA --}}
+        <div id="createCharacterListModal"
+            class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-[100] transition-all opacity-0 scale-95">
+            <div class="bg-gray-900 text-white p-6 rounded-2xl shadow-xl w-full max-w-sm relative">
+                <button id="closeCreateCharacterListModal"
+                    class="absolute top-3 right-3 text-gray-400 hover:text-white text-2xl">&times;</button>
+                <h2 class="text-xl font-semibold mb-4">Crear nueva lista</h2>
+
+                <form id="createCharacterListForm">
+                    @csrf
+                    <label for="list_name_new" class="block mb-2 text-sm text-gray-300">Nombre de la lista</label>
+                    <input type="text" id="list_name_new" name="name"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 mb-3"
+                        placeholder="Ej: Mis favoritos..." required>
+
+                    <label for="is_public" class="block mb-2 text-sm text-gray-300">Visibilidad</label>
+                    <select id="is_public" name="is_public"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 mb-4">
+                        <option value="1">Pública</option>
+                        <option value="0">Privada</option>
+                    </select>
+
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" id="cancelCreateCharacterList"
+                            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg">Cancelar</button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white">Crear</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- SCRIPT DE MODALES CON SUBMODAL --}}
         <script>
             document.addEventListener('DOMContentLoaded', () => {
-                const buttons = document.querySelectorAll('.favoriteCharacterButton');
-                const toast = document.getElementById('toast');
+                const openBtn = document.getElementById('openAddCharacterModal');
+                const modal = document.getElementById('addCharacterModal');
+                const closeBtn = document.getElementById('closeAddCharacterModal');
+                const cancelBtn = document.getElementById('cancelAddCharacter');
 
-                function showToast(message, color = 'bg-green-600') {
-                    toast.textContent = message;
-                    toast.className =
-                        `fixed top-5 right-5 ${color} text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 pointer-events-none z-50`;
-                    setTimeout(() => toast.classList.add('opacity-100'), 10);
-                    setTimeout(() => toast.classList.remove('opacity-100'), 3000);
-                }
+                const characterNameInput = document.getElementById('character_name');
+                const characterImageInput = document.getElementById('character_image');
+                const characterAnilistInput = document.getElementById('character_anilist_id');
+                const modalName = document.getElementById('modalCharacterName');
+                const modalImage = document.getElementById('modalCharacterImage');
 
-                buttons.forEach(button => {
-                    // Estado inicial del botón
-                    if (button.dataset.isFavorite === 'true') {
-                        button.classList.remove('bg-gray-200', 'hover:bg-gray-300', 'text-gray-700');
-                        button.classList.add('bg-yellow-600', 'hover:bg-yellow-700', 'text-white');
-                    }
+                const listSelect = document.getElementById('list_name');
 
-                    button.addEventListener('click', async () => {
-                        const payload = {
-                            character_id: button.dataset.characterId,
-                            character_anilist_id: button.dataset.characterAnilistId,
-                            character_name: button.dataset.characterName,
-                            character_image: button.dataset.characterImage,
-                            anime_id: button.dataset.animeId,
-                            anime_anilist_id: button.dataset.animeAnilistId,
-                            anime_name: button.dataset.animeName,
-                            anime_image: button.dataset.animeImage
-                        };
+                // Submodal
+                const createModal = document.getElementById('createCharacterListModal');
+                const closeCreateBtn = document.getElementById('closeCreateCharacterListModal');
+                const cancelCreateBtn = document.getElementById('cancelCreateCharacterList');
+                const createForm = document.getElementById('createCharacterListForm');
 
-                        try {
-                            const response = await fetch(
-                                '{{ route('favorites.character.toggle') }}', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'Accept': 'application/json'
-                                    },
-                                    body: JSON.stringify(payload)
-                                });
+                // Abrir modal principal
+                openBtn.addEventListener('click', () => {
+                    const characterData = {
+                        name: "{{ $character['name']['full'] ?? '' }}",
+                        image: "{{ $character['image']['large'] ?? ($character['image']['medium'] ?? '') }}",
+                        anilist_id: "{{ $character['id'] }}",
+                        anime_anilist_id: "{{ $anime['id'] ?? '' }}",
+                        anime_title: "{{ $anime['title']['romaji'] ?? '' }}",
+                        anime_image: "{{ $anime['coverImage']['large'] ?? '' }}"
+                    };
 
-                            const data = await response.json();
+                    characterNameInput.value = characterData.name;
+                    characterImageInput.value = characterData.image;
+                    characterAnilistInput.value = characterData.anilist_id;
+                    document.getElementById('anime_anilist_id').value = characterData.anime_anilist_id;
+                    document.getElementById('anime_title').value = characterData.anime_title;
+                    document.getElementById('anime_image').value = characterData.anime_image;
 
-                            if (data.status === 'added') {
-                                // Estilo de favorito activo
-                                button.dataset.isFavorite = 'true';
-                                button.classList.remove('bg-gray-200', 'hover:bg-gray-300',
-                                    'text-gray-700');
-                                button.classList.add('bg-yellow-600', 'hover:bg-yellow-700',
-                                    'text-white');
-                                button.title = 'Quitar de favoritos';
-                                button.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888 
-                            1.444 8.278L12 18.896l-7.38 3.976 
-                            1.444-8.278-6.064-5.888 8.332-1.151z"/>
-                        </svg>`;
-                                showToast('✅ Personaje añadido a favoritos', 'bg-green-600');
+                    modalName.textContent = characterData.name;
+                    modalImage.src = characterData.image;
 
-                            } else if (data.status === 'removed') {
-                                // Estilo de favorito inactivo
-                                button.dataset.isFavorite = 'false';
-                                button.classList.remove('bg-yellow-600', 'hover:bg-yellow-700',
-                                    'text-white');
-                                button.classList.add('bg-gray-200', 'hover:bg-gray-300',
-                                    'text-gray-700');
-                                button.title = 'Agregar a favoritos';
-                                button.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61
-                                L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-                        </svg>`;
-                                showToast('❌ Personaje eliminado de favoritos', 'bg-red-600');
-                            }
+                    modal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                    modal.classList.add('flex', 'opacity-100', 'scale-100');
+                });
 
-                        } catch (error) {
-                            console.error('Error:', error);
-                            showToast('⚠️ Error al procesar la solicitud', 'bg-yellow-600');
-                        }
+                // Cerrar modal principal
+                [closeBtn, cancelBtn].forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        modal.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => modal.classList.add('hidden'), 200);
                     });
+                });
+
+                // Abrir submodal al seleccionar "__new__"
+                listSelect.addEventListener('change', e => {
+                    if (e.target.value === '__new__') {
+                        createModal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                        createModal.classList.add('flex', 'opacity-100', 'scale-100');
+                        modal.classList.add('pointer-events-none');
+                    }
+                });
+
+                // Cerrar submodal
+                [closeCreateBtn, cancelCreateBtn].forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        createModal.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => createModal.classList.add('hidden'), 200);
+                        modal.classList.remove('pointer-events-none');
+                        listSelect.value = '';
+                    });
+                });
+
+                // Crear nueva lista vía AJAX
+                createForm.addEventListener('submit', async e => {
+                    e.preventDefault();
+                    const formData = new FormData(createForm);
+
+                    const response = await fetch("{{ route('character.list.create') }}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    if (result.success && result.list) {
+                        const option = new Option(result.list.name, result.list.name, true, true);
+                        const createOption = listSelect.querySelector('option[value="__new__"]');
+                        listSelect.insertBefore(option, createOption);
+
+                        createModal.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => createModal.classList.add('hidden'), 200);
+                        modal.classList.remove('pointer-events-none');
+                    } else {
+                        alert(result.message || 'Error al crear la lista.');
+                    }
                 });
             });
         </script>
