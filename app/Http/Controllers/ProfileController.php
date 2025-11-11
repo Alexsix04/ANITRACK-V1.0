@@ -38,13 +38,18 @@ class ProfileController extends Controller
             ->where('user_id', $user->id)
             ->whereIn('name', ['Vistos', 'Pendientes'])
             ->get();
+        // Todas las listas de animes del usuario
+        $allLists = AnimeList::with('items')
+            ->where('user_id', $user->id)
+            ->get();
+
 
         //  Listas de personajes 
         $characterLists = \App\Models\CharacterList::with(['items.character'])
             ->where('user_id', $user->id)
             ->get();
 
-        return view('profile.index', compact('user', 'animeFavorites', 'characterFavorites', 'defaultLists',  'characterLists'));
+        return view('profile.index', compact('user', 'animeFavorites', 'characterFavorites', 'defaultLists', 'allLists', 'characterLists'));
     }
 
     public function updateBioAvatar(Request $request)

@@ -103,6 +103,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/character/add-to-list', [CharacterListController::class, 'addCharacterToList'])->name('character.addToList');
 
     Route::post('/character-lists/create', [CharacterListController::class, 'store'])->name('character.list.create');
+
+    Route::post('/character-list/update', [CharacterListController::class, 'updateItem'])->name('character.list.update');
 });
 
 

@@ -109,6 +109,24 @@ class CharacterListController extends Controller
         ]);
     }
 
+    public function updateItem(Request $request)
+{
+    $validated = $request->validate([
+        'item_id' => 'required|integer|exists:character_list_items,id',
+        'score' => 'nullable|integer|min:0|max:10',
+        'notes' => 'nullable|string|max:1000',
+    ]);
+
+    $item = \App\Models\CharacterListItem::findOrFail($validated['item_id']);
+    $item->update([
+        'score' => $validated['score'],
+        'notes' => $validated['notes'],
+    ]);
+
+    return response()->json(['success' => true]);
+}
+
+
     /**
      * Eliminar un personaje de una lista
      */
