@@ -74,7 +74,7 @@ Route::get('/listas', [AnimeController::class, 'index'])->name('listas.index');
 Route::middleware(['auth'])->group(function () {
     // Listas personales del usuario (para profile.index)
     Route::get('/profile/lists', [AnimeListController::class, 'myLists'])->name('profile.lists');
-    // Actualizar datos de un anime dentro de una lista (desde el perfil)
+    // Actualizar datos de un anime dentro de una lista
     Route::put('/anime-list/{item}/update', [AnimeListController::class, 'updateAnimeInList'])->name('anime-list.update');
 
     Route::post('/lists/create', [AnimeListController::class, 'create'])->name('lists.create');
@@ -83,8 +83,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/anime/add-to-list', [AnimeListController::class, 'addAnimeToList'])->name('anime.addToList');
     Route::delete('/anime-list/{id}/delete', [AnimeListController::class, 'destroy'])->name('anime-list.delete');
 
-    //Crear una lista nueva desde animes.show
+    //Crear una lista nueva
     Route::post('/anime/list/create', [AnimeListController::class, 'store'])->name('anime.list.create');
+
+    // Actualizar una lista 
+    Route::put('/anime-lists/{list}/update', [AnimeListController::class, 'update'])->name('anime-lists.update');
+
+    // Eliminar una lista
+    Route::delete('/anime-lists/{list}/delete', [AnimeListController::class, 'delete'])->name('animeLists.delete');
 });
 
 Route::middleware(['auth'])->group(function () {

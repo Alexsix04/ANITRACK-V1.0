@@ -9,7 +9,7 @@ class AnimeList extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'name', 'is_public'];
+    protected $fillable = ['user_id', 'name', 'is_public', 'description'];
 
     public function user()
     {

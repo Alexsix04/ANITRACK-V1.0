@@ -74,7 +74,7 @@ class AnimeListController extends Controller
                 'season'      => $animeData['season'] ?? null,
             ]
         );
- 
+
 
         // 3️⃣ Obtener la lista destino del usuario
         $list = $user->animeLists()->where('name', $listName)->firstOrFail();
@@ -124,106 +124,106 @@ class AnimeListController extends Controller
      * Actualizar los datos de un anime dentro de una lista
      */
     public function updateAnimeInList(Request $request, AnimeListItem $item)
-{
-    $validated = $request->validate([
-        'episode_progress' => 'nullable|integer|min:0',
-        'score'            => 'nullable|integer|min:0|max:10',
-        'status'           => 'nullable|string|in:watching,completed,on_hold,dropped,plan_to_watch',
-        'notes'            => 'nullable|string|max:1000',
-        'is_rewatch'       => 'boolean',
-        'rewatch_count'    => 'nullable|integer|min:0',
-    ]);
+    {
+        $validated = $request->validate([
+            'episode_progress' => 'nullable|integer|min:0',
+            'score'            => 'nullable|integer|min:0|max:10',
+            'status'           => 'nullable|string|in:watching,completed,on_hold,dropped,plan_to_watch',
+            'notes'            => 'nullable|string|max:1000',
+            'is_rewatch'       => 'boolean',
+            'rewatch_count'    => 'nullable|integer|min:0',
+        ]);
 
-    $user = Auth::user();
+        $user = Auth::user();
 
-    $oldStatus = $item->status;
-    $isRewatch = filter_var($validated['is_rewatch'] ?? $item->is_rewatch, FILTER_VALIDATE_BOOLEAN);
-    $rewatchCount = $validated['rewatch_count'] ?? $item->rewatch_count;
+        $oldStatus = $item->status;
+        $isRewatch = filter_var($validated['is_rewatch'] ?? $item->is_rewatch, FILTER_VALIDATE_BOOLEAN);
+        $rewatchCount = $validated['rewatch_count'] ?? $item->rewatch_count;
 
-    // Regla especial para lista Vistos
-    if ($item->list->name === 'Vistos') {
-        $rewatchCount = max(1, (int)$rewatchCount);
-    }
+        if ($item->list->name === 'Vistos') {
+            $rewatchCount = max(1, (int)$rewatchCount);
+        }
 
-    // Actualizar el registro
-    $item->update([
-        'episode_progress' => $validated['episode_progress'] ?? $item->episode_progress,
-        'score'            => $validated['score'] ?? $item->score,
-        'status'           => $validated['status'] ?? $item->status,
-        'notes'            => $validated['notes'] ?? $item->notes,
-        'is_rewatch'       => $isRewatch,
-        'rewatch_count'    => $rewatchCount,
-    ]);
+        $item->update([
+            'episode_progress' => $validated['episode_progress'] ?? $item->episode_progress,
+            'score'            => $validated['score'] ?? $item->score,
+            'status'           => $validated['status'] ?? $item->status,
+            'notes'            => $validated['notes'] ?? $item->notes,
+            'is_rewatch'       => $isRewatch,
+            'rewatch_count'    => $rewatchCount,
+        ]);
 
-    // Manejo de cambio a "completed" desde "Pendientes"
-    if ($oldStatus !== 'completed' && $item->status === 'completed' && $item->list->name === 'Pendientes') {
-        $vistosList = $user->animeLists()->where('name', 'Vistos')->first();
+        // Manejo especial solo para "Pendientes" → "Vistos"
+        if ($oldStatus !== 'completed' && $item->status === 'completed' && $item->list->name === 'Pendientes') {
+            $vistosList = $user->animeLists()->where('name', 'Vistos')->first();
 
-        if ($vistosList) {
-            $existingVisto = $vistosList->items()->where('anime_id', $item->anime_id)->first();
+            if ($vistosList) {
+                $existingVisto = $vistosList->items()->where('anime_id', $item->anime_id)->first();
 
-            if ($existingVisto) {
-                $changes = [];
-                $existingVisto->rewatch_count += 1;
+                if ($existingVisto) {
+                    $changes = [];
+                    $existingVisto->rewatch_count += 1;
 
-                if ($existingVisto->score != $item->score) $changes['score'] = $item->score;
-                if ($existingVisto->notes != $item->notes) $changes['notes'] = $item->notes;
+                    if ($existingVisto->score != $item->score) $changes['score'] = $item->score;
+                    if ($existingVisto->notes != $item->notes) $changes['notes'] = $item->notes;
 
-                $existingVisto->update(array_merge(['rewatch_count' => $existingVisto->rewatch_count], $changes));
-                $item->delete();
+                    $existingVisto->update(array_merge(['rewatch_count' => $existingVisto->rewatch_count], $changes));
+                    $item->delete();
 
-                return response()->json([
-                    'success' => true,
-                    'message' => 'El anime ya estaba en Vistos. Se actualizó y se eliminó de Pendientes.',
-                    'action' => 'moved_existing',
-                    'rewatch_count' => $existingVisto->rewatch_count,
-                    'changes' => $changes
-                ]);
-            } else {
-                $vistosList->items()->create([
-                    'anime_id'         => $item->anime_id,
-                    'anilist_id'       => $item->anilist_id,
-                    'episode_progress' => $item->episode_progress,
-                    'score'            => $item->score,
-                    'status'           => 'completed',
-                    'notes'            => $item->notes,
-                    'is_rewatch'       => true,
-                    'rewatch_count'    => 1,
-                ]);
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'El anime ya estaba en Vistos. Se actualizó y se eliminó de Pendientes.',
+                        'action' => 'moved_existing',
+                        'rewatch_count' => $existingVisto->rewatch_count,
+                        'changes' => $changes
+                    ]);
+                } else {
+                    $vistosList->items()->create([
+                        'anime_id'         => $item->anime_id,
+                        'anilist_id'       => $item->anilist_id,
+                        'episode_progress' => $item->episode_progress,
+                        'score'            => $item->score,
+                        'status'           => 'completed',
+                        'notes'            => $item->notes,
+                        'is_rewatch'       => true,
+                        'rewatch_count'    => 1,
+                    ]);
 
-                $item->delete();
+                    $item->delete();
 
-                return response()->json([
-                    'success' => true,
-                    'message' => 'El anime se movió automáticamente de Pendientes a Vistos.',
-                    'action' => 'moved_new'
-                ]);
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'El anime se movió automáticamente de Pendientes a Vistos.',
+                        'action' => 'moved_new'
+                    ]);
+                }
             }
         }
+
+        // Cualquier otra actualización normal
+        return response()->json([
+            'success' => true,
+            'message' => 'Anime actualizado correctamente.',
+            'action' => 'updated'
+        ]);
     }
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Anime actualizado correctamente.',
-        'item' => $item
-    ]);
-}
 
     /**
      * Eliminar un anime de una lista
      */
     public function destroy($id)
-{
-    $item = AnimeListItem::find($id);
+    {
+        $item = AnimeListItem::find($id);
 
-    if (!$item) {
-        return response()->json(['message' => '❌ El anime no se encontró en tu lista.'], 404);
+        if (!$item) {
+            return response()->json(['message' => '❌ El anime no se encontró en tu lista.'], 404);
+        }
+
+        $item->delete();
+
+        return response()->json(['message' => '✅ Anime eliminado de tu lista correctamente.']);
     }
-
-    $item->delete();
-
-    return response()->json(['message' => '✅ Anime eliminado de tu lista correctamente.']);
-}
 
 
     /**
@@ -275,6 +275,67 @@ class AnimeListController extends Controller
                 'id' => $list->id,
                 'name' => $list->name,
             ],
+        ]);
+    }
+    /**
+     * Actualizar nombre, descripción y visibilidad de una lista de anime
+     */
+    public function update(Request $request, AnimeList $list)
+    {
+        // Bloquear si no pertenece al usuario
+        if ($list->user_id !== auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes permiso para modificar esta lista.'
+            ], 403);
+        }
+
+        // Bloquear renombrar "Vistos" y "Pendientes"
+        $isDefault = in_array($list->name, ['Vistos', 'Pendientes']);
+
+        // Validación
+        $validated = $request->validate([
+            'name' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'is_public' => 'required|boolean',
+        ]);
+
+        // Actualización condicional
+        $list->update([
+            'name' => $isDefault ? $list->name : ($validated['name'] ?? $list->name),
+            'description' => $validated['description'] ?? $list->description,
+            'is_public' => $validated['is_public'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lista actualizada correctamente.',
+            'data' => $list,
+        ]);
+    }
+
+    /**
+     * Eliminar una lista (y todos sus items asociados)
+     */
+    public function delete(AnimeList $list)
+    {
+        // 🚫 Bloquear listas predeterminadas
+        if (in_array($list->name, ['Vistos', 'Pendientes'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No puedes eliminar las listas predeterminadas.'
+            ], 403);
+        }
+
+        // 🗑 Eliminar todos los items relacionados
+        $list->items()->delete();
+
+        // 🧹 Eliminar la lista
+        $list->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => '✅ Lista eliminada correctamente.'
         ]);
     }
 }

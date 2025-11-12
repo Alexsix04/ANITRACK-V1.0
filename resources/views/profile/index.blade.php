@@ -806,14 +806,52 @@
     @foreach ($allLists as $list)
         <div id="listModal-{{ $list->id }}"
             class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
-            <div class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto relative">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold text-gray-800">{{ $list->name }}</h2>
-                    <button class="text-gray-600 hover:text-gray-800 close-list-modal">✕</button>
+            <div
+                class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto relative flex flex-col gap-6">
+
+                <!-- Header: nombre + acciones -->
+                <div class="flex justify-between items-start">
+                    <div class="space-y-1">
+                        <h2 id="listName-{{ $list->id }}" class="text-2xl font-bold text-gray-800">
+                            {{ $list->name }}</h2>
+                        @if ($list->description)
+                            <p class="text-gray-600 text-sm">{{ $list->description }}</p>
+                        @endif
+                        <p class="text-gray-500 text-sm">
+                            Estado:
+                            <span class="{{ $list->is_public ? 'text-green-600' : 'text-gray-400' }}">
+                                {{ $list->is_public ? 'Pública' : 'Privada' }}
+                            </span>
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <!-- Botón Editar -->
+                        <button
+                            class="open-edit-list bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold px-4 py-2 rounded-md shadow transition"
+                            data-list-id="{{ $list->id }}" data-list-name="{{ $list->name }}"
+                            data-list-description="{{ $list->description }}"
+                            data-list-is-public="{{ $list->is_public ? 1 : 0 }}">
+                            ✏️ Editar
+                        </button>
+
+                        <!-- Botón Eliminar -->
+                        @if (!in_array($list->name, ['Vistos', 'Pendientes']))
+                            <button
+                                class="delete-list-btn bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md shadow transition"
+                                data-list-id="{{ $list->id }}">
+                                🗑 Eliminar
+                            </button>
+                        @endif
+
+                        <!-- Botón cerrar -->
+                        <button class="close-list-modal text-gray-600 hover:text-gray-800 text-xl font-bold">✕</button>
+                    </div>
                 </div>
 
+                <!-- Contenido de la lista -->
                 @if ($list->items->isEmpty())
-                    <p class="text-gray-500">Esta lista está vacía.</p>
+                    <p class="text-gray-500 text-center py-10">Esta lista está vacía.</p>
                 @else
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         @foreach ($list->items as $item)
@@ -861,6 +899,182 @@
             </div>
         </div>
     @endforeach
+
+    <!--NUEVO MODAL DE EDICIÓN DE LISTA -->
+    <div id="editListModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[70] opacity-0 scale-95 transition-all duration-200">
+        <div class="bg-gray-100 p-8 rounded-2xl shadow-2xl w-11/12 max-w-lg relative">
+            <button id="closeEditListModal"
+                class="absolute top-4 right-5 text-gray-600 hover:text-gray-800 text-3xl font-bold">✕</button>
+
+            <h2 class="text-2xl font-bold mb-4">Editar lista</h2>
+
+            <form id="editListForm" class="space-y-4">
+                <input type="hidden" id="listId">
+
+                <div>
+                    <label for="listName" class="block text-sm font-medium text-gray-700">Nombre</label>
+                    <input id="listName" type="text" class="w-full border rounded-lg px-3 py-2 mt-1" required>
+                </div>
+
+                <div>
+                    <label for="listDescription" class="block text-sm font-medium text-gray-700">Descripción</label>
+                    <textarea id="listDescription" class="w-full border rounded-lg px-3 py-2 mt-1" rows="3"></textarea>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="listIsPublic" class="w-4 h-4">
+                    <label for="listIsPublic" class="text-gray-700">Lista pública</label>
+                </div>
+
+                <div class="flex justify-end mt-6">
+                    <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow">Guardar
+                        cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- 🟢 SCRIPT DE EDICIÓN DE LISTAS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // === REFERENCIAS DEL MODAL DE EDICIÓN ===
+            const editModal = document.getElementById('editListModal');
+            const closeEditBtn = document.getElementById('closeEditListModal');
+            const editForm = document.getElementById('editListForm');
+
+            const inputId = document.getElementById('listId');
+            const inputName = document.getElementById('listName');
+            const inputDescription = document.getElementById('listDescription');
+            const inputIsPublic = document.getElementById('listIsPublic');
+
+            // === FUNCIÓN: abrir modal ===
+            function openEditModal(list) {
+                inputId.value = list.id;
+                inputName.value = list.name || '';
+                inputDescription.value = list.description || '';
+                inputIsPublic.checked = list.isPublic === '1' || list.isPublic === 1;
+
+                // 🔒 Desactivar el campo nombre si es "Vistos" o "Pendientes"
+                if (list.name === 'Vistos' || list.name === 'Pendientes') {
+                    inputName.disabled = true;
+                    inputName.classList.add('bg-gray-200');
+                } else {
+                    inputName.disabled = false;
+                    inputName.classList.remove('bg-gray-200');
+                }
+
+                editModal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                editModal.classList.add('opacity-100', 'scale-100');
+            }
+
+            // === FUNCIÓN: cerrar modal ===
+            function closeEditModal() {
+                editModal.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => editModal.classList.add('hidden'), 200);
+            }
+
+            // === Abrir modal al hacer click en "Editar lista" ===
+            document.querySelectorAll('.open-edit-list').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const listData = {
+                        id: btn.dataset.listId,
+                        name: btn.dataset.listName,
+                        description: btn.dataset.listDescription,
+                        isPublic: btn.dataset.listIsPublic
+                    };
+                    openEditModal(listData);
+                });
+            });
+
+            // === Cerrar modal al hacer click fuera ===
+            editModal.addEventListener('click', e => {
+                if (e.target === editModal) closeEditModal();
+            });
+            closeEditBtn.addEventListener('click', closeEditModal);
+
+            // === Enviar formulario ===
+            editForm.addEventListener('submit', async e => {
+                e.preventDefault();
+
+                const id = inputId.value;
+                const formData = {
+                    name: inputName.value.trim(),
+                    description: inputDescription.value.trim(),
+                    is_public: inputIsPublic.checked ? 1 : 0,
+                    _token: '{{ csrf_token() }}'
+                };
+
+                try {
+                    const response = await fetch(`/anime-lists/${id}/update`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // 🟢 Actualizar nombre en el modal original
+                        const nameEl = document.getElementById(`listName-${id}`);
+                        if (nameEl && formData.name) nameEl.textContent = formData.name;
+
+                        // 🟢 Actualizar dataset del botón para futuras ediciones
+                        const editBtn = document.querySelector(`.open-edit-list[data-list-id="${id}"]`);
+                        if (editBtn) {
+                            editBtn.dataset.listName = formData.name;
+                            editBtn.dataset.listDescription = formData.description;
+                            editBtn.dataset.listIsPublic = formData.is_public;
+                        }
+
+                        alert('✅ Lista actualizada correctamente');
+                        closeEditModal();
+                    } else {
+                        alert('❌ Error: ' + (data.message || 'No se pudo actualizar la lista'));
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('⚠️ Error al actualizar la lista');
+                }
+            });
+
+        });
+        document.querySelectorAll('.delete-list-btn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const listId = button.dataset.listId;
+
+                if (!confirm("⚠️ ¿Seguro que quieres eliminar esta lista y todos sus animes?")) return;
+
+                try {
+                    const res = await fetch(`/anime-lists/${listId}/delete`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .content
+                        }
+                    });
+
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        alert(data.message || "Error al eliminar la lista.");
+                        return;
+                    }
+
+                    alert(data.message);
+                    location.reload();
+
+                } catch (err) {
+                    console.error(err);
+                    alert("Error de conexión con el servidor.");
+                }
+            });
+        });
+    </script>
+
 
     <!-- MODALES DE LISTAS DE PERSONAJES -->
 
