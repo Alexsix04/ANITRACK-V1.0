@@ -826,6 +826,12 @@
                     </div>
 
                     <div class="flex items-center gap-2">
+                        <!-- Botón Añadir anime -->
+                        <a href="{{ route('animes.index') }}"
+                            class="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-md shadow transition">
+                            ➕ Añadir anime
+                        </a>
+
                         <!-- Botón Editar -->
                         <button
                             class="open-edit-list bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold px-4 py-2 rounded-md shadow transition"
@@ -1075,20 +1081,57 @@
         });
     </script>
 
-
-    <!-- MODALES DE LISTAS DE PERSONAJES -->
-
+    <!-- ========================================= -->
+    <!-- 📜 MODALES DE LISTAS DE PERSONAJES -->
+    <!-- ========================================= -->
     @foreach ($characterLists as $list)
         <div id="characterListModal-{{ $list->id }}"
             class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
-            <div class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto relative">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold text-gray-800">{{ $list->name }}</h2>
-                    <button class="text-gray-600 hover:text-gray-800 close-list-modal">✕</button>
+            <div
+                class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto relative flex flex-col gap-6">
+
+                <!-- Header: nombre + acciones -->
+                <div class="flex justify-between items-start">
+                    <div class="space-y-1">
+                        <h2 id="characterListName-{{ $list->id }}" class="text-2xl font-bold text-gray-800">
+                            {{ $list->name }}
+                        </h2>
+                        @if ($list->description)
+                            <p class="text-gray-600 text-sm">{{ $list->description }}</p>
+                        @endif
+                        <p class="text-gray-500 text-sm">
+                            Estado:
+                            <span class="{{ $list->is_public ? 'text-green-600' : 'text-gray-400' }}">
+                                {{ $list->is_public ? 'Pública' : 'Privada' }}
+                            </span>
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <!-- Botón Editar lista -->
+                        <button
+                            class="open-edit-character-list bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold px-4 py-2 rounded-md shadow transition"
+                            data-list-id="{{ $list->id }}" data-list-name="{{ $list->name }}"
+                            data-list-description="{{ $list->description }}"
+                            data-list-is-public="{{ $list->is_public ? 1 : 0 }}">
+                            ✏️ Editar
+                        </button>
+
+                        <!-- Botón Eliminar lista -->
+                        <button
+                            class="delete-character-list-btn bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md shadow transition"
+                            data-list-id="{{ $list->id }}">
+                            🗑 Eliminar
+                        </button>
+
+                        <!-- Botón cerrar modal -->
+                        <button class="close-list-modal text-gray-600 hover:text-gray-800 text-xl font-bold">✕</button>
+                    </div>
                 </div>
 
+                <!-- Contenido de la lista -->
                 @if ($list->items->isEmpty())
-                    <p class="text-gray-500">Esta lista está vacía.</p>
+                    <p class="text-gray-500 text-center py-10">Esta lista está vacía.</p>
                 @else
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         @foreach ($list->items as $item)
@@ -1105,7 +1148,6 @@
                                 data-anime-anilist-id="{{ $item->anime_anilist_id ?? '' }}"
                                 data-anime-title="{{ $item->anime_title ?? '' }}"
                                 data-score="{{ $item->score ?? '' }}" data-notes="{{ $item->notes ?? '' }}">
-
 
                                 {{-- Imagen del personaje --}}
                                 @if ($image)
@@ -1145,6 +1187,163 @@
             </div>
         </div>
     @endforeach
+
+    <!-- ========================================= -->
+    <!-- 📜 MODAL DE EDICIÓN DE LISTAS DE PERSONAJES -->
+    <!-- ========================================= -->
+    <div id="editCharacterListModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
+        <div class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-2xl relative">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">Editar lista de personajes</h2>
+                <button id="closeEditCharacterListModal"
+                    class="text-gray-600 hover:text-gray-800 text-xl font-bold">✕</button>
+            </div>
+
+            <form id="editCharacterListForm">
+                @csrf
+                <input type="hidden" id="editCharacterListId">
+
+                <div class="mb-4">
+                    <label for="editCharacterListName" class="block font-semibold text-gray-700 mb-1">Nombre de la
+                        lista</label>
+                    <input type="text" id="editCharacterListName" class="w-full border rounded-lg px-3 py-2"
+                        required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="editCharacterListDescription"
+                        class="block font-semibold text-gray-700 mb-1">Descripción</label>
+                    <textarea id="editCharacterListDescription" class="w-full border rounded-lg px-3 py-2" rows="3"></textarea>
+                </div>
+
+                <div class="mb-4 flex items-center gap-3">
+                    <input type="checkbox" id="editCharacterListPublic" class="h-4 w-4">
+                    <label for="editCharacterListPublic" class="text-gray-700 font-semibold">Lista pública</label>
+                </div>
+
+                <button type="submit"
+                    class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-5 py-2 rounded-lg shadow transition">
+                    Guardar cambios
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- 📜 SCRIPT PARA EDITAR LISTAS DE PERSONAJES -->
+    <!-- ========================================= -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const editModal = document.getElementById('editCharacterListModal');
+            const closeBtn = document.getElementById('closeEditCharacterListModal');
+            const form = document.getElementById('editCharacterListForm');
+
+            let currentListId = null;
+
+            // Abrir modal al hacer click en botón de edición
+            document.querySelectorAll('.open-edit-character-list').forEach(button => {
+                button.addEventListener('click', () => {
+                    currentListId = button.dataset.listId;
+                    document.getElementById('editCharacterListId').value = currentListId;
+                    document.getElementById('editCharacterListName').value = button.dataset
+                        .listName || '';
+                    document.getElementById('editCharacterListDescription').value = button.dataset
+                        .listDescription || '';
+                    document.getElementById('editCharacterListPublic').checked = button.dataset
+                        .listIsPublic == '1';
+
+                    editModal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                    editModal.classList.add('flex', 'opacity-100', 'scale-100');
+                });
+            });
+
+            // Cerrar modal
+            closeBtn.addEventListener('click', () => closeModal());
+            editModal.addEventListener('click', e => {
+                if (e.target === editModal) closeModal();
+            });
+
+            function closeModal() {
+                editModal.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => editModal.classList.add('hidden'), 200);
+            }
+
+            // Submit form - actualizar lista
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentListId) return;
+
+                const nameValue = document.getElementById('editCharacterListName').value.trim();
+                const descriptionValue = document.getElementById('editCharacterListDescription').value
+                    .trim();
+                const isPublicValue = document.getElementById('editCharacterListPublic').checked ? 1 :
+                    0;
+
+                try {
+                    const res = await fetch(`/character-lists/${currentListId}/update`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .content
+                        },
+                        body: JSON.stringify({
+                            name: nameValue,
+                            description: descriptionValue,
+                            is_public: isPublicValue
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (!res.ok || !data.success) {
+                        alert(data.message || 'Error al actualizar la lista.');
+                        return;
+                    }
+
+                    // Actualizar la UI sin recargar
+                    const modalTitle = document.querySelector(
+                        `#characterListModal-${currentListId} h2`);
+                    if (modalTitle) modalTitle.textContent = nameValue;
+
+                    closeModal();
+                    alert('Lista de personajes actualizada correctamente.');
+                } catch (err) {
+                    console.error(err);
+                    alert('Error de conexión con el servidor.');
+                }
+            });
+        });
+        document.querySelectorAll('.delete-character-list-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const listId = btn.dataset.listId;
+                if (!confirm('¿Seguro que quieres eliminar esta lista y todos sus items?')) return;
+
+                try {
+                    const res = await fetch(`/character-lists/${listId}/delete`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                .content
+                        }
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(data.message || 'Error al eliminar la lista.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Error de conexión con el servidor.');
+                }
+            });
+        });
+    </script>
 
     <!-- SUBMODAL DE ANIME EN LISTA -->
     <div id="animeSubmodal"

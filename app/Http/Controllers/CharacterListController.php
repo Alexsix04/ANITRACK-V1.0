@@ -27,65 +27,65 @@ class CharacterListController extends Controller
      * Añadir un personaje a una lista del usuario
      */
     public function addCharacterToList(Request $request)
-{
-    $validated = $request->validate([
-        'character_anilist_id' => 'required|integer',
-        'character_name' => 'required|string',
-        'character_image' => 'nullable|string',
-        'anime_anilist_id' => 'nullable|integer',
-        'anime_title' => 'nullable|string',
-        'anime_image' => 'nullable|string',
-        'list_name' => 'required|string',
-        'score' => 'nullable|integer|min:0|max:10',
-        'notes' => 'nullable|string|max:1000',
-    ]);
+    {
+        $validated = $request->validate([
+            'character_anilist_id' => 'required|integer',
+            'character_name' => 'required|string',
+            'character_image' => 'nullable|string',
+            'anime_anilist_id' => 'nullable|integer',
+            'anime_title' => 'nullable|string',
+            'anime_image' => 'nullable|string',
+            'list_name' => 'required|string',
+            'score' => 'nullable|integer|min:0|max:10',
+            'notes' => 'nullable|string|max:1000',
+        ]);
 
-    $user = Auth::user();
+        $user = Auth::user();
 
-    // 1️⃣ Obtener o crear anime local
-    if (!empty($validated['anime_anilist_id'])) {
-        $anime = \App\Models\Anime::firstOrCreate(
-            ['anilist_id' => $validated['anime_anilist_id']],
-            ['title' => $validated['anime_title'] ?? '', 'cover_image' => $validated['anime_image'] ?? null]
+        // 1️⃣ Obtener o crear anime local
+        if (!empty($validated['anime_anilist_id'])) {
+            $anime = \App\Models\Anime::firstOrCreate(
+                ['anilist_id' => $validated['anime_anilist_id']],
+                ['title' => $validated['anime_title'] ?? '', 'cover_image' => $validated['anime_image'] ?? null]
+            );
+        }
+
+        // 2️⃣ Obtener o crear personaje local
+        $character = \App\Models\Character::firstOrCreate(
+            ['anilist_id' => $validated['character_anilist_id']],
+            [
+                'name' => $validated['character_name'],
+                'image_url' => $validated['character_image'] ?? null,
+                'anime_id' => $anime->id ?? null,
+                'anime_anilist_id' => $validated['anime_anilist_id'] ?? null,
+            ]
         );
+
+
+        // 3️⃣ Obtener lista destino
+        $list = $user->characterLists()->where('name', $validated['list_name'])->firstOrFail();
+
+        // 4️⃣ Evitar duplicados
+        $exists = $list->items()->where('character_id', $character->id)->exists();
+        if ($exists) {
+            return redirect()->back()->with('warning', 'Este personaje ya está en la lista.');
+        }
+
+        // 5️⃣ Crear item en character_list_items
+        $list->items()->create([
+            'user_id'         => $user->id,
+            'list_id'         => $list->id,
+            'character_id'    => $character->id,
+            'anime_id'        => $anime->id ?? null,
+            'anime_anilist_id' => $validated['anime_anilist_id'],
+            'anilist_id'      => $validated['character_anilist_id'],
+            'score'           => $validated['score'] ?? null,
+            'notes'           => $validated['notes'] ?? null,
+        ]);
+
+
+        return redirect()->back()->with('success', 'Personaje añadido a tu lista correctamente.');
     }
-
-    // 2️⃣ Obtener o crear personaje local
-    $character = \App\Models\Character::firstOrCreate(
-    ['anilist_id' => $validated['character_anilist_id']],
-    [
-        'name' => $validated['character_name'],
-        'image_url' => $validated['character_image'] ?? null,
-        'anime_id' => $anime->id ?? null,
-        'anime_anilist_id' => $validated['anime_anilist_id'] ?? null, 
-    ]
-);
-
-
-    // 3️⃣ Obtener lista destino
-    $list = $user->characterLists()->where('name', $validated['list_name'])->firstOrFail();
-
-    // 4️⃣ Evitar duplicados
-    $exists = $list->items()->where('character_id', $character->id)->exists();
-    if ($exists) {
-        return redirect()->back()->with('warning', 'Este personaje ya está en la lista.');
-    }
-
-    // 5️⃣ Crear item en character_list_items
-    $list->items()->create([
-    'user_id'         => $user->id,
-    'list_id'         => $list->id,
-    'character_id'    => $character->id,
-    'anime_id'        => $anime->id ?? null,
-    'anime_anilist_id'=> $validated['anime_anilist_id'] ,
-    'anilist_id'      => $validated['character_anilist_id'],
-    'score'           => $validated['score'] ?? null,
-    'notes'           => $validated['notes'] ?? null,
-]);
-
-
-    return redirect()->back()->with('success', 'Personaje añadido a tu lista correctamente.');
-}
 
     /**
      * Actualizar los datos de un personaje dentro de una lista
@@ -110,21 +110,21 @@ class CharacterListController extends Controller
     }
 
     public function updateItem(Request $request)
-{
-    $validated = $request->validate([
-        'item_id' => 'required|integer|exists:character_list_items,id',
-        'score' => 'nullable|integer|min:0|max:10',
-        'notes' => 'nullable|string|max:1000',
-    ]);
+    {
+        $validated = $request->validate([
+            'item_id' => 'required|integer|exists:character_list_items,id',
+            'score' => 'nullable|integer|min:0|max:10',
+            'notes' => 'nullable|string|max:1000',
+        ]);
 
-    $item = \App\Models\CharacterListItem::findOrFail($validated['item_id']);
-    $item->update([
-        'score' => $validated['score'],
-        'notes' => $validated['notes'],
-    ]);
+        $item = \App\Models\CharacterListItem::findOrFail($validated['item_id']);
+        $item->update([
+            'score' => $validated['score'],
+            'notes' => $validated['notes'],
+        ]);
 
-    return response()->json(['success' => true]);
-}
+        return response()->json(['success' => true]);
+    }
 
 
     /**
@@ -194,6 +194,40 @@ class CharacterListController extends Controller
                 'id' => $list->id,
                 'name' => $list->name,
             ],
+        ]);
+    }
+    /**
+     * Actualizar una lista de personajes
+     */
+    public function update(Request $request, CharacterList $characterList)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'is_public' => 'required|boolean'
+        ]);
+
+        $characterList->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lista de personajes actualizada correctamente.'
+        ]);
+    }
+    /**
+     * Eliminar una lista de personajes
+     */
+    public function delete(CharacterList $characterList)
+    {
+        // Eliminar todos los items asociados primero
+        $characterList->items()->delete();
+
+        // Luego eliminar la lista
+        $characterList->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lista de personajes eliminada correctamente.'
         ]);
     }
 }

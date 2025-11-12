@@ -26,8 +26,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/destroy', [ProfileController::class, 'destroy'])
-    ->where('seccion', '.*')
-    ->name('profile.destroy');
+        ->where('seccion', '.*')
+        ->name('profile.destroy');
 });
 //Ruta para actualizar biografía y avatar
 Route::post('/profile/update-bio-avatar', [ProfileController::class, 'updateBioAvatar'])
@@ -98,6 +98,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/character-lists/my', [CharacterListController::class, 'myLists'])->name('characterlists.my');
     Route::post('/character-lists/create', [CharacterListController::class, 'create'])->name('characterlists.create');
     Route::post('/character-lists/store', [CharacterListController::class, 'store'])->name('characterlists.store');
+    // Actualizar una lista de personajes
+    Route::put('/character-lists/{characterList}/update', [CharacterListController::class, 'update']);
+    // Eliminar una lista de personajes
+    Route::delete('/character-lists/{characterList}/delete', [CharacterListController::class, 'delete']);
 
     // Añadir personaje a una lista
     Route::post('/character-lists/add', [CharacterListController::class, 'addCharacterToList'])->name('characterlists.add');
@@ -114,4 +118,4 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
