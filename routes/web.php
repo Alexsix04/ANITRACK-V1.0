@@ -13,6 +13,7 @@ use App\Http\Controllers\AnimeFavoriteController;
 use App\Http\Controllers\CharacterFavoriteController;
 use App\Http\Controllers\AnimeListController;
 use App\Http\Controllers\CharacterListController;
+use App\Http\Controllers\ListsController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -67,8 +68,22 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
-//Rutas Listas
-Route::get('/listas', [AnimeController::class, 'index'])->name('listas.index');
+// Rutas de listas
+Route::prefix('listas')->group(function () {
+
+    // Índice de listas (landing page)
+    Route::get('/', [ListsController::class, 'index'])->name('listas.index');
+
+    // === Anime ===
+    Route::get('/anime/public', [ListsController::class, 'publicAnimeLists'])->name('listas.anime.public');
+    Route::post('/anime/{list}/guardar', [ListsController::class, 'saveAnimeList'])->middleware('auth')->name('listas.anime.save');
+    Route::get('/anime/guardadas', [ListsController::class, 'savedAnimeLists'])->middleware('auth')->name('listas.anime.saved');
+
+    // === Personajes ===
+    Route::get('/characters/public', [ListsController::class, 'publicCharacterLists'])->name('listas.characters.public');
+    Route::post('/characters/{list}/guardar', [ListsController::class, 'saveCharacterList'])->middleware('auth')->name('listas.characters.save');
+    Route::get('/characters/guardadas', [ListsController::class, 'savedCharacterLists'])->middleware('auth')->name('listas.characters.saved');
+});
 
 //Rutas de listas de usuario
 Route::middleware(['auth'])->group(function () {
@@ -116,6 +131,5 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/character-list/update', [CharacterListController::class, 'updateItem'])->name('character.list.update');
 });
-
 
 require __DIR__ . '/auth.php';

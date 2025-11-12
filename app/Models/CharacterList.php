@@ -9,15 +9,20 @@ class CharacterList extends Model
 {
     use HasFactory;
 
-    protected $fillable = [ 'user_id', 'name', 'description', 'is_public',];
-
+    protected $fillable = ['user_id', 'name', 'description', 'is_public',];
+    // Relación con el usuario que creó la lista
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-
+    // Relación con los ítems de la lista
     public function items()
     {
         return $this->hasMany(CharacterListItem::class, 'list_id');
+    }
+    // Relación con los usuarios que guardaron esta lista
+    public function savedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'saved_character_lists')->withTimestamps();
     }
 }

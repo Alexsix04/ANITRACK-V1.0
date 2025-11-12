@@ -118,8 +118,22 @@ class User extends Authenticatable
     }
     // Relación con listas de personajes
     public function characterLists()
-{
-    return $this->hasMany(\App\Models\CharacterList::class);
-}
+    {
+        return $this->hasMany(\App\Models\CharacterList::class);
+    }
+    // listas de anime guardadas
+    public function savedAnimeLists()
+    {
+        return $this->belongsToMany(AnimeList::class, 'saved_anime_lists')
+            ->withPivot('owner_id', 'owner_name')
+            ->withTimestamps();
+    }
 
+    // listas de personajes guardadas
+    public function savedCharacterLists()
+    {
+        return $this->belongsToMany(CharacterList::class, 'saved_character_lists')
+            ->withPivot('owner_id', 'owner_name')
+            ->withTimestamps();
+    }
 }
