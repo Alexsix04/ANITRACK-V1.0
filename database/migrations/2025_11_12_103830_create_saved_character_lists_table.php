@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('character_list_id')->constrained()->onDelete('cascade');
             $table->unsignedBigInteger('owner_id');
             $table->string('owner_name');
+            $table->boolean('is_public')->default(false);
             $table->timestamps();
 
             $table->unique(['user_id', 'character_list_id']);

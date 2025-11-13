@@ -23,6 +23,8 @@ return new class extends Migration
             // Referencia al anime en Anilist
             $table->integer('anilist_id');
 
+            $table->boolean('is_public')->default(false);
+
             $table->timestamps();
         });
     }

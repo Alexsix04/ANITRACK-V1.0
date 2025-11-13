@@ -25,4 +25,9 @@ class AnimeList extends Model
     {
         return $this->belongsToMany(User::class, 'saved_anime_lists')->withTimestamps();
     }
+    // Relación con los usuarios que le dieron like a esta lista
+    public function likes()
+    {
+        return $this->belongsToMany(User::class, 'anime_list_likes');
+    }
 }

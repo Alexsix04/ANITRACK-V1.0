@@ -25,4 +25,9 @@ class CharacterList extends Model
     {
         return $this->belongsToMany(User::class, 'saved_character_lists')->withTimestamps();
     }
+    // Relación con los usuarios que le dieron like a esta lista
+    public function likes()
+    {
+        return $this->belongsToMany(User::class, 'character_list_likes');
+    }
 }

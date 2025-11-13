@@ -22,6 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('anime_anilist_id'); // ID de Anime en Anilist
             $table->string('character_name');
             $table->string('character_image')->nullable();
+            $table->boolean('is_public')->default(false);
 
             $table->timestamps();
 

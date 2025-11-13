@@ -136,4 +136,15 @@ class User extends Authenticatable
             ->withPivot('owner_id', 'owner_name')
             ->withTimestamps();
     }
+    // Likes de anime
+    public function likedAnimeLists()
+    {
+        return $this->belongsToMany(AnimeList::class, 'anime_list_likes');
+    }
+
+    // Likes de personajes
+    public function likedCharacterLists()
+    {
+        return $this->belongsToMany(CharacterList::class, 'character_list_likes');
+    }
 }
