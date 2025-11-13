@@ -11,19 +11,45 @@
                         data-modal-target="#listModal-{{ $list->id }}">
 
                         {{-- Botón de guardar lista --}}
-                        <button
-                            class="absolute top-3 right-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 shadow-md transition-all transform scale-100 group-hover:scale-110">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                        </button>
+                        <div x-data="{
+                            saved: {{ $list->is_saved ? 'true' : 'false' }},
+                            toggleSave() {
+                                fetch('{{ route('listas.anime.toggle-save', $list->id) }}', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        },
+                                    })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        this.saved = data.saved;
+                                    })
+                                    .catch(err => console.error(err));
+                            }
+                        }" class="absolute top-3 right-3">
+                            <button @click.stop="toggleSave()" class="group p-1 focus:outline-none transition">
+                                {{-- Ícono sin guardar --}}
+                                <svg x-show="!saved" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                                    class="w-7 h-7 text-gray-400 group-hover:text-blue-600 transition-all duration-200">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M5 5v14l7-5 7 5V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z" />
+                                </svg>
+
+                                {{-- Ícono guardado --}}
+                                <svg x-show="saved" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                    viewBox="0 0 24 24" class="w-7 h-7 text-blue-600 transition-all duration-200">
+                                    <path d="M5 3a2 2 0 0 0-2 2v16l9-6 9 6V5a2 2 0 0 0-2-2H5z" />
+                                </svg>
+                            </button>
+                        </div>
 
                         <h2 class="text-xl font-bold text-gray-800 mb-2 truncate">{{ $list->name }}</h2>
+
                         @if (!$list->items->isEmpty())
                             <div class="grid grid-cols-2 gap-2 mt-2">
                                 @foreach ($list->items->take(4) as $item)
-                                    {{-- Solo las primeras 4 --}}
                                     @php
                                         $image = $item->anime->cover_image ?? $item->anime_image;
                                     @endphp
@@ -36,7 +62,7 @@
                         @endif
                     </div>
 
-                    {{-- Modal Moderno para Listas Públicas de Anime --}}
+                    {{-- Modal Moderno --}}
                     <div id="listModal-{{ $list->id }}"
                         class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95 transition-all duration-200">
                         <div
@@ -55,7 +81,7 @@
                                         </div>
                                     @endif
 
-                                    {{-- Contenedor de descripción --}}
+                                    {{-- Descripción --}}
                                     <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
                                         @if ($list->description)
                                             <p class="text-gray-700 text-sm">{{ $list->description }}</p>
@@ -74,7 +100,7 @@
                                 </button>
                             </div>
 
-                            <!-- Contenido de la lista -->
+                            <!-- Contenido -->
                             @if ($list->items->isEmpty())
                                 <p class="text-gray-500 text-center py-10">Esta lista no contiene animes.</p>
                             @else
@@ -114,7 +140,7 @@
                                             </p>
                                         @endif
 
-                                        {{-- Botón para mostrar nota --}}
+                                        {{-- Nota del usuario --}}
                                         @if ($hasNotes)
                                             <button class="mt-2 text-xs text-blue-400 hover:underline open-note-modal"
                                                 data-note="{{ $item->notes }}">
@@ -132,8 +158,12 @@
         @endif
     </div>
     </div>
+    @endforeach
+    </div>
+    @endif
+    </div>
 
-    {{-- Modal de nota general --}}
+    {{-- Modal de nota --}}
     <div id="noteModal"
         class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[100] opacity-0 scale-95 transition-all duration-200">
         <div class="bg-white rounded-xl shadow-xl w-11/12 max-w-md p-6 relative transform transition-all duration-200">
@@ -143,12 +173,8 @@
             <p id="noteContent" class="text-gray-700 leading-relaxed"></p>
         </div>
     </div>
-    @endforeach
-    </div>
-    @endif
-    </div>
 
-    {{-- Script para abrir/cerrar modales --}}
+    {{-- Scripts para modales --}}
     <script>
         // Abrir modal principal
         document.querySelectorAll('[data-modal-target]').forEach(card => {
@@ -169,7 +195,7 @@
             });
         });
 
-        // Cerrar al hacer clic fuera
+        // Cerrar modal al hacer clic fuera
         document.querySelectorAll('.fixed').forEach(modal => {
             modal.addEventListener('click', e => {
                 if (e.target === modal) {
@@ -182,7 +208,6 @@
         // Abrir modal de nota
         document.querySelectorAll('.open-note-modal').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // 🔒 Evita que el click abra el enlace del anime
                 e.stopPropagation();
                 e.preventDefault();
 
@@ -203,7 +228,7 @@
             });
         });
 
-        // Cerrar modal de nota al hacer click fuera
+        // Cerrar nota al hacer click fuera
         document.getElementById('noteModal').addEventListener('click', e => {
             if (e.target.id === 'noteModal') {
                 const modal = e.target;

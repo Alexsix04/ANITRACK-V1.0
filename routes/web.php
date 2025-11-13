@@ -71,18 +71,19 @@ Route::middleware(['auth'])->group(function () {
 // Rutas de listas
 Route::prefix('listas')->group(function () {
 
-    // Índice de listas (landing page)
+    // Página principal de listas
     Route::get('/', [ListsController::class, 'index'])->name('listas.index');
 
-    // === Anime ===
+    // === Listas públicas de anime ===
     Route::get('/anime/public', [ListsController::class, 'publicAnimeLists'])->name('listas.anime.public');
-    Route::post('/anime/{list}/guardar', [ListsController::class, 'saveAnimeList'])->middleware('auth')->name('listas.anime.save');
-    Route::get('/anime/guardadas', [ListsController::class, 'savedAnimeLists'])->middleware('auth')->name('listas.anime.saved');
+    // Guardar o quitar una lista pública (toggle)
+    Route::post('/anime/{list}/toggle-save', [ListsController::class, 'saveAnimeList'])->middleware('auth')->name('listas.anime.toggle-save');
 
-    // === Personajes ===
+    // === Personajes === 
     Route::get('/characters/public', [ListsController::class, 'publicCharacterLists'])->name('listas.characters.public');
-    Route::post('/characters/{list}/guardar', [ListsController::class, 'saveCharacterList'])->middleware('auth')->name('listas.characters.save');
-    Route::get('/characters/guardadas', [ListsController::class, 'savedCharacterLists'])->middleware('auth')->name('listas.characters.saved');
+    // Guardar o quitar una lista pública (toggle)
+    Route::post('/characters/{list}/save', [ListsController::class, 'saveCharacterList'])->middleware('auth')->name('listas.characters.save');
+
 });
 
 //Rutas de listas de usuario
