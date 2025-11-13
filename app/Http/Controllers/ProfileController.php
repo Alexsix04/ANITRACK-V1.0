@@ -52,6 +52,27 @@ class ProfileController extends Controller
         return view('profile.index', compact('user', 'animeFavorites', 'characterFavorites', 'defaultLists', 'allLists', 'characterLists'));
     }
 
+    public function saves()
+    {
+        $user = auth()->user();
+
+        // Listas de anime guardadas
+        $savedAnimeLists = $user->savedAnimeLists()
+            ->with(['items.anime', 'user']) // cargamos relaciones necesarias
+            ->latest()
+            ->get();
+
+        // Listas de personajes guardadas
+        $savedCharacterLists = $user->savedCharacterLists()
+            ->with(['items.character', 'user']) // cargamos relaciones necesarias
+            ->latest()
+            ->get();
+
+        return view('profile.saves', compact('user', 'savedAnimeLists', 'savedCharacterLists'));
+    }
+
+
+
     public function updateBioAvatar(Request $request)
     {
         $user = auth()->user();

@@ -26,9 +26,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
-    Route::post('/profile/destroy', [ProfileController::class, 'destroy'])
-        ->where('seccion', '.*')
-        ->name('profile.destroy');
+    Route::post('/profile/destroy', [ProfileController::class, 'destroy'])->where('seccion', '.*')->name('profile.destroy');
+
+    // Nueva ruta para Guardados
+    Route::get('/profile/saves', [ProfileController::class, 'saves'])->name('profile.saves');
 });
 //Ruta para actualizar biografía y avatar
 Route::post('/profile/update-bio-avatar', [ProfileController::class, 'updateBioAvatar'])
