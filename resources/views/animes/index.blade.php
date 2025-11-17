@@ -118,10 +118,12 @@
                             </a>
 
                             <!-- Botón pequeño en la esquina superior derecha -->
-                            <button data-anime-id="{{ $anime['id'] }}" data-anilist-id="{{ $anime['id'] }}"
+                            <button
+                                class="absolute top-2 right-2 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center text-lg font-bold opacity-0 group-hover:opacity-100 transition-shadow shadow-md"
+                                data-anime-id="{{ $anime['id'] }}" data-anilist-id="{{ $anime['id'] }}"
                                 data-anime-title="{{ $anime['title']['romaji'] }}"
                                 data-anime-image="{{ $anime['coverImage']['large'] }}"
-                                class="absolute top-2 right-2 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center text-lg font-bold opacity-0 group-hover:opacity-100 transition-opacity shadow-md">
+                                data-anime-episodes="{{ $anime['episodes'] ?? 0 }}">
                                 +
                             </button>
                         </div>
@@ -277,6 +279,9 @@
                         const createForm = document.getElementById('createListForm');
 
                         const listSelect = document.getElementById('list_name');
+                        const statusSelect = document.getElementById('status');
+                        const episodeInput = document.getElementById('episode_progress');
+
                         const animeIdInput = document.querySelector('#addToListForm input[name="anime_id"]');
                         const anilistIdInput = document.querySelector('#addToListForm input[name="anilist_id"]');
                         const animeTitleInput = document.querySelector('#addToListForm input[name="anime_title"]');
@@ -284,38 +289,68 @@
                         const modalAnimeImage = document.getElementById('modalAnimeImage');
                         const modalAnimeTitle = document.getElementById('modalAnimeTitle');
 
+                        let currentMaxEpisodes = 0; // Guardamos el máximo de episodios actual
+
+                        // Función para actualizar lista y episodios según el estado
+                        function updateListAndEpisodesByStatus() {
+                            if (statusSelect.value === 'completed') {
+                                // Solo permitir "Vistos"
+                                Array.from(listSelect.options).forEach(opt => {
+                                    opt.disabled = opt.value !== 'Vistos';
+                                });
+                                listSelect.value = 'Vistos';
+
+                                // Poner el progreso de episodios al máximo
+                                episodeInput.value = currentMaxEpisodes;
+                            } else {
+                                // Habilitar todas las opciones
+                                Array.from(listSelect.options).forEach(opt => {
+                                    opt.disabled = false;
+                                });
+                                // Restaurar predeterminada si es necesario
+                                const defaultOption = Array.from(listSelect.options).find(opt => opt.value === 'Pendientes');
+                                listSelect.value = defaultOption ? 'Pendientes' : listSelect.options[0].value;
+
+                                // Resetear el input de episodios a 0
+                                episodeInput.value = 0;
+                            }
+                        }
+
                         // Abrir modal al click en cualquier botón del grid
                         document.getElementById('anime-grid').addEventListener('click', (e) => {
                             const btn = e.target.closest('button[data-anime-id]');
-                            if (!btn) return; // no es un botón de anime
+                            if (!btn) return;
 
                             const animeId = btn.dataset.animeId || '';
                             const anilistId = btn.dataset.anilistId || '';
                             const animeTitle = btn.dataset.animeTitle || '';
                             const animeImage = btn.dataset.animeImage || '';
+                            currentMaxEpisodes = parseInt(btn.dataset.animeEpisodes) || 0;
 
-                            // Rellenar inputs del modal
-                            document.querySelector('#addToListForm input[name="anime_id"]').value = animeId;
-                            document.querySelector('#addToListForm input[name="anilist_id"]').value = anilistId;
-                            document.querySelector('#addToListForm input[name="anime_title"]').value = animeTitle;
-                            document.querySelector('#addToListForm input[name="anime_image"]').value = animeImage;
+                            animeIdInput.value = animeId;
+                            anilistIdInput.value = anilistId;
+                            animeTitleInput.value = animeTitle;
+                            animeImageInput.value = animeImage;
 
-                            document.getElementById('modalAnimeImage').src = animeImage;
-                            document.getElementById('modalAnimeTitle').textContent = animeTitle;
+                            modalAnimeImage.src = animeImage;
+                            modalAnimeTitle.textContent = animeTitle;
+
+                            // Limitar el máximo de episodios
+                            episodeInput.max = currentMaxEpisodes;
+                            episodeInput.placeholder = currentMaxEpisodes > 0 ? `Ej: 1 - ${currentMaxEpisodes}` :
+                                'Ej: 1';
+                            episodeInput.value = 0; // reset al abrir modal
 
                             // Mostrar modal
-                            const addModal = document.getElementById('addToListModal');
                             addModal.classList.remove('hidden', 'opacity-0', 'scale-95');
                             addModal.classList.add('flex', 'opacity-100', 'scale-100');
 
-                            // Seleccionar lista predeterminada
-                            const listSelect = document.getElementById('list_name');
-                            const defaultOption = Array.from(listSelect.options).find(opt => opt.value ===
-                                'Pendientes');
-                            if (defaultOption) listSelect.value = 'Pendientes';
-                            else listSelect.selectedIndex = 0;
+                            // Actualizar lista y episodios según el estado inicial
+                            updateListAndEpisodesByStatus();
                         });
 
+                        // Controlar cambio de estado
+                        statusSelect.addEventListener('change', updateListAndEpisodesByStatus);
 
                         // Cerrar modal principal
                         [closeAddBtn, cancelAddBtn].forEach(btn => btn.addEventListener('click', () => {

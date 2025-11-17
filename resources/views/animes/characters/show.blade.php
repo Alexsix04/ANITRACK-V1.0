@@ -38,7 +38,7 @@
 
                             <button
                                 class="favoriteCharacterButton flex items-center justify-center w-10 h-10 rounded-sm shadow-md transition
-        {{ $isFavorite ? 'bg-yellow-600 hover:bg-yellow-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700' }}"
+    {{ $isFavorite ? 'bg-yellow-600 hover:bg-yellow-700 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-700' }}"
                                 data-character-id="{{ $character['id'] }}"
                                 data-character-anilist-id="{{ $character['id'] }}"
                                 data-character-name="{{ $character['name']['full'] }}"
@@ -51,30 +51,30 @@
                                 @if ($isFavorite)
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
                                         viewBox="0 0 24 24">
-                                        <path
-                                            d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888 1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278-6.064-5.888 8.332-1.151z" />
+                                        <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888
+                             1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
+                             -6.064-5.888 8.332-1.151z" />
                                     </svg>
                                 @else
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                         stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
+                             9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                                     </svg>
                                 @endif
                             </button>
                         @else
-                            <!-- Si no está autenticado -->
                             <a href="{{ route('login') }}"
                                 class="flex items-center justify-center w-10 h-10 bg-yellow-400 text-white rounded-sm hover:bg-yellow-500 transition"
                                 title="Inicia sesión para añadir a favoritos">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
                                     viewBox="0 0 24 24">
-                                    <path
-                                        d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888 1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278-6.064-5.888 8.332-1.151z" />
+                                    <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888
+                         1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
+                         -6.064-5.888 8.332-1.151z" />
                                 </svg>
                             </a>
                         @endauth
-
                         {{-- ============================================= --}}
                         {{-- BOTÓN DE AÑADIR A LISTA FUNCIONAL (AJAX) --}}
                         {{-- ============================================= --}}
@@ -468,6 +468,68 @@
                 </form>
             </div>
         </div>
+        {{-- SCRIPT BOTÓN FAVORITO FUNCIONAL (AJAX) --}}
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('.favoriteCharacterButton').forEach(button => {
+                    button.addEventListener('click', async () => {
+
+                        const characterData = {
+                            character_anilist_id: button.dataset.characterAnilistId,
+                            character_name: button.dataset.characterName,
+                            character_image: button.dataset.characterImage,
+                            anime_anilist_id: button.dataset.animeAnilistId,
+                            anime_name: button.dataset.animeName,
+                            anime_image: button.dataset.animeImage,
+                        };
+
+                        try {
+                            const response = await fetch("{{ route('favorites.toggle') }}", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                                    "Accept": "application/json"
+                                },
+                                body: JSON.stringify(characterData)
+                            });
+
+                            const data = await response.json();
+
+                            if (data.status === 'added') {
+                                button.classList.remove('bg-gray-200', 'hover:bg-gray-300',
+                                    'text-gray-700');
+                                button.classList.add('bg-yellow-600', 'hover:bg-yellow-700',
+                                    'text-white');
+                                button.dataset.isFavorite = 'true';
+                                button.title = 'Quitar de favoritos';
+                                button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888 
+                                 1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
+                                 -6.064-5.888 8.332-1.151z" />
+                    </svg>`;
+                            } else if (data.status === 'removed') {
+                                button.classList.remove('bg-yellow-600', 'hover:bg-yellow-700',
+                                    'text-white');
+                                button.classList.add('bg-gray-200', 'hover:bg-gray-300',
+                                    'text-gray-700');
+                                button.dataset.isFavorite = 'false';
+                                button.title = 'Agregar a favoritos';
+                                button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 
+                                 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                    </svg>`;
+                            }
+
+                        } catch (error) {
+                            console.error(error);
+                            alert('Ocurrió un error, inténtalo de nuevo.');
+                        }
+                    });
+                });
+            });
+        </script>
 
         {{-- SCRIPT DE MODALES CON SUBMODAL --}}
         <script>

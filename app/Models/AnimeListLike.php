@@ -26,4 +26,3 @@ class AnimeListLike extends Model
         return $this->belongsTo(AnimeList::class);
     }
 }
-

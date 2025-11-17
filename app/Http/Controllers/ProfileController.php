@@ -6,6 +6,8 @@ use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\AnimeComment;
 use App\Models\AnimeFavorite;
 use App\Models\AnimeList;
+use App\Models\User;
+use App\Models\CharacterList;
 use App\Models\CharacterFavorite;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +17,71 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    public function show($id)
+    {
+        $user = User::findOrFail($id);
+        $viewer = auth()->user();
+        $isOwner = $viewer && $viewer->id === $user->id;
+
+        /* ==========================================================
+        FAVORITOS
+       ========================================================== */
+
+        if ($isOwner) {
+            $animeFavorites = $user->animeFavorites()->with('anime')->get();
+            $characterFavorites = $user->characterFavorites()->with('character')->get();
+        } else {
+            // Solo favoritos públicos si decides hacerlos públicos (si no, quítalo)
+            $animeFavorites = $user->animeFavorites()
+                ->where('is_public', true)
+                ->with('anime')
+                ->get();
+
+            $characterFavorites = $user->characterFavorites()
+                ->where('is_public', true)
+                ->with('character')
+                ->get();
+        }
+
+        /* ==========================================================
+        LISTAS DE ANIME
+       ========================================================== */
+
+        $animeLists = AnimeList::with([
+            'items.anime',
+            'savedByUsers' => fn($q) => $q->where('user_id', $viewer?->id ?? 0)
+        ])
+            ->where('user_id', $user->id)
+            ->when(!$isOwner, fn($q) => $q->where('is_public', true))
+            ->get();
+
+
+        /* ==========================================================
+        LISTAS DE PERSONAJES
+       ========================================================== */
+
+        $characterLists = CharacterList::with([
+            'items.character',
+            'savedByUsers' => fn($q) => $q->where('user_id', $viewer?->id ?? 0)
+        ])
+            ->where('user_id', $user->id)
+            ->when(!$isOwner, fn($q) => $q->where('is_public', true))
+            ->get();
+
+        /* ==========================================================
+        RETORNO
+       ========================================================== */
+
+        return view('profile.show', compact(
+            'user',
+            'viewer',
+            'isOwner',
+            'animeFavorites',
+            'characterFavorites',
+            'animeLists',
+            'characterLists',
+        ));
+    }
     /**
      * Display the user's profile.
      */

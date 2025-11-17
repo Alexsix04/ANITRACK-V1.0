@@ -41,6 +41,9 @@
 
                             <x-slot name="content">
                                 {{-- Enlace al perfil --}}
+                                <x-dropdown-link :href="route('profile.show', Auth::id())">Mi Perfil</x-dropdown-link>
+   
+                                {{-- Enlace a Listas y Favoritos --}}
                                 <x-dropdown-link :href="route('profile.index')">Listas y Favoritos</x-dropdown-link>
 
                                 {{-- Enlace a guardados --}}

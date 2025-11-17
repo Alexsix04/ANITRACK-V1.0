@@ -40,7 +40,7 @@ class CharacterFavoriteController extends Controller
                 'name'            => $data['character_name'],
                 'image_url'       => $data['character_image'] ?? null,
                 'anime_id'        => $anime->id,
-                'anime_anilist_id'=> $anime->anilist_id,
+                'anime_anilist_id' => $anime->anilist_id,
             ]
         );
 
@@ -71,9 +71,6 @@ class CharacterFavoriteController extends Controller
         return back()->with('success', 'Personaje eliminado de favoritos');
     }
 
-    /**
-     * Alternar personaje en favoritos (modo AJAX sin recarga)
-     */
     public function toggleCharacter(Request $request)
     {
         $user = Auth::user();
@@ -87,7 +84,7 @@ class CharacterFavoriteController extends Controller
             'anime_image'          => 'nullable|string',
         ]);
 
-        // Buscar o crear anime
+        // Crear o buscar el anime
         $anime = Anime::firstOrCreate(
             ['anilist_id' => $data['anime_anilist_id']],
             [
@@ -96,14 +93,14 @@ class CharacterFavoriteController extends Controller
             ]
         );
 
-        // Buscar o crear personaje
+        // Crear o buscar el personaje
         $character = Character::firstOrCreate(
             ['anilist_id' => $data['character_anilist_id']],
             [
-                'name'            => $data['character_name'],
-                'image_url'       => $data['character_image'] ?? null,
-                'anime_id'        => $anime->id,
-                'anime_anilist_id'=> $anime->anilist_id,
+                'name'             => $data['character_name'],
+                'image_url'        => $data['character_image'] ?? null,
+                'anime_id'         => $anime->id,
+                'anime_anilist_id' => $anime->anilist_id,
             ]
         );
 
@@ -114,10 +111,7 @@ class CharacterFavoriteController extends Controller
 
         if ($favorite) {
             $favorite->delete();
-            return response()->json([
-                'status' => 'removed',
-                'message'=> 'Personaje eliminado de favoritos',
-            ]);
+            return response()->json(['status' => 'removed']);
         } else {
             $user->characterFavorites()->create([
                 'character_id'     => $character->id,
@@ -127,11 +121,7 @@ class CharacterFavoriteController extends Controller
                 'anime_id'         => $anime->id,
                 'anime_anilist_id' => $anime->anilist_id,
             ]);
-
-            return response()->json([
-                'status' => 'added',
-                'message'=> 'Personaje añadido a favoritos',
-            ]);
+            return response()->json(['status' => 'added']);
         }
     }
 }

@@ -23,14 +23,23 @@ Route::get('/home', [HomeController::class, 'index']); // Alias opcional
 
 //Rutas Perfil
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+
+    // Listas y favoritos del usuario autenticado
+    Route::get('/profile/index', [ProfileController::class, 'index'])->name('profile.index');
+
+    // Guardados del usuario autenticado
+    Route::get('/profile/saves', [ProfileController::class, 'saves'])->name('profile.saves');
+
+    // Ver perfil de cualquier usuario (debe ir después de index/saves)
+    Route::get('/profile/{id}', [ProfileController::class, 'show'])->name('profile.show');
+
+    // Edición de perfil (solo tuyo)
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
-    Route::post('/profile/destroy', [ProfileController::class, 'destroy'])->where('seccion', '.*')->name('profile.destroy');
+    Route::post('/profile/destroy', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Nueva ruta para Guardados
-    Route::get('/profile/saves', [ProfileController::class, 'saves'])->name('profile.saves');
 });
+
 //Ruta para actualizar biografía y avatar
 Route::post('/profile/update-bio-avatar', [ProfileController::class, 'updateBioAvatar'])
     ->middleware('auth')
@@ -64,6 +73,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/favorites/anime/{animeId}', [AnimeFavoriteController::class, 'destroy'])->name('favorites.anime.destroy');
     Route::post('/favorites/anime/toggle', [AnimeFavoriteController::class, 'toggleAnime'])->name('favorites.anime.toggle');
     Route::post('/favorites/character', [CharacterFavoriteController::class, 'store'])->name('favorites.character.store');
+    Route::middleware('auth')->post('/favorites/toggle', [CharacterFavoriteController::class, 'toggleCharacter'])->name('favorites.toggle');
     Route::delete('/favorites/character/{character_id}', [CharacterFavoriteController::class, 'destroy'])->name('favorites.character.destroy');
     Route::post('/favorites/character/toggle', [CharacterFavoriteController::class, 'toggleCharacter'])->name('favorites.character.toggle');
 });

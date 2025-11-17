@@ -90,11 +90,15 @@
                                     <h2 class="text-2xl font-bold text-gray-800">{{ $list->name }}</h2>
 
                                     @if ($list->user)
-                                        <div class="flex items-center gap-3">
+                                        <a href="{{ route('profile.show', $list->user->id) }}"
+                                            class="flex items-center gap-3">
                                             <img src="{{ $list->user->avatar_url }}" alt="{{ $list->user->name }}"
-                                                class="w-10 h-10 rounded-full ring-2 ring-gray-200">
-                                            <span class="text-gray-700 font-semibold">{{ $list->user->name }}</span>
-                                        </div>
+                                                class="w-10 h-10 rounded-full ring-2 ring-gray-200 hover:opacity-80 transition">
+
+                                            <span class="text-gray-700 font-semibold hover:underline">
+                                                {{ $list->user->name }}
+                                            </span>
+                                        </a>
                                     @endif
 
                                     {{-- Contenedor de descripción --}}
