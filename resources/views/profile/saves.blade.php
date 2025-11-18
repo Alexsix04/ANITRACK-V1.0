@@ -12,70 +12,17 @@
         <!-- Contenido -->
         <div class="relative flex items-center justify-start h-full max-w-6xl mx-auto px-6 md:px-10">
             <!-- Avatar -->
-            <div class="relative group cursor-pointer flex-shrink-0 mr-8" id="openEditModal">
+            <div class="mr-6">
                 <img class="h-36 w-36 rounded-full object-cover border-4 border-white shadow-lg"
-                    src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/avatars/default-avatar.png') }}"
-                    alt="Avatar de {{ $user->name }}">
-
-
-                <div
-                    class="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                    <span class="text-white text-sm font-medium">Editar</span>
-                </div>
+                    src="{{ $user->avatar_url }}" alt="Avatar de {{ $user->name }}">
             </div>
-
             <!-- Info -->
             <div class="text-white">
                 <h1 class="text-3xl font-bold mb-2">{{ $user->name }}</h1>
                 <p class="text-gray-100 mb-4 max-w-lg">
                     {{ $user->bio ?? 'Este usuario no ha agregado una descripción.' }}
                 </p>
-                <a href="{{ route('profile.edit') }}"
-                    class="bg-white text-indigo-700 font-semibold px-5 py-2 rounded-full hover:bg-gray-100 transition">
-                    Editar Perfil
-                </a>
             </div>
-        </div>
-    </div>
-
-    <!-- ========================================= -->
-    <!-- ✨ MODAL DE EDICIÓN -->
-    <!-- ========================================= -->
-    <div id="editModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 opacity-0 scale-95">
-        <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
-            <h2 class="text-lg font-semibold mb-4">Editar Perfil</h2>
-
-            <form method="POST" action="{{ route('profile.updateBioAvatar') }}" enctype="multipart/form-data">
-                @csrf
-
-                <!-- Banner -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nueva imagen de portada</label>
-                    <input type="file" name="banner"
-                        class="block w-full text-sm border border-gray-300 rounded p-2">
-                </div>
-
-                <!-- Avatar -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Nuevo Avatar</label>
-                    <input type="file" name="avatar"
-                        class="block w-full text-sm border border-gray-300 rounded p-2">
-                </div>
-
-                <!-- Bio -->
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                    <textarea name="bio" rows="3" class="w-full border rounded-md p-2">{{ $user->bio }}</textarea>
-                </div>
-
-                <div class="flex justify-end gap-2">
-                    <button type="button" id="closeEditModal"
-                        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
-                    <button type="submit"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Guardar</button>
-                </div>
-            </form>
         </div>
     </div>
     <div class="py-6">
@@ -533,35 +480,4 @@
     </script>
     </div>
     </div>
-    <!-- ===================================================== -->
-    <!-- ⚙️ SCRIPT MODAL DE EDICIÓN DE PERFIL -->
-    <!-- ===================================================== -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const openEditBtn = document.getElementById('openEditModal');
-            const editModal = document.getElementById('editModal');
-            const closeEditBtn = document.getElementById('closeEditModal');
-
-            if (!openEditBtn || !editModal) return;
-
-            //  Abrir modal
-            openEditBtn.addEventListener('click', () => {
-                editModal.classList.remove('hidden', 'opacity-0', 'scale-95');
-                editModal.classList.add('flex', 'opacity-100', 'scale-100');
-            });
-
-            //  Cerrar modal (botón o clic fuera)
-            closeEditBtn.addEventListener('click', () => {
-                editModal.classList.add('opacity-0', 'scale-95');
-                setTimeout(() => editModal.classList.add('hidden'), 200);
-            });
-
-            editModal.addEventListener('click', (e) => {
-                if (e.target === editModal) {
-                    editModal.classList.add('opacity-0', 'scale-95');
-                    setTimeout(() => editModal.classList.add('hidden'), 200);
-                }
-            });
-        });
-    </script>
 </x-app-layout>

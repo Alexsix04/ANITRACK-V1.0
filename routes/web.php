@@ -24,20 +24,16 @@ Route::get('/home', [HomeController::class, 'index']); // Alias opcional
 //Rutas Perfil
 Route::middleware('auth')->group(function () {
 
-    // Listas y favoritos del usuario autenticado
     Route::get('/profile/index', [ProfileController::class, 'index'])->name('profile.index');
-
-    // Guardados del usuario autenticado
     Route::get('/profile/saves', [ProfileController::class, 'saves'])->name('profile.saves');
 
-    // Ver perfil de cualquier usuario (debe ir después de index/saves)
-    Route::get('/profile/{id}', [ProfileController::class, 'show'])->name('profile.show');
-
-    // Edición de perfil (solo tuyo)
+    // Edición de perfil (solo tuyo) — rutas estáticas primero
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/destroy', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Ver perfil de cualquier usuario (debe ir al final)
+    Route::get('/profile/{id}', [ProfileController::class, 'show'])->name('profile.show');
 });
 
 //Ruta para actualizar biografía y avatar
@@ -98,7 +94,6 @@ Route::prefix('listas')->group(function () {
     Route::post('/characters/{list}/save', [ListsController::class, 'saveCharacterList'])->middleware('auth')->name('listas.characters.save');
     // Like o unlike a una lista pública de personajes
     Route::post('/characters/{list}/like', [ListsController::class, 'likeCharacterList'])->middleware('auth')->name('listas.characters.like');
-
 });
 
 //Rutas de listas de usuario

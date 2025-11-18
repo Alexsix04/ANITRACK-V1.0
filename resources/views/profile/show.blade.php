@@ -12,15 +12,21 @@
         <!-- Contenido -->
         <div class="relative flex items-center justify-start h-full max-w-6xl mx-auto px-6 md:px-10">
             <!-- Avatar -->
-            <div class="relative group cursor-pointer flex-shrink-0 mr-8" id="openEditModal">
-                <img class="h-36 w-36 rounded-full object-cover border-4 border-white shadow-lg"
-                    src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/avatars/default-avatar.png') }}"
-                    alt="Avatar de {{ $user->name }}">
-                <div
-                    class="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                    <span class="text-white text-sm font-medium">Editar</span>
+            @if ($isOwner)
+                <div class="relative group cursor-pointer flex-shrink-0 mr-8" id="openEditModal">
+                    <img class="h-36 w-36 rounded-full object-cover border-4 border-white shadow-lg"
+                        src="{{ $user->avatar_url }}" alt="Avatar de {{ $user->name }}">
+                    <div
+                        class="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                        <span class="text-white text-sm font-medium">Editar</span>
+                    </div>
                 </div>
-            </div>
+            @else
+                <div class="flex-shrink-0 mr-8">
+                    <img class="h-36 w-36 rounded-full object-cover border-4 border-white shadow-lg"
+                        src="{{ $user->avatar_url }}" alt="Avatar de {{ $user->name }}">
+                </div>
+            @endif
 
             <!-- Info -->
             <div class="text-white">

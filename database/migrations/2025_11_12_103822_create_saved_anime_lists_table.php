@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreignId('anime_list_id')->constrained()->onDelete('cascade'); // lista guardada
             $table->unsignedBigInteger('owner_id'); // usuario propietario de la lista
             $table->string('owner_name'); // nombre del usuario propietario
-            $table->boolean('is_public')->default(false); // visibilidad de la lista guardada
             $table->timestamps();
 
             $table->unique(['user_id', 'anime_list_id']); // evita duplicados
