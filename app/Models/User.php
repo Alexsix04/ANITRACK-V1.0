@@ -147,4 +147,15 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(CharacterList::class, 'character_list_likes');
     }
+
+    // Relación con los likes de listas de anime
+    public function animeListLikes()
+    {
+        return $this->hasMany(AnimeListLike::class);
+    }
+    // Relación con los likes de listas de personajes
+    public function characterListLikes()
+    {
+        return $this->hasMany(CharacterListLike::class);
+    }
 }

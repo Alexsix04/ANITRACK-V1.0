@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\AnimeList;
 use App\Models\SavedAnimeList;
+use App\Models\AnimeListLike;
 use App\Models\CharacterList;
+use App\Models\CharacterListLike;
 use Illuminate\Support\Facades\Auth;
 
 class ListsController extends Controller
@@ -13,23 +15,47 @@ class ListsController extends Controller
     // Vista principal de listas
     public function index()
     {
+        $userId = Auth::id();
+
         $publicAnimeLists = \App\Models\AnimeList::where('is_public', true)
             ->with(['user', 'items.anime'])
             ->latest()
             ->take(8)
-            ->get();
+            ->get()
+            ->map(function ($list) use ($userId) {
+                // Likes
+                $list->is_liked = $userId
+                    ? \App\Models\AnimeListLike::where('user_id', $userId)
+                    ->where('anime_list_id', $list->id)
+                    ->exists()
+                    : false;
+
+                $list->likes_count = \App\Models\AnimeListLike::where('anime_list_id', $list->id)->count();
+                return $list;
+            });
 
         $publicCharacterLists = \App\Models\CharacterList::where('is_public', true)
             ->with(['user', 'items.character'])
             ->latest()
             ->take(8)
-            ->get();
+            ->get()
+            ->map(function ($list) use ($userId) {
+                // Likes
+                $list->is_liked = $userId
+                    ? \App\Models\CharacterListLike::where('user_id', $userId)
+                    ->where('character_list_id', $list->id)
+                    ->exists()
+                    : false;
 
-        // Traer listas guardadas del usuario para marcar botones
+                $list->likes_count = \App\Models\CharacterListLike::where('character_list_id', $list->id)->count();
+                return $list;
+            });
+
+        // Guardados siguen igual
         $savedAnimeIds = [];
         $savedCharacterIds = [];
 
-        if (Auth::check()) {
+        if ($userId) {
             $savedAnimeIds = Auth::user()->savedAnimeLists()->pluck('anime_list_id')->toArray();
             $savedCharacterIds = Auth::user()->savedCharacterLists()->pluck('character_list_id')->toArray();
         }
@@ -48,15 +74,56 @@ class ListsController extends Controller
             ->with(['user', 'items.anime'])
             ->get()
             ->map(function ($list) use ($user) {
+                // Estado de guardado
                 $list->is_saved = $user
-                    ? SavedAnimeList::where('user_id', $user->id)
+                    ? \App\Models\SavedAnimeList::where('user_id', $user->id)
                     ->where('anime_list_id', $list->id)
                     ->exists()
                     : false;
+
+                // Contador total de likes
+                $list->likes_count = \App\Models\AnimeListLike::where('anime_list_id', $list->id)->count();
+
+                // Estado de like para el usuario
+                $list->is_liked = $user
+                    ? \App\Models\AnimeListLike::where('user_id', $user->id)
+                    ->where('anime_list_id', $list->id)
+                    ->exists()
+                    : false;
+
                 return $list;
             });
 
         return view('listas.public_anime', compact('publicAnimeLists'));
+    }
+
+    public function likeAnimeList(AnimeList $list)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $existing = AnimeListLike::where('user_id', $user->id)
+            ->where('anime_list_id', $list->id)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+        } else {
+            AnimeListLike::create([
+                'user_id' => $user->id,
+                'anime_list_id' => $list->id,
+            ]);
+        }
+
+        $likesCount = AnimeListLike::where('anime_list_id', $list->id)->count();
+
+        return response()->json([
+            'liked' => !$existing,
+            'likes_count' => $likesCount,
+        ]);
     }
 
     public function saveAnimeList(AnimeList $list)
@@ -91,18 +158,63 @@ class ListsController extends Controller
     // === Personajes ===
     public function publicCharacterLists()
     {
-        $userId = Auth::id();
+        $user = Auth::user();
+        $userId = $user ? $user->id : null;
 
-        // Traemos listas públicas y añadimos info de si el usuario ya las guardó
         $publicCharacterLists = CharacterList::where('is_public', true)
-            ->with('user')
+            ->with(['user', 'items.character'])
             ->get()
             ->map(function ($list) use ($userId) {
-                $list->is_saved = $userId ? $list->savedByUsers()->where('user_id', $userId)->exists() : false;
+                // Guardado
+                $list->is_saved = $userId
+                    ? $list->savedByUsers()->where('user_id', $userId)->exists()
+                    : false;
+
+                // Contador total de likes
+                $list->likes_count = CharacterListLike::where('character_list_id', $list->id)->count();
+
+                // Estado de like del usuario
+                $list->is_liked = $userId
+                    ? CharacterListLike::where('user_id', $userId)
+                    ->where('character_list_id', $list->id)
+                    ->exists()
+                    : false;
+
                 return $list;
             });
 
         return view('listas.public_characters', compact('publicCharacterLists'));
+    }
+
+    public function likeCharacterList(CharacterList $list)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $existing = CharacterListLike::where('user_id', $user->id)
+            ->where('character_list_id', $list->id)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            $liked = false;
+        } else {
+            CharacterListLike::create([
+                'user_id' => $user->id,
+                'character_list_id' => $list->id,
+            ]);
+            $liked = true;
+        }
+
+        $likesCount = CharacterListLike::where('character_list_id', $list->id)->count();
+
+        return response()->json([
+            'liked' => $liked,
+            'likes_count' => $likesCount,
+        ]);
     }
 
     public function saveCharacterList(CharacterList $list)

@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
-use App\Models\AnimeComment;
 use App\Models\AnimeFavorite;
 use App\Models\AnimeList;
 use App\Models\User;
 use App\Models\CharacterList;
 use App\Models\CharacterFavorite;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
@@ -150,29 +150,37 @@ class ProfileController extends Controller
             'banner' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
         ]);
 
-        // Subida de avatar
+        // Actualizar avatar
         if ($request->hasFile('avatar')) {
-            $avatarPath = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar = $avatarPath; //  SOLO guardamos "avatars/archivo.png"
+
+            // Si el avatar actual NO es el default, lo borramos
+            if ($user->avatar && $user->avatar !== 'avatars/default-avatar.png') {
+                Storage::disk('public')->delete($user->avatar);
+            }
+
+            // Guardar nuevo
+            $user->avatar = $request->file('avatar')->store('avatars', 'public');
         }
 
-        // Subida de banner
+        // Actualizar banner
         if ($request->hasFile('banner')) {
-            $bannerPath = $request->file('banner')->store('banners', 'public');
-            $user->banner = $bannerPath;
+
+            // Si el banner actual NO es el default, lo borramos
+            if ($user->banner && $user->banner !== 'default-banner.jpg') {
+                Storage::disk('public')->delete($user->banner);
+            }
+
+            // Guardar nuevo
+            $user->banner = $request->file('banner')->store('banners', 'public');
         }
 
-        // Actualizar bio
+        // Actualizar biografía
         $user->bio = $request->bio;
         $user->save();
 
         return redirect()->back()->with('success', 'Perfil actualizado correctamente.');
     }
-
-
-
-
-
+    
     /**
      * Display the user's profile form.
      */

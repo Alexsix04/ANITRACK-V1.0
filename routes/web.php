@@ -89,11 +89,15 @@ Route::prefix('listas')->group(function () {
     Route::get('/anime/public', [ListsController::class, 'publicAnimeLists'])->name('listas.anime.public');
     // Guardar o quitar una lista pública (toggle)
     Route::post('/anime/{list}/toggle-save', [ListsController::class, 'saveAnimeList'])->middleware('auth')->name('listas.anime.toggle-save');
+    // Like o unlike a una lista pública de anime
+    Route::post('/anime/{list}/like', [ListsController::class, 'likeAnimeList'])->name('listas.anime.like');
 
     // === Personajes === 
     Route::get('/characters/public', [ListsController::class, 'publicCharacterLists'])->name('listas.characters.public');
     // Guardar o quitar una lista pública (toggle)
     Route::post('/characters/{list}/save', [ListsController::class, 'saveCharacterList'])->middleware('auth')->name('listas.characters.save');
+    // Like o unlike a una lista pública de personajes
+    Route::post('/characters/{list}/like', [ListsController::class, 'likeCharacterList'])->middleware('auth')->name('listas.characters.like');
 
 });
 

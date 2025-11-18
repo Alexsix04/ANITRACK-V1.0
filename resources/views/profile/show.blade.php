@@ -1,31 +1,81 @@
 <x-app-layout>
 
-    <!-- ===================================================== -->
-    <!-- 🏞️ BANNER + AVATAR + BIO -->
-    <!-- ===================================================== -->
-    <div class="relative w-full h-64 bg-gray-900">
+    <!-- ========================================= -->
+    <!-- 🏞️ BANNER DE PERFIL -->
+    <!-- ========================================= -->
+    <div class="relative w-full h-64 bg-gradient-to-r from-indigo-400 to-indigo-600 overflow-hidden">
+        <!-- Imagen de banner -->
         <img src="{{ $user->banner ? asset('storage/' . $user->banner) : asset('images/default-banner.jpg') }}"
-            class="absolute inset-0 w-full h-full object-cover opacity-80">
+            class="absolute inset-0 w-full h-full object-cover opacity-90" alt="Banner de {{ $user->name }}">
+        <div class="absolute inset-0 bg-black bg-opacity-30"></div>
 
-        <div class="absolute inset-0 bg-black bg-opacity-40"></div>
-
-        <div class="relative max-w-5xl mx-auto px-6 flex items-end h-full pb-6">
-
+        <!-- Contenido -->
+        <div class="relative flex items-center justify-start h-full max-w-6xl mx-auto px-6 md:px-10">
             <!-- Avatar -->
-            <img src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/avatars/default-avatar.png') }}"
-                class="w-28 h-28 rounded-full border-4 border-white shadow-lg">
-
-            <div class="ml-6 text-white">
-                <h1 class="text-3xl font-bold">{{ $user->name }}</h1>
-                <p class="text-gray-200 mt-1">{{ $user->bio ?? 'Este usuario no ha agregado una descripción.' }}</p>
+            <div class="relative group cursor-pointer flex-shrink-0 mr-8" id="openEditModal">
+                <img class="h-36 w-36 rounded-full object-cover border-4 border-white shadow-lg"
+                    src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/avatars/default-avatar.png') }}"
+                    alt="Avatar de {{ $user->name }}">
+                <div
+                    class="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+                    <span class="text-white text-sm font-medium">Editar</span>
+                </div>
             </div>
 
-            @if ($isOwner)
-                <a href="{{ route('profile.edit') }}"
-                    class="ml-auto bg-white text-gray-800 font-semibold px-4 py-2 rounded-lg shadow hover:bg-gray-100">
-                    Editar Perfil
-                </a>
-            @endif
+            <!-- Info -->
+            <div class="text-white">
+                <h1 class="text-3xl font-bold mb-2">{{ $user->name }}</h1>
+                <p class="text-gray-100 mb-4 max-w-lg">
+                    {{ $user->bio ?? 'Este usuario no ha agregado una descripción.' }}
+                </p>
+                @if ($isOwner)
+                    <a href="{{ route('profile.edit') }}"
+                        class="bg-white text-indigo-700 font-semibold px-5 py-2 rounded-full hover:bg-gray-100 transition">
+                        Editar Perfil
+                    </a>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- ✨ MODAL DE EDICIÓN -->
+    <!-- ========================================= -->
+    <div id="editModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 opacity-0 scale-95">
+        <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
+            <h2 class="text-lg font-semibold mb-4">Editar Perfil</h2>
+
+            <form method="POST" action="{{ route('profile.updateBioAvatar') }}" enctype="multipart/form-data">
+                @csrf
+
+                <!-- Banner -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nueva imagen de portada</label>
+                    <input type="file" name="banner"
+                        class="block w-full text-sm border border-gray-300 rounded p-2">
+                </div>
+
+                <!-- Avatar -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nuevo Avatar</label>
+                    <input type="file" name="avatar"
+                        class="block w-full text-sm border border-gray-300 rounded p-2">
+                </div>
+
+                <!-- Bio -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                    <textarea name="bio" rows="3" class="w-full border rounded-md p-2">{{ $user->bio }}</textarea>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <button type="button" id="closeEditModal"
+                        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Guardar</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -503,6 +553,37 @@
 
                 const content = modal.querySelector('div');
                 if (content) content.addEventListener('click', e => e.stopPropagation());
+            });
+        });
+    </script>
+    <!-- ===================================================== -->
+    <!-- ⚙️ SCRIPT MODAL DE EDICIÓN DE PERFIL -->
+    <!-- ===================================================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const openEditBtn = document.getElementById('openEditModal');
+            const editModal = document.getElementById('editModal');
+            const closeEditBtn = document.getElementById('closeEditModal');
+
+            if (!openEditBtn || !editModal) return;
+
+            // Abrir modal
+            openEditBtn.addEventListener('click', () => {
+                editModal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                editModal.classList.add('flex', 'opacity-100', 'scale-100');
+            });
+
+            // Cerrar modal (botón o clic fuera)
+            closeEditBtn.addEventListener('click', () => {
+                editModal.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => editModal.classList.add('hidden'), 200);
+            });
+
+            editModal.addEventListener('click', (e) => {
+                if (e.target === editModal) {
+                    editModal.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => editModal.classList.add('hidden'), 200);
+                }
             });
         });
     </script>
