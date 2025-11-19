@@ -77,14 +77,6 @@
                             Añadir a mi lista
                         </button>
 
-                        {{-- Mensaje de éxito --}}
-                        @if (session('success'))
-                            <div class="mt-3 bg-green-100 text-green-800 px-4 py-2 rounded-lg shadow">
-                                {{ session('success') }}
-                            </div>
-                        @endif
-
-
                     </div>
                 @else
                     <!-- Usuario no autenticado -->
@@ -111,8 +103,8 @@
             <!-- =========== COLUMNA DERECHA: INFORMACIÓN DEL ANIME =========== -->
             <!-- ============================================================= -->
             <div class="text-white lg:flex-1 max-w-3xl flex flex-col h-96">
-                <h2 class="text-4xl lg:text-5xl font-bold mb-2">{{ $anime['title']['romaji'] }}</h2>
-                <h3 class="text-2xl mb-2 text-gray-300">{{ $anime['title']['english'] ?? '' }}</h3>
+                <h2 class="fit-title font-bold mb-2">{{ $anime['title']['romaji'] }}</h2>
+                <h3 class="fit-title text-gray-300 mb-2">{{ $anime['title']['english'] ?? '' }}</h3>
                 <p class="mb-2 text-lg"><strong>Episodios:</strong> {{ $anime['episodes'] ?? 'N/A' }}</p>
 
                 <div
@@ -133,138 +125,15 @@
     {{-- ===================================================== --}}
     {{-- ============ SECCIÓN PRINCIPAL ====================== --}}
     {{-- ===================================================== --}}
-    <section class="w-full p-6 mt-8 flex gap-8">
-        <!-- Columna izquierda: info del anime disponible -->
-        <div class="w-64 flex-shrink-0 bg-gray-100 p-6 rounded-lg shadow-md space-y-4" style="align-self: flex-start;">
-            <!-- Aquí eliminamos sticky y limitamos altura -->
-            <h2 class="text-xl font-bold mb-4">Detalles del Anime</h2>
+    <section class="w-full p-4 md:p-6 mt-8 flex flex-col md:flex-row gap-6 md:gap-8">
 
-            <div>
-                <h3 class="text-gray-800 font-semibold text-base">FORMAT</h3>
-                <p class="text-gray-700 text-sm">{{ $anime['format'] ?? 'N/A' }}</p>
-            </div>
+    <x-anime.details-sidebar :anime="$anime" />
 
-            <div>
-                <h3 class="text-gray-800 font-semibold text-base">EPISODES</h3>
-                <p class="text-gray-700 text-sm">{{ $anime['episodes'] ?? 'N/A' }}</p>
-            </div>
+    <div class="flex-1">
+        <h2 class="text-2xl font-bold mb-4">Secciones</h2>
 
-            <div>
-                <h3 class="text-gray-800 font-semibold text-base">DURATION</h3>
-                <p class="text-gray-700 text-sm">{{ $anime['duration'] ? $anime['duration'] . ' mins' : 'N/A' }}</p>
-            </div>
-
-            <div>
-                <h3 class="text-gray-800 font-semibold text-base">STATUS</h3>
-                <p class="text-gray-700 text-sm">{{ $anime['status'] ?? 'N/A' }}</p>
-            </div>
-
-            <div>
-                <h3 class="text-gray-800 font-semibold text-base">SEASON</h3>
-                <p class="text-gray-700 text-sm">{{ $anime['season'] ?? 'N/A' }} {{ $anime['seasonYear'] ?? '' }}</p>
-            </div>
-
-            <div>
-                <h3 class="text-gray-800 font-semibold text-base">START DATE</h3>
-                <p class="text-gray-700 text-sm">
-                    {{ $anime['startDate']['year'] ?? 'N/A' }}-
-                    {{ $anime['startDate']['month'] ?? 'N/A' }}-
-                    {{ $anime['startDate']['day'] ?? 'N/A' }}
-                </p>
-            </div>
-
-            <div>
-                <h3 class="text-gray-800 font-semibold text-base">END DATE</h3>
-                <p class="text-gray-700 text-sm">
-                    {{ $anime['endDate']['year'] ?? 'N/A' }}-
-                    {{ $anime['endDate']['month'] ?? 'N/A' }}-
-                    {{ $anime['endDate']['day'] ?? 'N/A' }}
-                </p>
-            </div>
-
-            <div>
-                <h3 class="text-gray-800 font-semibold text-base">AVERAGE SCORE</h3>
-                <p class="text-gray-700 text-sm">{{ $anime['averageScore'] ?? 'N/A' }}%</p>
-            </div>
-
-            <div>
-                <h3 class="text-gray-800 font-semibold text-base">POPULARITY</h3>
-                <p class="text-gray-700 text-sm">{{ $anime['popularity'] ?? 'N/A' }}</p>
-            </div>
-
-            <div>
-                <h3 class="text-gray-800 font-semibold text-base">GENRES</h3>
-                @if (!empty($anime['genres']))
-                    <div class="text-gray-700 text-sm space-y-1">
-                        @foreach ($anime['genres'] as $genre)
-                            <p>{{ $genre }}</p>
-                        @endforeach
-                    </div>
-                @else
-                    <p class="text-gray-700 text-sm">N/A</p>
-                @endif
-            </div>
-
-            <div>
-                <h3 class="text-gray-800 font-semibold text-base">SOURCE</h3>
-                <p class="text-gray-700 text-sm">{{ $anime['source'] ?? 'N/A' }}</p>
-            </div>
-
-            <div>
-                <h3 class="text-gray-800 font-semibold text-base">STUDIOS</h3>
-                @if (!empty($anime['studios']['edges']))
-                    <div class="text-gray-700 text-sm space-y-1">
-                        @foreach ($anime['studios']['edges'] as $studio)
-                            <p>{{ $studio['node']['name'] }}</p>
-                        @endforeach
-                    </div>
-                @else
-                    <p class="text-gray-700 text-sm">N/A</p>
-                @endif
-            </div>
-        </div>
-
-        <!-- Columna derecha: menú de secciones -->
-        <div class="flex-1">
-            <h2 class="text-2xl font-bold mb-4">Secciones</h2>
-
-            <!-- Menú de botones tipo tabs -->
-            <div class="flex space-x-2 mb-6 border-b border-gray-300 overflow-x-auto">
-                @foreach (['General', 'Personajes', 'Staff', 'Episodios', 'Comentarios'] as $section)
-                    @if ($section === 'General')
-                        <!-- Botón funcional que lleva a la vista general del anime -->
-                        <a href="{{ route('animes.show', ['id' => $anime['id']]) }}"
-                            class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
-                            {{ $section }}
-                        </a>
-                    @elseif ($section === 'Personajes')
-                        <!-- Botón funcional que lleva a la vista de personajes -->
-                        <a href="{{ route('animes.characters.index', ['anime' => $anime['id']]) }}"
-                            class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
-                            {{ $section }}
-                        </a>
-                    @elseif ($section === 'Staff')
-                        <!-- Botón funcional que lleva a la vista de personajes -->
-                        <a href="{{ route('animes.staff.index', ['anime' => $anime['id']]) }}"
-                            class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
-                            {{ $section }}
-                        </a>
-                    @elseif ($section === 'Episodios')
-                        <!-- Botón funcional que lleva a la vista de personajes -->
-                        <a href="{{ route('animes.episodes.index', ['anime' => $anime['id']]) }}"
-                            class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
-                            {{ $section }}
-                        </a>
-                    @else
-                        <!-- Botones estáticos -->
-                        <button
-                            class="py-2 px-4 font-semibold border-b-2 border-transparent hover:text-blue-600 hover:border-blue-600 transition-colors rounded-t">
-                            {{ $section }}
-                        </button>
-                    @endif
-                @endforeach
-            </div>
-
+        <x-anime.tabs :animeId="$anime['id']" />
+        
             <!-- Contenido por defecto: Vista General -->
             <div class="text-gray-700 space-y-8">
                 <!-- Relaciones -->

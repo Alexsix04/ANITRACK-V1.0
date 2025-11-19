@@ -5,3 +5,14 @@
 
 /* Ocultar elementos con x-cloak antes de que Alpine inicialice */
 [x-cloak] { display: none !important; }
+
+/* Estilos para títulos que se ajustan al contenedor */
+.fit-title {
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    /* Auto-escalado */
+    font-size: clamp(1.5rem, 5vw, 3rem);
+}
