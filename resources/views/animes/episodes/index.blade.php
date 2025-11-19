@@ -15,23 +15,104 @@
 
         <!-- Contenido principal -->
         <div class="relative flex flex-col lg:flex-row p-6 lg:p-12 h-full items-start">
+            <!-- ============================================================= -->
+            <!-- =========== COLUMNA IZQUIERDA: IMAGEN + BOTONES ============== -->
+            <!-- ============================================================= -->
             <div class="flex-shrink-0 mb-4 lg:mb-0 lg:mr-8 flex flex-col items-start">
+                <!-- Imagen del anime -->
                 <img src="{{ $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}"
                     class="w-64 h-96 object-cover rounded-lg shadow-lg mb-4">
-                <div class="flex space-x-4">
-                    <button
-                        class="flex items-center justify-center w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg shadow-md transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                            <path
-                                d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782 1.4 8.172L12 18.896l-7.334 3.868 1.4-8.172-5.934-5.782 8.2-1.192z" />
-                        </svg>
-                    </button>
-                    <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
-                        Añadir a mi lista
-                    </button>
-                </div>
+
+                @auth
+                    @php
+                        $isFavorite = auth()->user()->animeFavorites->where('anime_id', $anime['id'])->isNotEmpty();
+                    @endphp
+
+                    <!-- Bloque de botones -->
+                    <div class="flex space-x-4">
+                        {{-- ===================================================== --}}
+                        {{-- ============ BOTÓN DE FAVORITOS (⭐ AJAX) ============ --}}
+                        {{-- ===================================================== --}}
+                        @php
+                            $isFavorite = false;
+                            if (auth()->check()) {
+                                $isFavorite = \App\Models\AnimeFavorite::where('user_id', auth()->id())
+                                    ->where('anilist_id', $anime['id']) // siempre anilist_id
+                                    ->exists();
+                            }
+                        @endphp
+
+                        <button
+                            class="favoriteButton flex items-center justify-center w-12 h-12 rounded-lg shadow-md transition
+        {{ $isFavorite ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-yellow-500 hover:bg-yellow-600' }} text-white"
+                            data-anilist-id="{{ $anime['id'] }}" data-anime-title="{{ $anime['title']['romaji'] }}"
+                            data-anime-image="{{ $anime['coverImage']['large'] }}"
+                            data-is-favorite="{{ $isFavorite ? 'true' : 'false' }}"
+                            title="{{ $isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos' }}">
+                            @if ($isFavorite)
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
+                                     1.4 8.172L12 18.896l-7.334 3.868
+                                     1.4-8.172-5.934-5.782 8.2-1.192z" />
+                                </svg>
+                            @else
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
+                                    stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
+                                     9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                </svg>
+                            @endif
+                        </button>
+
+
+
+                        {{-- ===================================================== --}}
+                        {{-- ====== BOTÓN "AÑADIR A MI LISTA" (abre modal) ======= --}}
+                        {{-- ===================================================== --}}
+
+                        <button id="openAddToListModal"
+                            class="flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none"
+                                stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Añadir a mi lista
+                        </button>
+
+                        {{-- Mensaje de éxito --}}
+                        @if (session('success'))
+                            <div class="mt-3 bg-green-100 text-green-800 px-4 py-2 rounded-lg shadow">
+                                {{ session('success') }}
+                            </div>
+                        @endif
+
+
+                    </div>
+                @else
+                    <!-- Usuario no autenticado -->
+                    <div class="flex space-x-4">
+                        <a href="{{ route('login') }}"
+                            class="flex items-center justify-center w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg shadow-md transition"
+                            title="Inicia sesión para guardar favoritos">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
+                                stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
+                                                                                                                                            9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                            </svg>
+                        </a>
+
+                        <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
+                            Añadir a mi lista
+                        </button>
+                    </div>
+                @endauth
             </div>
 
+            <!-- ============================================================= -->
+            <!-- =========== COLUMNA DERECHA: INFORMACIÓN DEL ANIME =========== -->
+            <!-- ============================================================= -->
             <div class="text-white lg:flex-1 max-w-3xl flex flex-col h-96">
                 <h2 class="text-4xl lg:text-5xl font-bold mb-2">{{ $anime['title']['romaji'] }}</h2>
                 <h3 class="text-2xl mb-2 text-gray-300">{{ $anime['title']['english'] ?? '' }}</h3>
@@ -44,6 +125,17 @@
             </div>
         </div>
     </header>
+
+    {{-- ===================================================== --}}
+    {{-- ============ TOAST DE MENSAJE ======================== --}}
+    {{-- ===================================================== --}}
+    <div id="toast"
+        class="fixed top-5 right-5 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 pointer-events-none z-50">
+    </div>
+
+    {{-- ===================================================== --}}
+    {{-- ============ SECCIÓN PRINCIPAL ======================= --}}
+    {{-- ===================================================== --}}
 
     <!-- Sección adicional ocupando todo el ancho -->
     <section class="w-full p-6 mt-8 flex gap-8">
@@ -204,6 +296,15 @@
                 @endif
             </div>
         </div>
+        <x-add-to-list-modal :anime="$anime" />
+        <script>
+            window.csrfToken = '{{ csrf_token() }}';
+            window.toggleFavoriteUrl = '{{ route('favorites.anime.toggle') }}';
+            window.createListUrl = '{{ route('anime.list.create') }}';
+            window.addToListUrl = '{{ route('anime.addToList') }}';
+        </script>
+        @vite('resources/js/anime/add-animes-to-favorites.js')
+        @vite('resources/js/anime/add-to-list-modal.js')
 
     </section>
 

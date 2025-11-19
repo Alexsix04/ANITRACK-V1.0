@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\AniListService;
 use Illuminate\Http\Request;
 use App\Models\CharacterComment;
+use App\Models\AnimeFavorite;
 
 class CharactersController extends Controller
 {
@@ -56,7 +57,16 @@ class CharactersController extends Controller
             ]);
         }
 
-        return view('animes.characters.index', compact('anime', 'characters'));
+        // Comprobar si es favorito
+        $isFavorite = false;
+        if (auth()->check()) {
+            $anilist_id = $anime['id'];
+            $isFavorite = \App\Models\AnimeFavorite::where('user_id', auth()->id())
+                ->where('anilist_id', $anilist_id)
+                ->exists();
+        }
+
+        return view('animes.characters.index', compact('anime', 'characters', 'hasMore', 'isFavorite'));
     }
 
     // Detalle de un personaje

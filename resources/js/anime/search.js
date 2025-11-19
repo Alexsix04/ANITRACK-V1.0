@@ -38,14 +38,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <!-- Botón pequeño en la esquina superior derecha -->
             <button
-                class="absolute top-2 right-2 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center text-lg font-bold opacity-0 group-hover:opacity-100 transition-shadow shadow-md"
-                data-anime-id="${anime.id ?? ''}"
-                data-anilist-id="${anime.anilist_id ?? (anime.id ?? '')}"
-                data-anime-title="${anime.title.romaji}"
-                data-anime-image="${anime.coverImage.large}">
-                +
+            class="absolute top-2 right-2 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center text-lg font-bold opacity-0 group-hover:opacity-100 transition-shadow shadow-md"
+            data-anime-id="${anime.id ?? ''}"
+            data-anilist-id="${anime.anilist_id ?? (anime.id ?? '')}"
+            data-anime-title="${anime.title.romaji}"
+            data-anime-image="${anime.coverImage.large}"
+            data-anime-episodes="${anime.episodes ?? 0}">
+            +
             </button>
-        `;
+            `;
 
             grid.appendChild(card);
         });
