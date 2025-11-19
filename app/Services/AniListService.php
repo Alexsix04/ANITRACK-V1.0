@@ -196,8 +196,8 @@ query ($id: Int) {
      * Obtiene un miembro de staff por su ID.
      */
     public function getStaffById(int $staffId, int $page = 1, int $perPage = 25)
-{
-    $query = '
+    {
+        $query = '
         query ($id: Int, $page: Int, $perPage: Int) {
             Staff(id: $id) {
                 id
@@ -213,12 +213,12 @@ query ($id: Int) {
         }
     ';
 
-    return $this->query($query, ['id' => $staffId, 'page' => $page, 'perPage' => $perPage])['data']['Staff'] ?? null;
-}
+        return $this->query($query, ['id' => $staffId, 'page' => $page, 'perPage' => $perPage])['data']['Staff'] ?? null;
+    }
 
-public function getStaffSummaryById(int $staffId, int $page = 1, int $perPage = 25)
-{
-    $query = '
+    public function getStaffSummaryById(int $staffId, int $page = 1, int $perPage = 25)
+    {
+        $query = '
         query ($id: Int, $page: Int, $perPage: Int) {
             Staff(id: $id) {
                 id
@@ -254,12 +254,12 @@ public function getStaffSummaryById(int $staffId, int $page = 1, int $perPage = 
         }
     ';
 
-    return $this->query($query, [
-        'id' => $staffId,
-        'page' => $page,
-        'perPage' => $perPage,
-    ])['data']['Staff'] ?? null;
-}
+        return $this->query($query, [
+            'id' => $staffId,
+            'page' => $page,
+            'perPage' => $perPage,
+        ])['data']['Staff'] ?? null;
+    }
 
     /**
      * Obtiene episodios de un anime.
@@ -387,5 +387,95 @@ public function getStaffSummaryById(int $staffId, int $page = 1, int $perPage = 
         $perPage = $params['perPage'] ?? 10;
 
         return $this->searchAnimes($filters, $page, $perPage)['animes'] ?? [];
+    }
+    /**
+     * Buscar ANIMES por nombre (parcial).
+     */
+    public function searchAnimesByName(string $search, int $limit = 8): array
+    {
+        $query = '
+        query ($search: String, $limit: Int) {
+          Page(perPage: $limit) {
+            media(search: $search, type: ANIME) {
+              id
+              title {
+                romaji
+                english
+                native
+              }
+              coverImage {
+                large
+                medium
+              }
+            }
+          }
+        }';
+
+        $result = $this->query($query, [
+            'search' => $search,
+            'limit' => $limit,
+        ]);
+
+        if (!$result) return [];
+
+        $items = $result['data']['Page']['media'] ?? [];
+
+        return collect($items)->map(function ($anime) {
+            return [
+                'id' => $anime['id'],
+                'title' => $anime['title']['romaji']
+                    ?? $anime['title']['english']
+                    ?? $anime['title']['native'],
+                'image' => $anime['coverImage']['medium'] ?? null,
+            ];
+        })->toArray();
+    }
+
+    /**
+     * Buscar PERSONAJES por nombre (parcial).
+     */
+    public function searchCharactersByName(string $search, int $limit = 8): array
+    {
+        $query = '
+    query ($search: String, $limit: Int) {
+      Page(perPage: $limit) {
+        characters(search: $search) {
+          id
+          name {
+            full
+          }
+          image {
+            large
+            medium
+          }
+          media {
+            nodes {
+              id
+            }
+          }
+        }
+      }
+    }';
+
+        $result = $this->query($query, [
+            'search' => $search,
+            'limit' => $limit,
+        ]);
+
+        if (!$result) return [];
+
+        $items = $result['data']['Page']['characters'] ?? [];
+
+        return collect($items)->map(function ($char) {
+            // Tomamos el primer anime del array de media
+            $animeId = $char['media']['nodes'][0]['id'] ?? null;
+
+            return [
+                'id' => $char['id'],
+                'name' => $char['name']['full'],
+                'image' => $char['image']['medium'] ?? null,
+                'anime_id' => $animeId,
+            ];
+        })->toArray();
     }
 }

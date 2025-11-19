@@ -14,12 +14,15 @@ use App\Http\Controllers\CharacterFavoriteController;
 use App\Http\Controllers\AnimeListController;
 use App\Http\Controllers\CharacterListController;
 use App\Http\Controllers\ListsController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
 
 //Rutas para la vista principal
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/home', [HomeController::class, 'index']); // Alias opcional
+
+Route::get('/search', [SearchController::class, 'search'])->name('search');
 
 //Rutas Perfil
 Route::middleware('auth')->group(function () {
