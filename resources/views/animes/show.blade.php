@@ -1,6 +1,6 @@
 <x-app-layout>
-    <!-- Header con altura fija -->
-    <header class="relative w-full h-128 overflow-hidden">
+    <!-- Header con altura adaptable -->
+    <header class="relative w-full h-auto sm:h-[28rem] md:h-[32rem] lg:h-[36rem] overflow-hidden">
         <!-- Fondo -->
         <div class="absolute inset-0">
             @if (!empty($anime['bannerImage']))
@@ -13,37 +13,24 @@
         </div>
 
         <!-- Contenido principal -->
-        <div class="relative flex flex-col lg:flex-row p-6 lg:p-12 h-full items-start">
-            <!-- ============================================================= -->
-            <!-- =========== COLUMNA IZQUIERDA: IMAGEN + BOTONES ============== -->
-            <!-- ============================================================= -->
-            <div class="flex-shrink-0 mb-4 lg:mb-0 lg:mr-8 flex flex-col items-start">
-                <!-- Imagen del anime -->
+        <div class="relative flex flex-col lg:flex-row p-4 sm:p-6 lg:p-12 gap-6 lg:gap-12 h-full">
+
+            <!-- Columna izquierda: imagen + botones -->
+            <div class="flex-shrink-0 flex flex-col items-start w-full lg:w-auto mb-4 lg:mb-0 order-1 lg:order-1">
+                <!-- Imagen responsiva completa -->
                 <img src="{{ $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}"
-                    class="w-64 h-96 object-cover rounded-lg shadow-lg mb-4">
+                    class="w-full sm:w-64 lg:w-64 h-auto sm:h-96 lg:h-96 object-contain rounded-lg shadow-lg mb-4">
 
                 @auth
                     @php
-                        $isFavorite = auth()->user()->animeFavorites->where('anime_id', $anime['id'])->isNotEmpty();
+                        $isFavorite = \App\Models\AnimeFavorite::where('user_id', auth()->id())
+                            ->where('anilist_id', $anime['id'])
+                            ->exists();
                     @endphp
-
-                    <!-- Bloque de botones -->
-                    <div class="flex space-x-4">
-                        {{-- ===================================================== --}}
-                        {{-- ============ BOTÓN DE FAVORITOS (⭐ AJAX) ============ --}}
-                        {{-- ===================================================== --}}
-                        @php
-                            $isFavorite = false;
-                            if (auth()->check()) {
-                                $isFavorite = \App\Models\AnimeFavorite::where('user_id', auth()->id())
-                                    ->where('anilist_id', $anime['id']) // siempre anilist_id
-                                    ->exists();
-                            }
-                        @endphp
-
+                    <div class="flex flex-wrap gap-2">
                         <button
                             class="favoriteButton flex items-center justify-center w-12 h-12 rounded-lg shadow-md transition
-        {{ $isFavorite ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-yellow-500 hover:bg-yellow-600' }} text-white"
+                {{ $isFavorite ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-yellow-500 hover:bg-yellow-600' }} text-white"
                             data-anilist-id="{{ $anime['id'] }}" data-anime-title="{{ $anime['title']['romaji'] }}"
                             data-anime-image="{{ $anime['coverImage']['large'] }}"
                             data-is-favorite="{{ $isFavorite ? 'true' : 'false' }}"
@@ -52,22 +39,17 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
                                     viewBox="0 0 24 24">
                                     <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
-                                 1.4 8.172L12 18.896l-7.334 3.868
-                                 1.4-8.172-5.934-5.782 8.2-1.192z" />
+                                                     1.4 8.172L12 18.896l-7.334 3.868
+                                                     1.4-8.172-5.934-5.782 8.2-1.192z" />
                                 </svg>
                             @else
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
                                     stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                                 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                     9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                                 </svg>
                             @endif
                         </button>
-
-                        {{-- ===================================================== --}}
-                        {{-- ====== BOTÓN "AÑADIR A MI LISTA" (abre modal) ======= --}}
-                        {{-- ===================================================== --}}
-
                         <button id="openAddToListModal"
                             class="flex items-center justify-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none"
@@ -76,22 +58,18 @@
                             </svg>
                             Añadir a mi lista
                         </button>
-
                     </div>
                 @else
-                    <!-- Usuario no autenticado -->
-                    <div class="flex space-x-4">
+                    <div class="flex flex-wrap gap-2">
                         <a href="{{ route('login') }}"
                             class="flex items-center justify-center w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg shadow-md transition"
                             title="Inicia sesión para guardar favoritos">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
                                 stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                                                                                                                                        9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
+                                                 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                             </svg>
                         </a>
-
                         <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
                             Añadir a mi lista
                         </button>
@@ -99,25 +77,32 @@
                 @endauth
             </div>
 
-            <!-- ============================================================= -->
-            <!-- =========== COLUMNA DERECHA: INFORMACIÓN DEL ANIME =========== -->
-            <!-- ============================================================= -->
-            <div class="text-white lg:flex-1 max-w-3xl flex flex-col h-96">
-                <h2 class="fit-title font-bold mb-2">{{ $anime['title']['romaji'] }}</h2>
-                <h3 class="fit-title text-gray-300 mb-2">{{ $anime['title']['english'] ?? '' }}</h3>
-                <p class="mb-2 text-lg"><strong>Episodios:</strong> {{ $anime['episodes'] ?? 'N/A' }}</p>
+            <!-- Columna derecha: títulos + descripción -->
+            <div class="text-white lg:flex-1 max-w-full lg:max-w-3xl flex flex-col order-2 lg:order-2">
 
+                <!-- Títulos + episodios con más espacio -->
+                <div class="mb-6 p-6 sm:p-8 bg-gray-800 bg-opacity-70 rounded-lg flex-shrink-0">
+                    <h2 class="fittext-one-line font-bold mb-4 overflow-visible text-2xl sm:text-3xl lg:text-4xl">
+                        {{ $anime['title']['romaji'] }}
+                    </h2>
+                    <h3 class="fittext-one-line text-gray-300 mb-3 overflow-visible text-lg sm:text-xl lg:text-2xl">
+                        {{ $anime['title']['english'] ?? '' }}
+                    </h3>
+                    <p class="mb-0 text-base sm:text-lg"><strong>Episodios:</strong> {{ $anime['episodes'] ?? 'N/A' }}
+                    </p>
+                </div>
+
+                <!-- Descripción -->
                 <div
-                    class="mt-4 p-6 bg-gray-800 bg-opacity-70 rounded-lg text-gray-100 text-lg leading-relaxed flex-1 overflow-y-scroll scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+                    class="mt-4 p-4 sm:p-6 bg-gray-800 bg-opacity-70 rounded-lg text-gray-100 text-base sm:text-lg leading-relaxed flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
                     {!! $anime['description'] !!}
                 </div>
+
             </div>
         </div>
     </header>
 
-    {{-- ===================================================== --}}
-    {{-- ============ TOAST DE MENSAJE ======================== --}}
-    {{-- ===================================================== --}}
+    <!-- Toast de mensaje -->
     <div id="toast"
         class="fixed top-5 right-5 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 pointer-events-none z-50">
     </div>
@@ -127,13 +112,13 @@
     {{-- ===================================================== --}}
     <section class="w-full p-4 md:p-6 mt-8 flex flex-col md:flex-row gap-6 md:gap-8">
 
-    <x-anime.details-sidebar :anime="$anime" />
+        <x-anime.details-sidebar :anime="$anime" />
 
-    <div class="flex-1">
-        <h2 class="text-2xl font-bold mb-4">Secciones</h2>
+        <div class="flex-1">
+            <h2 class="text-2xl font-bold mb-4">Secciones</h2>
 
-        <x-anime.tabs :animeId="$anime['id']" />
-        
+            <x-anime.tabs :animeId="$anime['id']" />
+
             <!-- Contenido por defecto: Vista General -->
             <div class="text-gray-700 space-y-8">
                 <!-- Relaciones -->
@@ -353,87 +338,107 @@
 
                     <!-- Listado de comentarios -->
                     @forelse ($comments as $comment)
-                        <div class="bg-white rounded-xl shadow-sm p-4 mb-4 border border-gray-100 flex gap-3">
+                        <div
+                            class="bg-white dark:bg-gray-800 rounded-2xl shadow-md p-4 mb-4 border border-gray-100 dark:border-gray-700 flex gap-4 transition-transform hover:scale-[1.02]">
+
                             <!-- Avatar -->
-                            <div>
-                                @if ($comment->user)
-                                    <img src="{{ $comment->user->avatar_url }}" alt="{{ $comment->user->name }}"
-                                        class="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm">
-                                @else
-                                    <img src="https://ui-avatars.com/api/?name={{ urlencode($comment->user_name ?? 'Anónimo') }}&background=0D8ABC&color=fff&bold=true"
+                            <div class="flex-shrink-0">
+                                <a href="{{ $comment->user ? route('profile.show', $comment->user->id) : '#' }}"
+                                    class="block">
+                                    <img src="{{ $comment->user && $comment->user->avatar_url ? $comment->user->avatar_url : 'https://ui-avatars.com/api/?name=' . urlencode($comment->user_name ?? 'Anónimo') . '&background=0D8ABC&color=fff&bold=true' }}"
                                         alt="{{ $comment->user_name ?? 'Anónimo' }}"
-                                        class="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm">
-                                @endif
+                                        class="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-gray-600 shadow-sm hover:opacity-80 transition">
+                                </a>
                             </div>
 
                             <!-- Contenido -->
-                            <div class="flex-1">
+                            <div class="flex-1 flex flex-col">
+                                <!-- Nombre y fecha -->
                                 <div class="flex items-center justify-between mb-2">
-                                    <strong class="text-gray-800">
+                                    <a href="{{ $comment->user ? route('profile.show', $comment->user->id) : '#' }}"
+                                        class="text-gray-900 dark:text-gray-100 font-semibold hover:underline">
                                         {{ $comment->user->name ?? ($comment->user_name ?? 'Anónimo') }}
-                                    </strong>
-                                    <small class="text-gray-500">{{ $comment->created_at->diffForHumans() }}</small>
+                                    </a>
+                                    <small
+                                        class="text-gray-400 dark:text-gray-300 text-sm">{{ $comment->created_at->diffForHumans() }}</small>
                                 </div>
 
                                 <!-- Spoiler -->
                                 @if ($comment->is_spoiler)
-                                    <div class="p-2 bg-gray-200 rounded mb-2">
-                                        <button type="button" class="show-spoiler-btn text-blue-600 hover:underline">
+                                    <div class="p-2 bg-yellow-50 dark:bg-yellow-900 rounded-lg mb-2">
+                                        <button type="button"
+                                            class="show-spoiler-btn text-yellow-600 dark:text-yellow-400 hover:underline font-medium">
                                             ⚠️ Contenido oculto por spoiler. Mostrar
                                         </button>
-                                        <div class="spoiler-content hidden mt-2">{{ $comment->content }}</div>
+                                        <div class="spoiler-content hidden mt-2 text-gray-800 dark:text-gray-200">
+                                            {{ $comment->content }}
+                                        </div>
                                     </div>
                                 @else
-                                    <p class="text-gray-700 mb-2">{{ $comment->content }}</p>
+                                    <p class="text-gray-700 dark:text-gray-200 mb-2 leading-relaxed">
+                                        {{ $comment->content }}</p>
                                 @endif
 
                                 <!-- Imagen adjunta -->
                                 @if ($comment->image)
                                     <div class="mb-2">
-                                        <button type="button" class="show-image-btn text-blue-600 hover:underline">📷
-                                            Ver imagen</button>
+                                        <button type="button"
+                                            class="show-image-btn text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium">
+                                            Ver imagen
+                                        </button>
                                         <img src="{{ asset('storage/' . $comment->image) }}" alt="Imagen comentario"
-                                            class="mt-2 hidden max-w-full rounded">
+                                            class="mt-2 hidden max-w-full rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
                                     </div>
                                 @endif
 
-                                <!-- Likes -->
-                                <div class="flex items-center gap-3">
-                                    <span class="text-gray-600 like-count" data-comment-id="{{ $comment->id }}">
-                                        {{ $comment->likes_count }} 👍
+                                <!-- Likes: solo corazón -->
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-gray-500 dark:text-gray-400 like-count text-sm"
+                                        data-comment-id="{{ $comment->id }}">
+                                        {{ $comment->likes_count }}
                                     </span>
 
                                     @auth
                                         <button type="button"
-                                            class="toggle-like-btn animate-like text-sm font-medium transition-colors 
-                                {{ auth()->user()->hasLiked($comment) ? 'text-red-500 hover:text-red-600' : 'text-blue-500 hover:text-blue-600' }}"
+                                            class="toggle-like-btn flex items-center transition-colors
+                            {{ auth()->user()->hasLiked($comment) ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-blue-500' }}"
                                             data-comment-id="{{ $comment->id }}">
-                                            {{ auth()->user()->hasLiked($comment) ? '💔 Quitar like' : '👍 Me gusta' }}
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24"
+                                                fill="{{ auth()->user()->hasLiked($comment) ? 'currentColor' : 'none' }}"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                            </svg>
                                         </button>
                                     @else
                                         <button type="button"
-                                            class="toggle-like-btn text-blue-500 hover:text-blue-600 text-sm font-medium"
+                                            class="flex items-center text-gray-400 hover:text-blue-500 transition-colors"
                                             data-comment-id="{{ $comment->id }}">
-                                            👍 Me gusta
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                            </svg>
                                         </button>
                                     @endauth
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <p class="text-gray-500">Sé el primero en comentar este anime 📝</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-center">Sé el primero en comentar este anime 📝
+                        </p>
                     @endforelse
-                </div>
 
-                <!-- JS -->
-                <script>
-                    document.addEventListener('DOMContentLoaded', () => {
-                        // Likes AJAX
-                        document.querySelectorAll('.toggle-like-btn').forEach(button => {
-                            button.addEventListener('click', async () => {
-                                const commentId = button.dataset.commentId;
-                                try {
-                                    const response = await fetch(
+                    <!-- JS -->
+                    <script>
+                        document.addEventListener('DOMContentLoaded', () => {
+
+                            // Likes AJAX
+                            document.querySelectorAll('.toggle-like-btn').forEach(button => {
+                                button.addEventListener('click', async () => {
+                                    const commentId = button.dataset.commentId;
+                                    try {
+                                        const response = await fetch(
                                         `/anime-comments/${commentId}/toggle-like`, {
                                             method: 'POST',
                                             headers: {
@@ -441,99 +446,75 @@
                                                 'Accept': 'application/json'
                                             }
                                         });
-                                    if (!response.ok) {
-                                        if (response.status === 403) alert(
-                                            'Debes iniciar sesión para dar like.');
-                                        return;
+                                        if (!response.ok) {
+                                            if (response.status === 403) alert(
+                                                'Debes iniciar sesión para dar like.');
+                                            return;
+                                        }
+                                        const data = await response.json();
+                                        const likeCount = document.querySelector(
+                                            `.like-count[data-comment-id="${commentId}"]`);
+                                        if (likeCount) likeCount.textContent = data.likes_count;
+
+                                        button.classList.add('scale-110');
+                                        setTimeout(() => button.classList.remove('scale-110'), 150);
+
+                                        const svg = button.querySelector('svg');
+                                        if (data.liked) {
+                                            button.classList.replace('text-gray-400', 'text-red-500');
+                                            svg.setAttribute('fill', 'currentColor');
+                                        } else {
+                                            button.classList.replace('text-red-500', 'text-gray-400');
+                                            svg.setAttribute('fill', 'none');
+                                        }
+                                    } catch (error) {
+                                        console.error('Error al procesar el like:', error);
                                     }
-                                    const data = await response.json();
-                                    const likeCount = document.querySelector(
-                                        `.like-count[data-comment-id="${commentId}"]`);
-                                    if (likeCount) likeCount.textContent = `${data.likes_count} 👍`;
+                                });
+                            });
 
-                                    button.classList.add('scale-110');
-                                    setTimeout(() => button.classList.remove('scale-110'), 150);
+                            // Mostrar/ocultar spoiler
+                            document.querySelectorAll('.show-spoiler-btn').forEach(btn => {
+                                btn.addEventListener('click', () => {
+                                    const content = btn.nextElementSibling;
+                                    content.classList.toggle('hidden');
+                                });
+                            });
 
-                                    if (data.liked) {
-                                        button.textContent = '💔 Quitar like';
-                                        button.classList.replace('text-blue-500', 'text-red-500');
-                                    } else {
-                                        button.textContent = '👍 Me gusta';
-                                        button.classList.replace('text-red-500', 'text-blue-500');
-                                    }
-                                } catch (error) {
-                                    console.error('Error al procesar el like:', error);
-                                }
+                            // Mostrar/ocultar imagen
+                            document.querySelectorAll('.show-image-btn').forEach(btn => {
+                                btn.addEventListener('click', () => {
+                                    const img = btn.nextElementSibling;
+                                    img.classList.toggle('hidden');
+                                });
                             });
                         });
+                    </script>
 
-                        // Mostrar/ocultar spoiler
-                        document.querySelectorAll('.show-spoiler-btn').forEach(btn => {
-                            btn.addEventListener('click', () => {
-                                const content = btn.nextElementSibling;
-                                content.classList.toggle('hidden');
-                            });
-                        });
+                    <style>
+                        .toggle-like-btn {
+                            transition: transform 0.15s ease, color 0.2s ease;
+                        }
 
-                        // Mostrar/ocultar imagen
-                        document.querySelectorAll('.show-image-btn').forEach(btn => {
-                            btn.addEventListener('click', () => {
-                                const img = btn.nextElementSibling;
-                                img.classList.toggle('hidden');
-                            });
-                        });
-                    });
-                </script>
+                        .toggle-like-btn.scale-110 {
+                            transform: scale(1.2);
+                        }
+                    </style>
 
-                <style>
-                    .toggle-like-btn {
-                        transition: transform 0.15s ease;
-                    }
-
-                    .toggle-like-btn.scale-110 {
-                        transform: scale(1.2);
-                    }
-                </style>
-
-                <script>
-                    // Obtener elementos
-                    const form = document.getElementById('commentForm');
-                    const input = document.getElementById('commentInput');
-                    const commentsList = document.getElementById('commentsList');
-
-                    // Manejar envío del formulario
-                    form.addEventListener('submit', function(e) {
-                        e.preventDefault();
-
-                        const commentText = input.value.trim();
-                        if (!commentText) return;
-
-                        // Crear nuevo comentario temporal
-                        const newComment = document.createElement('div');
-                        newComment.classList.add('bg-gray-100', 'p-3', 'rounded-md', 'shadow');
-                        newComment.innerHTML = `
-            <p class="text-sm font-semibold">Usuario Anónimo</p>
-            <p class="text-sm text-gray-700 mt-1">${commentText}</p>
-        `;
-
-                        // Añadir al listado
-                        commentsList.prepend(newComment);
-
-                        // Limpiar textarea
-                        input.value = '';
-                    });
-                </script>
+                </div>
             </div>
-        </div>
-        <x-add-to-list-modal :anime="$anime" />
-        <script>
-            window.csrfToken = '{{ csrf_token() }}';
-            window.toggleFavoriteUrl = '{{ route('favorites.anime.toggle') }}';
-            window.createListUrl = '{{ route('anime.list.create') }}';
-            window.addToListUrl = '{{ route('anime.addToList') }}';
-        </script>
-        @vite('resources/js/anime/add-animes-to-favorites.js')
-        @vite('resources/js/anime/add-to-list-modal.js')
+            <x-add-to-list-modal :anime="$anime" />
+            <script>
+                window.isLoggedIn = @json(auth()->check());
+                window.csrfToken = '{{ csrf_token() }}';
+                window.toggleFavoriteUrl = '{{ route('favorites.anime.toggle') }}';
+                window.createListUrl = '{{ route('anime.list.create') }}';
+                window.addToListUrl = '{{ route('anime.addToList') }}';
+                window.loginUrl = '{{ route('login') }}';
+            </script>
+
+            @vite('resources/js/anime/add-animes-to-favorites.js')
+            @vite('resources/js/anime/add-to-list-modal.js')
 
     </section>
 

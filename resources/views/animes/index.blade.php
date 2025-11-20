@@ -100,7 +100,9 @@
                     </div>
                 </form>
 
+                <!-- ===================================================== -->
                 <!-- GRID DE RESULTADOS -->
+                <!-- ===================================================== -->
                 <div id="anime-grid"
                     class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-7">
                     @foreach ($animes as $anime)
@@ -117,13 +119,14 @@
                                 </div>
                             </a>
 
-                            <!-- Botón pequeño en la esquina superior derecha -->
+                            <!-- Botón para añadir a lista -->
                             <button
                                 class="absolute top-2 right-2 w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center text-lg font-bold opacity-0 group-hover:opacity-100 transition-shadow shadow-md"
                                 data-anime-id="{{ $anime['id'] }}" data-anilist-id="{{ $anime['id'] }}"
                                 data-anime-title="{{ $anime['title']['romaji'] }}"
                                 data-anime-image="{{ $anime['coverImage']['large'] }}"
-                                data-anime-episodes="{{ $anime['episodes'] ?? 0 }}">
+                                data-anime-episodes="{{ $anime['episodes'] ?? 0 }}"
+                                data-anime-genres="{{ implode(', ', $anime['genres'] ?? []) }}">
                                 +
                             </button>
                         </div>
@@ -134,24 +137,26 @@
                 <!-- MODAL PRINCIPAL: AÑADIR A MI LISTA -->
                 <!-- ===================================================== -->
                 <div id="addToListModal"
-                    class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 transition-all opacity-0 scale-95">
+                    class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 transition-all opacity-0 scale-95 p-4">
                     <div
-                        class="bg-gray-900 text-white p-8 rounded-2xl shadow-2xl w-full max-w-4xl relative flex flex-col md:flex-row gap-8">
+                        class="bg-gray-900 text-white p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-4xl relative flex flex-col md:flex-row gap-6 md:gap-8 overflow-y-auto max-h-[90vh]">
+
                         <!-- Botón cerrar -->
                         <button id="closeAddToListModal"
                             class="absolute top-4 right-4 text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
 
-                        <!-- Columna izquierda: imagen + título -->
+                        <!-- Columna izquierda -->
                         <div
-                            class="flex flex-col items-center justify-start w-full md:w-2/5 border-b md:border-b-0 md:border-r border-gray-700 pb-6 md:pb-0 md:pr-6">
+                            class="flex flex-col items-center w-full md:w-2/5 border-b md:border-b-0 md:border-r border-gray-700 pb-6 md:pb-0 md:pr-6">
                             <img id="modalAnimeImage" src="" alt=""
-                                class="w-56 h-80 object-cover rounded-xl shadow-lg mb-4">
-                            <h3 id="modalAnimeTitle" class="text-xl font-semibold text-center leading-tight"></h3>
+                                class="w-40 h-56 md:w-56 md:h-80 object-cover rounded-xl shadow-lg mb-4">
+                            <h3 id="modalAnimeTitle" class="text-lg md:text-xl font-semibold text-center leading-tight">
+                            </h3>
                         </div>
 
-                        <!-- Columna derecha: formulario -->
+                        <!-- Columna derecha -->
                         <div class="flex-1">
-                            <h2 class="text-3xl font-semibold mb-6">Añadir a mi lista</h2>
+                            <h2 class="text-2xl md:text-3xl font-semibold mb-6">Añadir a mi lista</h2>
 
                             <form action="{{ route('anime.addToList') }}" method="POST" id="addToListForm">
                                 @csrf
@@ -159,16 +164,21 @@
                                 <input type="hidden" name="anilist_id" value="">
                                 <input type="hidden" name="anime_title" value="">
                                 <input type="hidden" name="anime_image" value="">
+                                <input type="hidden" name="anime_genres" value="">
 
                                 <!-- Selector de lista -->
                                 <label for="list_name" class="block mb-2 text-sm text-gray-300">Selecciona una
                                     lista</label>
                                 <select id="list_name" name="list_name"
                                     class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-blue-500 text-base">
-                                    @foreach (auth()->user()->animeLists as $list)
-                                        <option value="{{ $list->name }}">{{ $list->name }}</option>
-                                    @endforeach
-                                    <option value="__new__">+ Crear nueva lista...</option>
+                                    @auth
+                                        @foreach (auth()->user()->animeLists as $list)
+                                            <option value="{{ $list->name }}">{{ $list->name }}</option>
+                                        @endforeach
+                                        <option value="__new__">+ Crear nueva lista...</option>
+                                    @else
+                                        <option value="">Debes iniciar sesión para añadir a una lista</option>
+                                    @endauth
                                 </select>
 
                                 <!-- Estado -->
@@ -210,6 +220,7 @@
                                     <label for="is_rewatch" class="ml-2 text-sm text-gray-300">Rewatch</label>
                                 </div>
 
+                                <!-- Rewatch count -->
                                 <label for="rewatch_count" class="block mb-2 text-sm text-gray-300">Veces
                                     rewatch</label>
                                 <input type="number" id="rewatch_count" name="rewatch_count" min="0"
@@ -217,9 +228,10 @@
                                     placeholder="Ej: 1">
 
                                 <!-- Botones -->
-                                <div class="flex justify-end space-x-3 mt-6">
+                                <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
                                     <button type="button" id="cancelAddToList"
                                         class="px-5 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-base">Cancelar</button>
+
                                     <button type="submit"
                                         class="px-5 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-base font-semibold">Guardar</button>
                                 </div>
@@ -229,7 +241,7 @@
                 </div>
 
                 <!-- ===================================================== -->
-                <!-- SUB-MODAL CREAR NUEVA LISTA -->
+                <!-- SUB-MODAL: CREAR NUEVA LISTA -->
                 <!-- ===================================================== -->
                 <div id="createListModal"
                     class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-[100] transition-all opacity-0 scale-95">
@@ -268,16 +280,19 @@
                 <!-- ===================================================== -->
                 <script>
                     document.addEventListener('DOMContentLoaded', () => {
+                        const isLoggedIn = @json(auth()->check());
+
+                        // Modales
                         const addModal = document.getElementById('addToListModal');
                         const createModal = document.getElementById('createListModal');
 
+                        // Botones cerrar/cancelar
                         const closeAddBtn = document.getElementById('closeAddToListModal');
                         const cancelAddBtn = document.getElementById('cancelAddToList');
-
                         const closeCreateBtn = document.getElementById('closeCreateListModal');
                         const cancelCreateBtn = document.getElementById('cancelCreateList');
-                        const createForm = document.getElementById('createListForm');
 
+                        // Inputs y selects
                         const listSelect = document.getElementById('list_name');
                         const statusSelect = document.getElementById('status');
                         const episodeInput = document.getElementById('episode_progress');
@@ -286,40 +301,35 @@
                         const anilistIdInput = document.querySelector('#addToListForm input[name="anilist_id"]');
                         const animeTitleInput = document.querySelector('#addToListForm input[name="anime_title"]');
                         const animeImageInput = document.querySelector('#addToListForm input[name="anime_image"]');
+                        const animeGenresInput = document.querySelector('#addToListForm input[name="anime_genres"]');
                         const modalAnimeImage = document.getElementById('modalAnimeImage');
                         const modalAnimeTitle = document.getElementById('modalAnimeTitle');
 
-                        let currentMaxEpisodes = 0; // Guardamos el máximo de episodios actual
+                        let currentMaxEpisodes = 0;
 
-                        // Función para actualizar lista y episodios según el estado
+                        // Función para actualizar lista y episodios según estado
                         function updateListAndEpisodesByStatus() {
                             if (statusSelect.value === 'completed') {
-                                // Solo permitir "Vistos"
-                                Array.from(listSelect.options).forEach(opt => {
-                                    opt.disabled = opt.value !== 'Vistos';
-                                });
+                                Array.from(listSelect.options).forEach(opt => opt.disabled = opt.value !== 'Vistos');
                                 listSelect.value = 'Vistos';
-
-                                // Poner el progreso de episodios al máximo
                                 episodeInput.value = currentMaxEpisodes;
                             } else {
-                                // Habilitar todas las opciones
-                                Array.from(listSelect.options).forEach(opt => {
-                                    opt.disabled = false;
-                                });
-                                // Restaurar predeterminada si es necesario
+                                Array.from(listSelect.options).forEach(opt => opt.disabled = false);
                                 const defaultOption = Array.from(listSelect.options).find(opt => opt.value === 'Pendientes');
                                 listSelect.value = defaultOption ? 'Pendientes' : listSelect.options[0].value;
-
-                                // Resetear el input de episodios a 0
                                 episodeInput.value = 0;
                             }
                         }
 
-                        // Abrir modal al click en cualquier botón del grid
+                        // Abrir modal principal al hacer click en botón del grid
                         document.getElementById('anime-grid').addEventListener('click', (e) => {
                             const btn = e.target.closest('button[data-anime-id]');
                             if (!btn) return;
+
+                            if (!isLoggedIn) {
+                                window.location = "{{ route('login') }}";
+                                return;
+                            }
 
                             const animeId = btn.dataset.animeId || '';
                             const anilistId = btn.dataset.anilistId || '';
@@ -331,25 +341,22 @@
                             anilistIdInput.value = anilistId;
                             animeTitleInput.value = animeTitle;
                             animeImageInput.value = animeImage;
+                            animeGenresInput.value = btn.dataset.animeGenres || '';
 
                             modalAnimeImage.src = animeImage;
                             modalAnimeTitle.textContent = animeTitle;
 
-                            // Limitar el máximo de episodios
                             episodeInput.max = currentMaxEpisodes;
                             episodeInput.placeholder = currentMaxEpisodes > 0 ? `Ej: 1 - ${currentMaxEpisodes}` :
                                 'Ej: 1';
-                            episodeInput.value = 0; // reset al abrir modal
+                            episodeInput.value = 0;
 
-                            // Mostrar modal
                             addModal.classList.remove('hidden', 'opacity-0', 'scale-95');
                             addModal.classList.add('flex', 'opacity-100', 'scale-100');
 
-                            // Actualizar lista y episodios según el estado inicial
                             updateListAndEpisodesByStatus();
                         });
 
-                        // Controlar cambio de estado
                         statusSelect.addEventListener('change', updateListAndEpisodesByStatus);
 
                         // Cerrar modal principal
@@ -358,16 +365,16 @@
                             setTimeout(() => addModal.classList.add('hidden'), 200);
                         }));
 
-                        // Abrir submodal
+                        // Abrir sub-modal
                         listSelect.addEventListener('change', e => {
                             if (e.target.value === '__new__') {
                                 createModal.classList.remove('hidden', 'opacity-0', 'scale-95');
                                 createModal.classList.add('flex', 'opacity-100', 'scale-100');
-                                addModal.classList.add('pointer-events-none'); // Bloquea interacción con fondo
+                                addModal.classList.add('pointer-events-none');
                             }
                         });
 
-                        // Cerrar submodal
+                        // Cerrar sub-modal
                         [closeCreateBtn, cancelCreateBtn].forEach(btn => btn.addEventListener('click', () => {
                             createModal.classList.add('opacity-0', 'scale-95');
                             setTimeout(() => createModal.classList.add('hidden'), 200);
@@ -375,7 +382,8 @@
                             listSelect.value = '';
                         }));
 
-                        // Crear nueva lista por AJAX
+                        // Crear nueva lista vía AJAX
+                        const createForm = document.getElementById('createListForm');
                         createForm.addEventListener('submit', async (e) => {
                             e.preventDefault();
                             const formData = new FormData(createForm);
@@ -420,6 +428,4 @@
     <!-- SIN RESULTADOS -->
     <p id="no-results" class="hidden text-gray-500 mt-4">No se encontraron resultados.</p>
 
-    <!-- JS -->
-    <script src="{{ asset('/js/search.js') }}"></script>
 </x-app-layout>

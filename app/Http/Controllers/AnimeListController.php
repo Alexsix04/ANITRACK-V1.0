@@ -36,6 +36,7 @@ class AnimeListController extends Controller
             'list_name'        => 'required|string',  // Nombre de la lista
             'anime_title'      => 'required|string',  // Título del anime
             'anime_image'      => 'nullable|string',  // Imagen de portada
+            'anime_genres'     => 'nullable|string',  // Géneros (opcional)
             'episode_progress' => 'nullable|integer|min:0',
             'score'            => 'nullable|integer|min:0|max:10',
             'status'           => 'nullable|string|in:watching,completed,on_hold,dropped,plan_to_watch',
@@ -72,6 +73,7 @@ class AnimeListController extends Controller
                 'episodes'    => $animeData['episodes'] ?? null,
                 'status'      => $animeData['status'] ?? null,
                 'season'      => $animeData['season'] ?? null,
+                'genres'      => $animeData['genres'] ?? $validated['anime_genres'] ?? null,
             ]
         );
 
