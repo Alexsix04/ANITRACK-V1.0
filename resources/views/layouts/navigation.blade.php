@@ -14,6 +14,7 @@
                     <x-nav-link :href="route('home')" :active="request()->routeIs('home')">Inicio</x-nav-link>
                     <x-nav-link :href="route('animes.index')" :active="request()->routeIs('animes.index')">Animes</x-nav-link>
                     <x-nav-link :href="route('listas.index')" :active="request()->routeIs('listas.index')">Listas</x-nav-link>
+                    <x-nav-link :href="route('randomizer.index')" :active="request()->routeIs('randomizer.index')">Randomzier</x-nav-link>
                 </div>
             </div>
 
@@ -81,6 +82,7 @@
             <x-responsive-nav-link :href="route('home')" :active="request()->routeIs('home')">Inicio</x-responsive-nav-link>
             <x-responsive-nav-link :href="route('animes.index')" :active="request()->routeIs('animes.index')">Animes</x-responsive-nav-link>
             <x-responsive-nav-link :href="route('listas.index')" :active="request()->routeIs('listas.index')">Listas</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('randomizer.index')" :active="request()->routeIs('randomizer.index')">Randomizer</x-responsive-nav-link>
         </div>
 
         <!-- Responsive Menu -->

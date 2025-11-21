@@ -13,6 +13,7 @@ use App\Http\Controllers\AnimeFavoriteController;
 use App\Http\Controllers\CharacterFavoriteController;
 use App\Http\Controllers\AnimeListController;
 use App\Http\Controllers\CharacterListController;
+use App\Http\Controllers\AnimeRandomizerController;
 use App\Http\Controllers\ListsController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
@@ -145,5 +146,14 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/character-list/update', [CharacterListController::class, 'updateItem'])->name('character.list.update');
 });
+
+Route::middleware('auth')->group(function () {
+    Route::get('/randomizer', [AnimeRandomizerController::class, 'index'])->name('randomizer.index');
+    Route::post('/randomizer/getListAnimes', [AnimeRandomizerController::class, 'getListAnimes'])->name('randomizer.getListAnimes');
+    Route::post('/randomizer/getRandomAnime', [AnimeRandomizerController::class, 'getRandomAnime'])->name('randomizer.getRandomAnime');
+});
+
+
+
 
 require __DIR__ . '/auth.php';

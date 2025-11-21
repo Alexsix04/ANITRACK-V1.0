@@ -35,4 +35,9 @@ class AnimeList extends Model
     {
         return $this->likes()->where('user_id', $user->id)->exists();
     }
+    // Obtener un anime Random
+    public function getRandomItem()
+{
+    return $this->items()->inRandomOrder()->first();
+}
 }
