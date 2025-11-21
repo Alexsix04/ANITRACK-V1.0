@@ -1,6 +1,5 @@
 <x-app-layout>
-    <div class="relative w-full min-h-screen">
-
+    <div class="relative w-full">
         <!-- Banner de fondo -->
         @if (!empty($anime['bannerImage']))
             <div class="absolute inset-0">
@@ -366,12 +365,15 @@
                     </div>
                 </div>
             @endif
+            </div>
+        </div>
+            <div class="w-full bg-gray-900 bg-opacity-90 py-10"> 
 
             <!-- ================= -->
             <!-- Sección Comentarios -->
             <!-- ================= -->
             <div class="max-w-2xl mx-auto mt-10">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Comentarios</h2>
+                <h2 class="text-2xl font-semibold text-white-800 mb-4">Comentarios</h2>
 
                 <!-- Mensaje de éxito -->
                 @if (session('success'))

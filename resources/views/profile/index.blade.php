@@ -752,14 +752,22 @@
     <!-- ========================================= -->
     @foreach ($allLists as $list)
         <div id="listModal-{{ $list->id }}"
-            class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
+            class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95 p-4">
+
             <div
-                class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto relative flex flex-col gap-6">
+                class="bg-white p-6 md:p-8 rounded-xl shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative flex flex-col gap-6">
+
+                <!-- Botón cerrar absoluto -->
+                <button
+                    class="close-list-modal absolute top-4 right-4 text-gray-600 hover:text-gray-800 text-xl font-bold">
+                    ✕
+                </button>
 
                 <!-- Header: nombre + acciones -->
-                <div class="flex justify-between items-start">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+
                     <div class="space-y-1">
-                        <h2 id="listName-{{ $list->id }}" class="text-2xl font-bold text-gray-800">
+                        <h2 id="listName-{{ $list->id }}" class="text-xl sm:text-2xl font-bold text-gray-800">
                             {{ $list->name }}</h2>
                         @if ($list->description)
                             <p class="text-gray-600 text-sm">{{ $list->description }}</p>
@@ -772,33 +780,27 @@
                         </p>
                     </div>
 
-                    <div class="flex items-center gap-2">
-                        <!-- Botón Añadir anime -->
+                    <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3">
                         <a href="{{ route('animes.index') }}"
-                            class="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-md shadow transition">
+                            class="bg-blue-500 hover:bg-blue-600 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-md shadow w-full sm:w-auto text-center">
                             ➕ Añadir anime
                         </a>
 
-                        <!-- Botón Editar -->
                         <button
-                            class="open-edit-list bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold px-4 py-2 rounded-md shadow transition"
+                            class="open-edit-list bg-yellow-500 hover:bg-yellow-600 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-md shadow w-full sm:w-auto"
                             data-list-id="{{ $list->id }}" data-list-name="{{ $list->name }}"
                             data-list-description="{{ $list->description }}"
                             data-list-is-public="{{ $list->is_public ? 1 : 0 }}">
                             ✏️ Editar
                         </button>
 
-                        <!-- Botón Eliminar -->
                         @if (!in_array($list->name, ['Vistos', 'Pendientes']))
                             <button
-                                class="delete-list-btn bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md shadow transition"
+                                class="delete-list-btn bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-md shadow w-full sm:w-auto"
                                 data-list-id="{{ $list->id }}">
                                 🗑 Eliminar
                             </button>
                         @endif
-
-                        <!-- Botón cerrar -->
-                        <button class="close-list-modal text-gray-600 hover:text-gray-800 text-xl font-bold">✕</button>
                     </div>
                 </div>
 
@@ -806,13 +808,13 @@
                 @if ($list->items->isEmpty())
                     <p class="text-gray-500 text-center py-10">Esta lista está vacía.</p>
                 @else
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                         @foreach ($list->items as $item)
                             @php
                                 $image = $item->anime->cover_image ?? $item->anime_image;
                             @endphp
 
-                            <div class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03] cursor-pointer open-submodal"
+                            <div class="bg-gray-800 text-white p-3 md:p-4 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition cursor-pointer open-submodal"
                                 data-item-id="{{ $item->id }}" data-anime-id="{{ $item->anime_id }}"
                                 data-anime-title="{{ $item->anime_title }}" data-anime-image="{{ $image }}"
                                 data-anime-anilist_id="{{ $item->anime->anilist_id ?? '' }}"
@@ -825,18 +827,18 @@
 
                                 @if ($image)
                                     <img src="{{ $image }}" alt="{{ $item->anime_title }}"
-                                        class="w-full h-64 object-cover rounded-lg mb-4">
+                                        class="w-full h-44 sm:h-52 md:h-64 object-cover rounded-lg mb-3">
                                 @else
                                     <div
-                                        class="w-full h-64 bg-gray-600 flex items-center justify-center rounded-lg mb-4">
+                                        class="w-full h-44 sm:h-52 md:h-64 bg-gray-600 flex items-center justify-center rounded-lg mb-3">
                                         <span class="text-gray-300 text-sm">Sin imagen</span>
                                     </div>
                                 @endif
 
-                                <h3 class="text-lg font-bold mb-1 truncate">
+                                <h3 class="text-sm sm:text-base font-bold mb-1 truncate">
                                     {{ $item->anime->title ?? $item->anime_title }}</h3>
 
-                                <div class="text-sm text-gray-300 space-y-1">
+                                <div class="text-xs sm:text-sm text-gray-300 space-y-1">
                                     @if ($item->score)
                                         <p>Puntuación: <span class="font-semibold">{{ $item->score }}/10</span></p>
                                     @endif
@@ -1304,10 +1306,6 @@
             <div class="relative flex-shrink-0 w-full md:w-1/3 group cursor-pointer" id="submodalImageContainer">
                 <img id="submodalImage" src="" alt=""
                     class="w-full h-80 object-cover rounded-xl shadow-md transition-transform duration-300 group-hover:scale-105">
-                <div
-                    class="absolute inset-0 bg-black bg-opacity-40 rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
-                    <span class="text-white text-lg font-semibold">Ver anime completo</span>
-                </div>
             </div>
 
             <!-- Información -->

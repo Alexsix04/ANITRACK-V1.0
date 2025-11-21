@@ -5,9 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\AnimeFavorite;
 use App\Models\AnimeList;
+use App\Models\Anime;
 use App\Models\User;
 use App\Models\CharacterList;
-use App\Models\CharacterFavorite;
+use App\Models\CharacterListItem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
@@ -24,14 +25,12 @@ class ProfileController extends Controller
         $isOwner = $viewer && $viewer->id === $user->id;
 
         /* ==========================================================
-        FAVORITOS
-       ========================================================== */
-
+       FAVORITOS
+    ========================================================== */
         if ($isOwner) {
             $animeFavorites = $user->animeFavorites()->with('anime')->get();
             $characterFavorites = $user->characterFavorites()->with('character')->get();
         } else {
-            // Solo favoritos públicos si decides hacerlos públicos (si no, quítalo)
             $animeFavorites = $user->animeFavorites()
                 ->where('is_public', true)
                 ->with('anime')
@@ -44,9 +43,8 @@ class ProfileController extends Controller
         }
 
         /* ==========================================================
-        LISTAS DE ANIME
-       ========================================================== */
-
+       LISTAS DE ANIME Y PERSONAJES
+    ========================================================== */
         $animeLists = AnimeList::with([
             'items.anime',
             'savedByUsers' => fn($q) => $q->where('user_id', $viewer?->id ?? 0)
@@ -54,11 +52,6 @@ class ProfileController extends Controller
             ->where('user_id', $user->id)
             ->when(!$isOwner, fn($q) => $q->where('is_public', true))
             ->get();
-
-
-        /* ==========================================================
-        LISTAS DE PERSONAJES
-       ========================================================== */
 
         $characterLists = CharacterList::with([
             'items.character',
@@ -69,9 +62,81 @@ class ProfileController extends Controller
             ->get();
 
         /* ==========================================================
-        RETORNO
-       ========================================================== */
+   ESTADÍSTICAS "Vistos" - ANIMES
+========================================================== */
+        $vistosList = $user->animeLists()->where('name', 'Vistos')->first();
 
+        $totalVistos = 0;
+        $animeFavorito = null;
+        $notaMedia = 0;
+        $generosFavoritos = collect();
+
+        if ($vistosList) {
+            // Obtener todos los items de la lista con su anime
+            $items = $vistosList->items()->with('anime')->get();
+            $totalVistos = $items->count();
+
+            if ($totalVistos > 0) {
+                // 1️⃣ Anime favorito: mayor score, desempate por created_at
+                $animeFavoritoItem = $vistosList->items()
+                    ->with('anime')
+                    ->orderByDesc('score')
+                    ->orderBy('created_at')
+                    ->first();
+                $animeFavorito = $animeFavoritoItem?->anime;
+
+                // 2️⃣ Nota media
+                $notaMedia = $items->avg('score');
+
+                // 3️⃣ Géneros favoritos (top 3)
+                $animeIds = $items->pluck('anime_id');
+
+                $animesVistos = Anime::whereIn('id', $animeIds)->get();
+
+                $generosCount = [];
+
+                foreach ($animesVistos as $anime) {
+                    if (!$anime->genre) continue;
+
+                    // Detectar si es JSON
+                    $generos = json_decode($anime->genre, true);
+                    if (!is_array($generos)) {
+                        // Si no es JSON, asumimos string separado por comas
+                        $generos = explode(',', $anime->genre);
+                    }
+
+                    foreach ($generos as $g) {
+                        $g = trim($g);
+                        if ($g) {
+                            $generosCount[$g] = ($generosCount[$g] ?? 0) + 1;
+                        }
+                    }
+                }
+
+                arsort($generosCount);
+                $top3 = array_slice($generosCount, 0, 3, true);
+
+                $generosFavoritos = collect(array_keys($top3));
+            }
+        }
+
+
+        /* ==========================================================
+       PERSONAJE FAVORITO
+    ========================================================== */
+        $characterFavorito = null;
+        $characterItems = CharacterListItem::whereHas('list', fn($q) => $q->where('user_id', $user->id))
+            ->with('character')
+            ->get();
+
+        if ($characterItems->count() > 0) {
+            $characterFavoritoItem = $characterItems->sortByDesc('score')->sortBy('created_at')->first();
+            $characterFavorito = $characterFavoritoItem?->character;
+        }
+
+        /* ==========================================================
+       RETORNO
+    ========================================================== */
         return view('profile.show', compact(
             'user',
             'viewer',
@@ -80,6 +145,11 @@ class ProfileController extends Controller
             'characterFavorites',
             'animeLists',
             'characterLists',
+            'totalVistos',
+            'animeFavorito',
+            'notaMedia',
+            'generosFavoritos',
+            'characterFavorito'
         ));
     }
     /**
@@ -148,6 +218,7 @@ class ProfileController extends Controller
             'bio' => 'nullable|string|max:500',
             'avatar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'banner' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
+            'is_public' => 'required|boolean',
         ]);
 
         // Actualizar avatar
@@ -176,11 +247,23 @@ class ProfileController extends Controller
 
         // Actualizar biografía
         $user->bio = $request->bio;
+
+        // Estado del perfil
+        $user->is_public = $request->boolean('is_public');
         $user->save();
+
+        // Sincronizar favoritos con el estado del perfil
+        \DB::table('anime_favorites')
+            ->where('user_id', $user->id)
+            ->update(['is_public' => $user->is_public]);
+
+        \DB::table('character_favorites')
+            ->where('user_id', $user->id)
+            ->update(['is_public' => $user->is_public]);
 
         return redirect()->back()->with('success', 'Perfil actualizado correctamente.');
     }
-    
+
     /**
      * Display the user's profile form.
      */
