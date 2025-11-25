@@ -122,15 +122,28 @@ class ProfileController extends Controller
 
 
         /* ==========================================================
-       PERSONAJE FAVORITO
-    ========================================================== */
+   PERSONAJE FAVORITO
+========================================================== */
         $characterFavorito = null;
-        $characterItems = CharacterListItem::whereHas('list', fn($q) => $q->where('user_id', $user->id))
+
+        $characterItems = CharacterListItem::whereHas(
+            'list',
+            fn($q) =>
+            $q->where('user_id', $user->id)
+        )
             ->with('character')
             ->get();
 
         if ($characterItems->count() > 0) {
-            $characterFavoritoItem = $characterItems->sortByDesc('score')->sortBy('created_at')->first();
+
+            // Orden correcto: primero score DESC, luego el más reciente
+            $characterFavoritoItem = $characterItems
+                ->sortBy([
+                    ['score', 'desc'],
+                    ['created_at', 'desc'],
+                ])
+                ->first();
+
             $characterFavorito = $characterFavoritoItem?->character;
         }
 

@@ -1,33 +1,31 @@
-<!-- ===================================================== -->
-<!-- 🪄 MODALES DE FAVORITOS -->
-<!-- ===================================================== -->
+<!-- ========================================= -->
+<!-- 🪄 MODALES RESPONSIVE -->
+<!-- ========================================= -->
 
 <!-- MODAL ANIMES FAVORITOS -->
-<div id="animesModal"
-    class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
-    <div class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto">
+<div id="animesModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+    <div
+        class="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl p-5 shadow-xl relative animate-scale-in">
+
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold text-gray-800">Todos los Animes Favoritos</h2>
-            <button id="closeAnimesModal" class="text-gray-600 hover:text-gray-800">✕</button>
+            <button id="closeAnimesModal"
+                class="text-gray-600 hover:text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-xl">✕</button>
         </div>
 
         @if ($animeFavorites->isEmpty())
             <p class="text-gray-500">Aún no hay animes en favoritos.</p>
         @else
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 @foreach ($animeFavorites as $fav)
-                    @php
-                        $anime = $fav->anime;
-                    @endphp
+                    @php $anime = $fav->anime; @endphp
                     @if ($anime)
                         <a href="{{ url('/animes/' . $anime->anilist_id) }}"
-                           class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03]">
+                            class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03]">
                             <img src="{{ $anime->cover_image ?? $fav->anime_image }}"
-                                 alt="{{ $anime->title ?? $fav->anime_title }}"
-                                 class="w-full h-64 object-cover rounded-lg mb-4">
-                            <h3 class="text-lg font-bold mb-2 truncate">
-                                {{ $anime->title ?? $fav->anime_title }}
-                            </h3>
+                                alt="{{ $anime->title ?? $fav->anime_title }}"
+                                class="w-full aspect-[3/4] object-cover rounded-lg mb-4">
+                            <h3 class="text-lg font-bold mb-2 truncate">{{ $anime->title ?? $fav->anime_title }}</h3>
                         </a>
                     @endif
                 @endforeach
@@ -37,23 +35,25 @@
 </div>
 
 <!-- MODAL PERSONAJES FAVORITOS -->
-<div id="charsModal"
-    class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
-    <div class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto">
+<div id="charsModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+    <div
+        class="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl p-5 shadow-xl relative animate-scale-in">
+
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-2xl font-bold text-gray-800">Todos los Personajes Favoritos</h2>
-            <button id="closeCharsModal" class="text-gray-600 hover:text-gray-800">✕</button>
+            <button id="closeCharsModal"
+                class="text-gray-600 hover:text-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-xl">✕</button>
         </div>
 
         @if ($characterFavorites->isEmpty())
             <p class="text-gray-500">Aún no hay personajes en favoritos.</p>
         @else
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 @foreach ($characterFavorites as $fav)
                     <a href="{{ route('animes.characters.show', ['anime' => $fav->anime_anilist_id, 'character' => $fav->anilist_id]) }}"
-                       class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03]">
+                        class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03]">
                         <img src="{{ $fav->character_image }}" alt="{{ $fav->character_name }}"
-                             class="w-full h-64 object-cover rounded-lg mb-4">
+                            class="w-full aspect-[3/4] object-cover rounded-lg mb-4">
                         <h3 class="text-lg font-bold mb-2 truncate">{{ $fav->character_name }}</h3>
                     </a>
                 @endforeach

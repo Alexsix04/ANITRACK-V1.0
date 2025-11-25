@@ -3,43 +3,38 @@
     <!-- ========================================= -->
     <!-- 🏞️ BANNER DE PERFIL -->
     <!-- ========================================= -->
-    <div class="relative w-full h-64 bg-gradient-to-r from-indigo-400 to-indigo-600 overflow-hidden">
+    <div class="relative w-full h-72 sm:h-64 bg-gradient-to-r from-indigo-400 to-indigo-600 overflow-hidden">
         <!-- Imagen de banner -->
         <img src="{{ $user->banner ? asset('storage/' . $user->banner) : asset('images/default-banner.jpg') }}"
             class="absolute inset-0 w-full h-full object-cover opacity-90" alt="Banner de {{ $user->name }}">
         <div class="absolute inset-0 bg-black bg-opacity-30"></div>
 
         <!-- Contenido -->
-        <div class="relative flex items-center justify-start h-full max-w-6xl mx-auto px-6 md:px-10">
+        <div
+            class="relative flex flex-col sm:flex-row items-center sm:items-start h-full max-w-6xl mx-auto px-6 md:px-10 py-4">
             <!-- Avatar -->
-            @if ($isOwner)
-                <div class="relative group cursor-pointer flex-shrink-0 mr-8" id="openEditModal">
-                    <img class="h-36 w-36 rounded-full object-cover border-4 border-white shadow-lg"
-                        src="{{ $user->avatar_url }}" alt="Avatar de {{ $user->name }}">
-                    <div
-                        class="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+            <div class="relative flex-shrink-0 mb-4 sm:mb-0 sm:mr-8 group">
+                <img class="h-36 w-36 sm:h-36 sm:w-36 rounded-full object-cover border-4 border-white shadow-lg"
+                    src="{{ $user->avatar_url }}" alt="Avatar de {{ $user->name }}">
+                @if ($isOwner)
+                    <div class="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                        id="openEditModal">
                         <span class="text-white text-sm font-medium">Editar</span>
                     </div>
-                </div>
-            @else
-                <div class="flex-shrink-0 mr-8">
-                    <img class="h-36 w-36 rounded-full object-cover border-4 border-white shadow-lg"
-                        src="{{ $user->avatar_url }}" alt="Avatar de {{ $user->name }}">
-                </div>
-            @endif
+                @endif
+            </div>
 
             <!-- Info -->
-            <div class="text-white">
-                <h1 class="text-3xl font-bold mb-2">{{ $user->name }}</h1>
-                <p class="text-gray-100 mb-4 max-w-lg">
-                    {{ $user->bio ?? 'Este usuario no ha agregado una descripción.' }}
-                </p>
-                @if ($isOwner)
-                    <a href="{{ route('profile.edit') }}"
-                        class="bg-white text-indigo-700 font-semibold px-5 py-2 rounded-full hover:bg-gray-100 transition">
-                        Editar Perfil
-                    </a>
-                @endif
+            <div class="text-white w-full sm:w-auto text-center sm:text-left">
+                <h1 class="text-3xl font-bold mb-2 truncate">{{ $user->name }}</h1>
+
+                <!-- Descripción con scroll vertical controlado -->
+                <div
+                    class="max-w-full sm:max-w-lg max-h-48 overflow-y-auto overflow-x-hidden p-2 bg-black bg-opacity-20 rounded break-words whitespace-normal">
+                    <p class="text-gray-100">
+                        {{ $user->bio ?? 'Este usuario no ha agregado una descripción.' }}
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -78,12 +73,20 @@
                 <!-- Estado del perfil -->
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Visibilidad del perfil</label>
-
                     <select name="is_public" class="w-full border rounded-md p-2">
                         <option value="1" {{ $user->is_public ? 'selected' : '' }}>Público</option>
                         <option value="0" {{ $user->is_public ? '' : 'selected' }}>Privado</option>
                     </select>
                 </div>
+
+                <!-- Botón Opciones Avanzadas -->
+                <div class="mb-4">
+                    <a href="{{ route('profile.edit') }}"
+                        class="w-full inline-block text-center px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition">
+                        Opciones Avanzadas
+                    </a>
+                </div>
+
                 <!-- Boton de Guardado -->
                 <div class="flex justify-end gap-2">
                     <button type="button" id="closeEditModal"
@@ -283,42 +286,6 @@
                                         </div>
                                     @endif
 
-                                    <!-- Botón guardar para visitantes -->
-                                    @if (!$isOwner && isset($viewer))
-                                        <div x-data="{
-                                            saved: {{ $list->savedByUsers->contains($viewer->id) ? 'true' : 'false' }},
-                                            toggleSave() {
-                                                fetch('{{ route('listas.anime.toggle-save', $list->id) }}', {
-                                                        method: 'POST',
-                                                        headers: {
-                                                            'Content-Type': 'application/json',
-                                                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                                        },
-                                                    })
-                                                    .then(res => res.json())
-                                                    .then(data => { this.saved = data.saved })
-                                                    .catch(err => console.error(err));
-                                            }
-                                        }" class="absolute top-3 right-3 z-10" x-cloak>
-                                            <button @click.stop="toggleSave()"
-                                                class="group p-1 focus:outline-none transition">
-                                                <svg x-show="!saved" xmlns="http://www.w3.org/2000/svg"
-                                                    fill="none" viewBox="0 0 24 24" stroke-width="2"
-                                                    stroke="currentColor"
-                                                    class="w-7 h-7 text-gray-400 group-hover:text-blue-600 transition-all duration-200">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="M5 5v14l7-5 7 5V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z" />
-                                                </svg>
-
-                                                <svg x-show="saved" xmlns="http://www.w3.org/2000/svg"
-                                                    fill="currentColor" viewBox="0 0 24 24"
-                                                    class="w-7 h-7 text-blue-600 transition-all duration-200">
-                                                    <path d="M5 3a2 2 0 0 0-2 2v16l9-6 9 6V5a2 2 0 0 0-2-2H5z" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    @endif
-
                                     <!-- Overlay -->
                                     <div
                                         class="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition">
@@ -329,21 +296,28 @@
                                     </div>
                                 </div>
 
-                                <!-- Modal (sin cambios) -->
+                                <!-- Modal -->
                                 <div id="listModal-{{ $list->id }}"
-                                    class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
+                                    class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
                                     <div
-                                        class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto relative flex flex-col gap-6">
+                                        class="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl p-6 shadow-xl flex flex-col gap-6 animate-scale-in relative">
 
-                                        <div class="flex justify-between items-start">
-                                            <div>
-                                                <h2 class="text-2xl font-bold text-gray-800">{{ $list->name }}</h2>
+                                        <!-- Encabezado adaptable -->
+                                        <div class="relative flex flex-col gap-3">
+
+                                            <!-- Título + descripción -->
+                                            <div class="pr-14"> <!-- Deja espacio para los botones -->
+                                                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">
+                                                    {{ $list->name }}
+                                                </h2>
 
                                                 @if ($list->description)
-                                                    <p class="text-gray-600 text-sm">{{ $list->description }}</p>
+                                                    <p class="text-gray-600 text-sm sm:text-base mt-1 break-words">
+                                                        {{ $list->description }}
+                                                    </p>
                                                 @endif
 
-                                                <p class="text-gray-500 text-sm">
+                                                <p class="text-gray-500 text-sm mt-2">
                                                     Estado:
                                                     <span
                                                         class="{{ $list->is_public ? 'text-green-600' : 'text-gray-400' }}">
@@ -352,48 +326,96 @@
                                                 </p>
                                             </div>
 
-                                            <button
-                                                class="close-list-modal text-gray-600 hover:text-gray-800 text-xl font-bold">✕</button>
+                                            <!-- Botones fijos arriba a la derecha -->
+                                            <div class="absolute right-0 top-0 flex items-center gap-3">
+
+                                                <!-- Guardar -->
+                                                @if (!$isOwner && isset($viewer))
+                                                    <div x-data="{
+                                                        saved: {{ $list->savedByUsers->contains($viewer->id) ? 'true' : 'false' }},
+                                                        toggleSave() {
+                                                            fetch('{{ route('listas.anime.toggle-save', $list->id) }}', {
+                                                                    method: 'POST',
+                                                                    headers: {
+                                                                        'Content-Type': 'application/json',
+                                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                                    },
+                                                                })
+                                                                .then(res => res.json())
+                                                                .then(data => { this.saved = data.saved })
+                                                                .catch(err => console.error(err));
+                                                        }
+                                                    }" x-cloak>
+
+                                                        <button @click.stop="toggleSave()"
+                                                            class="group p-1 bg-white rounded-full shadow hover:shadow-md transition">
+                                                            <svg x-show="!saved" xmlns="http://www.w3.org/2000/svg"
+                                                                fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                                                stroke="currentColor"
+                                                                class="w-7 h-7 text-gray-400 group-hover:text-blue-600 transition-all duration-200">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    d="M5 5v14l7-5 7 5V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z" />
+                                                            </svg>
+
+                                                            <svg x-show="saved" xmlns="http://www.w3.org/2000/svg"
+                                                                fill="currentColor" viewBox="0 0 24 24"
+                                                                class="w-7 h-7 text-blue-600 transition-all duration-200">
+                                                                <path
+                                                                    d="M5 3a2 2 0 0 0-2 2v16l9-6 9 6V5a2 2 0 0 0-2-2H5z" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                @endif
+
+                                                <!-- Cerrar -->
+                                                <button
+                                                    class="close-list-modal text-gray-600 hover:text-gray-800 text-2xl font-bold rounded-full w-8 h-8 flex items-center justify-center bg-white shadow hover:shadow-md transition">
+                                                    ✕
+                                                </button>
+
+                                            </div>
+
                                         </div>
 
+                                        <!-- Contenido de la lista -->
                                         @if ($list->items->isEmpty())
                                             <p class="text-gray-500 text-center py-10">Esta lista está vacía.</p>
                                         @else
                                             <div
-                                                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                                                 @foreach ($list->items as $item)
-                                                    @php
-                                                        $image = $item->anime->cover_image ?? $item->anime_image;
-                                                    @endphp
+                                                    @php $image = $item->anime->cover_image ?? $item->anime_image; @endphp
 
                                                     <a href="{{ url('/animes/' . ($item->anime->anilist_id ?? '')) }}"
-                                                        class="block bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition hover:scale-[1.03]">
+                                                        class="block bg-gray-800 text-white p-3 sm:p-4 rounded-2xl shadow-md hover:shadow-lg transition hover:scale-[1.03]">
 
                                                         @if ($image)
                                                             <img src="{{ $image }}"
                                                                 alt="{{ $item->anime_title }}"
-                                                                class="w-full h-64 object-cover rounded-lg mb-4">
+                                                                class="w-full aspect-[3/4] object-cover rounded-lg mb-3 sm:mb-4">
                                                         @else
                                                             <div
-                                                                class="w-full h-64 bg-gray-600 flex items-center justify-center rounded-lg mb-4">
+                                                                class="w-full aspect-[3/4] bg-gray-600 flex items-center justify-center rounded-lg mb-3 sm:mb-4">
                                                                 <span class="text-gray-300 text-sm">Sin imagen</span>
                                                             </div>
                                                         @endif
 
-                                                        <h3 class="text-lg font-bold mb-1 truncate">
+                                                        <h3 class="text-sm sm:text-lg font-bold mb-1 truncate">
                                                             {{ $item->anime->title ?? $item->anime_title }}
                                                         </h3>
 
                                                         @if ($item->score)
-                                                            <p class="text-sm text-gray-300">
-                                                                Puntuación: <span
+                                                            <p class="text-xs sm:text-sm text-gray-300">
+                                                                Puntuación:
+                                                                <span
                                                                     class="font-semibold">{{ $item->score }}/10</span>
                                                             </p>
                                                         @endif
 
                                                         @if ($item->episode_progress)
-                                                            <p class="text-sm text-gray-300">
-                                                                Episodios vistos: <span
+                                                            <p class="text-xs sm:text-sm text-gray-300">
+                                                                Episodios vistos:
+                                                                <span
                                                                     class="font-semibold">{{ $item->episode_progress }}</span>
                                                             </p>
                                                         @endif
@@ -404,7 +426,6 @@
 
                                     </div>
                                 </div>
-
                             </div>
                         @endforeach
                     </div>
@@ -458,42 +479,6 @@
                                         </div>
                                     @endif
 
-                                    <!-- Botón guardar para visitantes -->
-                                    @if (!$isOwner && isset($viewer))
-                                        <div x-data="{
-                                            saved: {{ $list->savedByUsers->contains($viewer->id) ? 'true' : 'false' }},
-                                            toggleSave() {
-                                                fetch('{{ route('listas.characters.save', $list->id) }}', {
-                                                        method: 'POST',
-                                                        headers: {
-                                                            'Content-Type': 'application/json',
-                                                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                                        },
-                                                    })
-                                                    .then(res => res.json())
-                                                    .then(data => { this.saved = data.saved })
-                                                    .catch(err => console.error(err));
-                                            }
-                                        }" class="absolute top-3 right-3 z-10" x-cloak>
-                                            <button @click.stop="toggleSave()"
-                                                class="group p-1 focus:outline-none transition">
-                                                <svg x-show="!saved" xmlns="http://www.w3.org/2000/svg"
-                                                    fill="none" viewBox="0 0 24 24" stroke-width="2"
-                                                    stroke="currentColor"
-                                                    class="w-7 h-7 text-gray-400 group-hover:text-blue-600 transition-all duration-200">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        d="M5 5v14l7-5 7 5V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z" />
-                                                </svg>
-
-                                                <svg x-show="saved" xmlns="http://www.w3.org/2000/svg"
-                                                    fill="currentColor" viewBox="0 0 24 24"
-                                                    class="w-7 h-7 text-blue-600 transition-all duration-200">
-                                                    <path d="M5 3a2 2 0 0 0-2 2v16l9-6 9 6V5a2 2 0 0 0-2-2H5z" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    @endif
-
                                     <!-- Overlay -->
                                     <div
                                         class="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition">
@@ -504,18 +489,80 @@
                                     </div>
                                 </div>
 
-                                <!-- Modal (sin cambios) -->
+                                <!-- Modal -->
                                 <div id="characterListModal-{{ $list->id }}"
-                                    class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
+                                    class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
                                     <div
-                                        class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto relative flex flex-col gap-6">
-                                        <div class="flex justify-between items-start">
-                                            <div>
-                                                <h2 class="text-2xl font-bold text-gray-800">{{ $list->name }}</h2>
-                                                @if ($list->description)
-                                                    <p class="text-gray-600 text-sm">{{ $list->description }}</p>
+                                        class="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl p-5 shadow-xl flex flex-col gap-6 animate-scale-in">
+
+                                        <!-- Encabezado -->
+                                        <div class="relative flex flex-col gap-3">
+
+                                            <!-- Botones fijos arriba a la derecha -->
+                                            <div class="absolute top-3 right-3 flex items-center gap-3 z-10">
+
+                                                <!-- Botón guardar para visitantes -->
+                                                @if (!$isOwner && isset($viewer))
+                                                    <div x-data="{
+                                                        saved: {{ $list->savedByUsers->contains($viewer->id) ? 'true' : 'false' }},
+                                                        toggleSave() {
+                                                            fetch('{{ route('listas.characters.save', $list->id) }}', {
+                                                                    method: 'POST',
+                                                                    headers: {
+                                                                        'Content-Type': 'application/json',
+                                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                                    },
+                                                                })
+                                                                .then(res => res.json())
+                                                                .then(data => { this.saved = data.saved })
+                                                                .catch(err => console.error(err));
+                                                        }
+                                                    }">
+
+                                                        <button @click.stop="toggleSave()"
+                                                            class="group p-1 bg-white rounded-full shadow hover:shadow-md transition focus:outline-none">
+
+                                                            <!-- Icono no guardado -->
+                                                            <svg x-show="!saved" xmlns="http://www.w3.org/2000/svg"
+                                                                fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                                                stroke="currentColor"
+                                                                class="w-8 h-8 text-gray-400 group-hover:text-blue-600 transition-all duration-200">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                    d="M5 5v14l7-5 7 5V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z" />
+                                                            </svg>
+
+                                                            <!-- Icono guardado -->
+                                                            <svg x-show="saved" xmlns="http://www.w3.org/2000/svg"
+                                                                fill="currentColor" viewBox="0 0 24 24"
+                                                                class="w-8 h-8 text-blue-600 transition-all duration-200">
+                                                                <path
+                                                                    d="M5 3a2 2 0 0 0-2 2v16l9-6 9 6V5a2 2 0 0 0-2-2H5z" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
                                                 @endif
-                                                <p class="text-gray-500 text-sm">
+
+                                                <!-- Botón de cierre -->
+                                                <button
+                                                    class="close-list-modal text-gray-600 hover:text-gray-800 text-2xl font-bold rounded-full w-8 h-8 flex items-center justify-center bg-white shadow hover:shadow-md transition">
+                                                    ✕
+                                                </button>
+
+                                            </div>
+
+                                            <!-- Título + descripción -->
+                                            <div class="pr-16"> <!-- Espacio para los botones en la derecha -->
+                                                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">
+                                                    {{ $list->name }}
+                                                </h2>
+
+                                                @if ($list->description)
+                                                    <p class="text-gray-600 text-sm sm:text-base mt-1">
+                                                        {{ $list->description }}
+                                                    </p>
+                                                @endif
+
+                                                <p class="text-gray-500 text-sm mt-2">
                                                     Estado:
                                                     <span
                                                         class="{{ $list->is_public ? 'text-green-600' : 'text-gray-400' }}">
@@ -524,37 +571,44 @@
                                                 </p>
                                             </div>
 
-                                            <button
-                                                class="close-list-modal text-gray-600 hover:text-gray-800 text-xl font-bold">✕</button>
                                         </div>
 
+                                        <!-- Contenido de la lista -->
                                         @if ($list->items->isEmpty())
                                             <p class="text-gray-500 text-center py-10">Esta lista está vacía.</p>
                                         @else
                                             <div
-                                                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                                                 @foreach ($list->items as $item)
                                                     @php $image = $item->character->image_url ?? $item->character_image; @endphp
+
                                                     <a href="{{ route('animes.characters.show', ['anime' => $item->anime_anilist_id ?? '', 'character' => $item->character->anilist_id ?? '']) }}"
-                                                        class="block bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition hover:scale-[1.03]">
+                                                        class="block bg-gray-800 text-white p-3 sm:p-4 rounded-2xl shadow-md hover:shadow-lg transition hover:scale-[1.03]">
+
                                                         @if ($image)
                                                             <img src="{{ $image }}"
                                                                 alt="{{ $item->character->name ?? $item->character_name }}"
-                                                                class="w-full h-64 object-cover rounded-lg mb-4">
+                                                                class="w-full aspect-[3/4] object-cover rounded-lg mb-3 sm:mb-4">
                                                         @else
                                                             <div
-                                                                class="w-full h-64 bg-gray-600 flex items-center justify-center rounded-lg mb-4">
+                                                                class="w-full aspect-[3/4] bg-gray-600 flex items-center justify-center rounded-lg mb-3 sm:mb-4">
                                                                 <span class="text-gray-300 text-sm">Sin imagen</span>
                                                             </div>
                                                         @endif
-                                                        <h3 class="text-lg font-bold mb-1 truncate">
-                                                            {{ $item->character->name ?? $item->character_name }}</h3>
+
+                                                        <h3 class="text-sm sm:text-lg font-bold mb-1 truncate">
+                                                            {{ $item->character->name ?? $item->character_name }}
+                                                        </h3>
+
                                                         @if (!empty($item->anime_title))
-                                                            <p class="text-sm text-gray-300">{{ $item->anime_title }}
+                                                            <p class="text-xs sm:text-sm text-gray-300">
+                                                                {{ $item->anime_title }}
                                                             </p>
                                                         @endif
+
                                                         @if ($item->score)
-                                                            <p class="text-sm text-gray-300">Puntuación: <span
+                                                            <p class="text-xs sm:text-sm text-gray-300">
+                                                                Puntuación: <span
                                                                     class="font-semibold">{{ $item->score }}/10</span>
                                                             </p>
                                                         @endif
@@ -562,9 +616,9 @@
                                                 @endforeach
                                             </div>
                                         @endif
+
                                     </div>
                                 </div>
-
                             </div>
                         @endforeach
                     </div>

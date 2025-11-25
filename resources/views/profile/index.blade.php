@@ -2,25 +2,33 @@
     <!-- ========================================= -->
     <!-- 🏞️ BANNER DE PERFIL -->
     <!-- ========================================= -->
-    <div class="relative w-full h-64 bg-gradient-to-r from-indigo-400 to-indigo-600 overflow-hidden">
+    <div class="relative w-full h-72 sm:h-64 bg-gradient-to-r from-indigo-400 to-indigo-600 overflow-hidden">
         <!-- Imagen de banner -->
         <img src="{{ $user->banner ? asset('storage/' . $user->banner) : asset('images/default-banner.jpg') }}"
             class="absolute inset-0 w-full h-full object-cover opacity-90" alt="Banner de {{ $user->name }}">
         <div class="absolute inset-0 bg-black bg-opacity-30"></div>
 
         <!-- Contenido -->
-        <div class="relative flex items-center justify-start h-full max-w-6xl mx-auto px-6 md:px-10">
+        <div
+            class="relative flex flex-col sm:flex-row items-center sm:items-start h-full max-w-6xl mx-auto px-6 md:px-10 py-4">
+
             <!-- Avatar -->
-            <div class="mr-6">
+            <div class="flex-shrink-0 mb-4 sm:mb-0 sm:mr-8">
                 <img class="h-36 w-36 rounded-full object-cover border-4 border-white shadow-lg"
                     src="{{ $user->avatar_url }}" alt="Avatar de {{ $user->name }}">
             </div>
+
             <!-- Info -->
-            <div class="text-white">
-                <h1 class="text-3xl font-bold mb-2">{{ $user->name }}</h1>
-                <p class="text-gray-100 mb-4 max-w-lg">
-                    {{ $user->bio ?? 'Este usuario no ha agregado una descripción.' }}
-                </p>
+            <div class="text-white w-full sm:w-auto text-center sm:text-left">
+                <h1 class="text-3xl font-bold mb-2 truncate">{{ $user->name }}</h1>
+
+                <!-- Descripción con scroll vertical controlado -->
+                <div
+                    class="max-w-full sm:max-w-lg max-h-48 overflow-y-auto overflow-x-hidden p-2 bg-black bg-opacity-20 rounded break-words whitespace-normal">
+                    <p class="text-gray-100">
+                        {{ $user->bio ?? 'Este usuario no ha agregado una descripción.' }}
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -685,32 +693,36 @@
     <!-- ========================================= -->
     <!-- 🪄 MODALES -->
     <!-- ========================================= -->
-    <!-- MODALES DE FAVORITOS -->
+    <!-- MODAL ANIMES FAVORITOS -->
     <div id="animesModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
-        <div class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-gray-800">Todos los Animes Favoritos</h2>
-                <button id="closeAnimesModal" class="text-gray-600 hover:text-gray-800">✕</button>
-            </div>
+        class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+        <div
+            class="bg-white w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-xl p-5 shadow-xl relative animate-scale-in">
 
+            <!-- Botón cerrar absoluto -->
+            <button id="closeAnimesModal"
+                class="absolute top-4 right-4 text-gray-600 hover:text-gray-800 text-2xl font-bold rounded-full w-8 h-8 flex items-center justify-center z-10">
+                ✕
+            </button>
+
+            <!-- Encabezado -->
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Animes Favoritos</h2>
+
+            <!-- Contenido -->
             @if ($animeFavorites->isEmpty())
                 <p class="text-gray-500">Aún no tienes animes en tus favoritos.</p>
             @else
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                     @foreach ($animeFavorites as $fav)
-                        @php
-                            $anime = $fav->anime; // relación con la tabla animes
-                        @endphp
+                        @php $anime = $fav->anime; @endphp
 
                         @if ($anime)
-                            {{-- ✅ Cambiamos el enlace para que use el anilist_id --}}
                             <a href="{{ url('/animes/' . $anime->anilist_id) }}"
-                                class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03]">
+                                class="block bg-gray-800 text-white p-3 sm:p-4 rounded-2xl shadow-md hover:shadow-lg transition hover:scale-[1.03]">
                                 <img src="{{ $anime->cover_image ?? $fav->anime_image }}"
                                     alt="{{ $anime->title ?? $fav->anime_title }}"
-                                    class="w-full h-64 object-cover rounded-lg mb-4">
-                                <h3 class="text-lg font-bold mb-2 truncate">
+                                    class="w-full aspect-[3/4] object-cover rounded-lg mb-3 sm:mb-4">
+                                <h3 class="text-sm sm:text-lg font-bold mb-1 truncate">
                                     {{ $anime->title ?? $fav->anime_title }}
                                 </h3>
                             </a>
@@ -720,25 +732,32 @@
             @endif
         </div>
     </div>
-
+    <!-- MODAL PERSONAJES FAVORITOS -->
     <div id="charsModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
-        <div class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-gray-800">Todos los Personajes Favoritos</h2>
-                <button id="closeCharsModal" class="text-gray-600 hover:text-gray-800">✕</button>
-            </div>
+        class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+        <div
+            class="bg-white w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-xl p-5 shadow-xl relative animate-scale-in">
 
+            <!-- Botón cerrar absoluto -->
+            <button id="closeCharsModal"
+                class="absolute top-4 right-4 text-gray-600 hover:text-gray-800 text-2xl font-bold rounded-full w-8 h-8 flex items-center justify-center z-10">
+                ✕
+            </button>
+
+            <!-- Encabezado -->
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Personajes Favoritos</h2>
+
+            <!-- Contenido -->
             @if ($characterFavorites->isEmpty())
                 <p class="text-gray-500">Aún no tienes personajes en tus favoritos.</p>
             @else
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                     @foreach ($characterFavorites as $fav)
                         <a href="{{ route('animes.characters.show', ['anime' => $fav->anime_anilist_id, 'character' => $fav->anilist_id]) }}"
-                            class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03]">
+                            class="block bg-gray-800 text-white p-3 sm:p-4 rounded-2xl shadow-md hover:shadow-lg transition hover:scale-[1.03]">
                             <img src="{{ $fav->character_image }}" alt="{{ $fav->character_name }}"
-                                class="w-full h-64 object-cover rounded-lg mb-4">
-                            <h3 class="text-lg font-bold mb-2 truncate">{{ $fav->character_name }}</h3>
+                                class="w-full aspect-[3/4] object-cover rounded-lg mb-3 sm:mb-4">
+                            <h3 class="text-sm sm:text-lg font-bold mb-1 truncate">{{ $fav->character_name }}</h3>
                         </a>
                     @endforeach
                 </div>
@@ -746,32 +765,37 @@
         </div>
     </div>
 
-
     <!-- ========================================= -->
     <!-- 📜 MODALES DE LISTAS DE ANIME -->
     <!-- ========================================= -->
     @foreach ($allLists as $list)
         <div id="listModal-{{ $list->id }}"
-            class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95 p-4">
+            class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
 
             <div
-                class="bg-white p-6 md:p-8 rounded-xl shadow-xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative flex flex-col gap-6">
+                class="bg-white w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-xl p-5 md:p-8 shadow-xl relative flex flex-col gap-6 animate-scale-in">
 
                 <!-- Botón cerrar absoluto -->
                 <button
-                    class="close-list-modal absolute top-4 right-4 text-gray-600 hover:text-gray-800 text-xl font-bold">
+                    class="close-list-modal absolute top-4 right-4 text-gray-600 hover:text-gray-800 text-2xl font-bold rounded-full w-8 h-8 flex items-center justify-center bg-white shadow hover:shadow-md transition z-20">
                     ✕
                 </button>
 
-                <!-- Header: nombre + acciones -->
-                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                <!-- Contenido del encabezado -->
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 relative">
 
-                    <div class="space-y-1">
+                    <!-- Título + descripción -->
+                    <div class="pr-20 sm:pr-24"> <!-- Espacio para el botón de cerrar -->
                         <h2 id="listName-{{ $list->id }}" class="text-xl sm:text-2xl font-bold text-gray-800">
-                            {{ $list->name }}</h2>
+                            {{ $list->name }}
+                        </h2>
+
                         @if ($list->description)
-                            <p class="text-gray-600 text-sm">{{ $list->description }}</p>
+                            <p class="text-gray-600 text-sm sm:text-base">
+                                {{ $list->description }}
+                            </p>
                         @endif
+
                         <p class="text-gray-500 text-sm">
                             Estado:
                             <span class="{{ $list->is_public ? 'text-green-600' : 'text-gray-400' }}">
@@ -780,10 +804,12 @@
                         </p>
                     </div>
 
-                    <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3">
+                    <!-- Botones (abajo en móvil, a la derecha en escritorio) -->
+                    <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+
                         <a href="{{ route('animes.index') }}"
                             class="bg-blue-500 hover:bg-blue-600 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-md shadow w-full sm:w-auto text-center">
-                            ➕ Añadir anime
+                            ➕ Añadir
                         </a>
 
                         <button
@@ -801,14 +827,15 @@
                                 🗑 Eliminar
                             </button>
                         @endif
-                    </div>
-                </div>
 
+                    </div>
+
+                </div>
                 <!-- Contenido de la lista -->
                 @if ($list->items->isEmpty())
                     <p class="text-gray-500 text-center py-10">Esta lista está vacía.</p>
                 @else
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                         @foreach ($list->items as $item)
                             @php
                                 $image = $item->anime->cover_image ?? $item->anime_image;
@@ -827,10 +854,10 @@
 
                                 @if ($image)
                                     <img src="{{ $image }}" alt="{{ $item->anime_title }}"
-                                        class="w-full h-44 sm:h-52 md:h-64 object-cover rounded-lg mb-3">
+                                        class="w-full aspect-[3/4] object-cover rounded-lg mb-3 sm:mb-4">
                                 @else
                                     <div
-                                        class="w-full h-44 sm:h-52 md:h-64 bg-gray-600 flex items-center justify-center rounded-lg mb-3">
+                                        class="w-full aspect-[3/4] bg-gray-600 flex items-center justify-center rounded-lg mb-3 sm:mb-4">
                                         <span class="text-gray-300 text-sm">Sin imagen</span>
                                     </div>
                                 @endif
@@ -855,12 +882,15 @@
         </div>
     @endforeach
 
-    <!--NUEVO MODAL DE EDICIÓN DE LISTA -->
+    <!-- MODAL EDICIÓN DE LISTA -->
     <div id="editListModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[70] opacity-0 scale-95 transition-all duration-200">
-        <div class="bg-gray-100 p-8 rounded-2xl shadow-2xl w-11/12 max-w-lg relative">
+        class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[70] p-4">
+        <div class="bg-gray-100 w-full max-w-md rounded-2xl p-6 md:p-8 shadow-2xl relative">
+            <!-- Botón cerrar absoluto -->
             <button id="closeEditListModal"
-                class="absolute top-4 right-5 text-gray-600 hover:text-gray-800 text-3xl font-bold">✕</button>
+                class="absolute top-4 right-4 text-gray-600 hover:text-gray-800 text-2xl font-bold rounded-full w-8 h-8 flex items-center justify-center">
+                ✕
+            </button>
 
             <h2 class="text-2xl font-bold mb-4">Editar lista</h2>
 
@@ -890,6 +920,7 @@
             </form>
         </div>
     </div>
+
     <!-- 🟢 SCRIPT DE EDICIÓN DE LISTAS -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -1035,18 +1066,27 @@
     <!-- ========================================= -->
     @foreach ($characterLists as $list)
         <div id="characterListModal-{{ $list->id }}"
-            class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
+            class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+
             <div
-                class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[80vh] overflow-y-auto relative flex flex-col gap-6">
+                class="bg-white w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-xl p-5 md:p-8 shadow-xl relative flex flex-col gap-6">
+
+                <!-- Botón cerrar absoluto -->
+                <button
+                    class="close-list-modal absolute top-4 right-4 text-gray-600 hover:text-gray-800 text-2xl font-bold rounded-full w-8 h-8 flex items-center justify-center z-10">
+                    ✕
+                </button>
 
                 <!-- Header: nombre + acciones -->
-                <div class="flex justify-between items-start">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 relative">
+                    <!-- Contenedor de nombre + descripción -->
                     <div class="space-y-1">
-                        <h2 id="characterListName-{{ $list->id }}" class="text-2xl font-bold text-gray-800">
+                        <h2 id="characterListName-{{ $list->id }}"
+                            class="text-xl sm:text-2xl font-bold text-gray-800">
                             {{ $list->name }}
                         </h2>
                         @if ($list->description)
-                            <p class="text-gray-600 text-sm">{{ $list->description }}</p>
+                            <p class="text-gray-600 text-sm sm:text-base">{{ $list->description }}</p>
                         @endif
                         <p class="text-gray-500 text-sm">
                             Estado:
@@ -1056,10 +1096,11 @@
                         </p>
                     </div>
 
-                    <div class="flex items-center gap-2">
+                    <!-- Contenedor de botones -->
+                    <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 mt-2 sm:mt-0 pr-12 sm:pr-16">
                         <!-- Botón Editar lista -->
                         <button
-                            class="open-edit-character-list bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold px-4 py-2 rounded-md shadow transition"
+                            class="open-edit-character-list bg-yellow-500 hover:bg-yellow-600 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-md shadow w-full sm:w-auto"
                             data-list-id="{{ $list->id }}" data-list-name="{{ $list->name }}"
                             data-list-description="{{ $list->description }}"
                             data-list-is-public="{{ $list->is_public ? 1 : 0 }}">
@@ -1068,13 +1109,10 @@
 
                         <!-- Botón Eliminar lista -->
                         <button
-                            class="delete-character-list-btn bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md shadow transition"
+                            class="delete-character-list-btn bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-md shadow w-full sm:w-auto"
                             data-list-id="{{ $list->id }}">
                             🗑 Eliminar
                         </button>
-
-                        <!-- Botón cerrar modal -->
-                        <button class="close-list-modal text-gray-600 hover:text-gray-800 text-xl font-bold">✕</button>
                     </div>
                 </div>
 
@@ -1082,13 +1120,13 @@
                 @if ($list->items->isEmpty())
                     <p class="text-gray-500 text-center py-10">Esta lista está vacía.</p>
                 @else
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                         @foreach ($list->items as $item)
                             @php
                                 $image = $item->character->image_url ?? $item->character_image;
                             @endphp
 
-                            <div class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03] cursor-pointer open-character-submodal"
+                            <div class="bg-gray-800 text-white p-3 md:p-4 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] transition cursor-pointer open-character-submodal"
                                 data-item-id="{{ $item->id }}" data-character-id="{{ $item->character_id }}"
                                 data-character-anilist-id="{{ $item->character->anilist_id ?? '' }}"
                                 data-character-name="{{ $item->character->name ?? '' }}"
@@ -1098,29 +1136,25 @@
                                 data-anime-title="{{ $item->anime_title ?? '' }}"
                                 data-score="{{ $item->score ?? '' }}" data-notes="{{ $item->notes ?? '' }}">
 
-                                {{-- Imagen del personaje --}}
                                 @if ($image)
                                     <img src="{{ $image }}"
                                         alt="{{ $item->character->name ?? $item->character_name }}"
-                                        class="w-full h-64 object-cover rounded-lg mb-4">
+                                        class="w-full aspect-[3/4] object-cover rounded-lg mb-3 sm:mb-4">
                                 @else
                                     <div
-                                        class="w-full h-64 bg-gray-600 flex items-center justify-center rounded-lg mb-4">
+                                        class="w-full aspect-[3/4] bg-gray-600 flex items-center justify-center rounded-lg mb-3 sm:mb-4">
                                         <span class="text-gray-300 text-sm">Sin imagen</span>
                                     </div>
                                 @endif
 
-                                {{-- Nombre del personaje --}}
-                                <h3 class="text-lg font-bold mb-1 truncate">
+                                <h3 class="text-sm sm:text-base font-bold mb-1 truncate">
                                     {{ $item->character->name ?? $item->character_name }}
                                 </h3>
 
-                                {{-- Anime al que pertenece --}}
                                 @if (!empty($item->anime_title))
-                                    <p class="text-sm text-gray-300 mb-1">{{ $item->anime_title }}</p>
+                                    <p class="text-sm text-gray-300 mb-1 truncate">{{ $item->anime_title }}</p>
                                 @endif
 
-                                {{-- Puntuación y notas --}}
                                 <div class="text-sm text-gray-300 space-y-1">
                                     @if ($item->score)
                                         <p>Puntuación: <span class="font-semibold">{{ $item->score }}/10</span></p>
@@ -1141,40 +1175,44 @@
     <!-- 📜 MODAL DE EDICIÓN DE LISTAS DE PERSONAJES -->
     <!-- ========================================= -->
     <div id="editCharacterListModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95">
-        <div class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-2xl relative">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold text-gray-800">Editar lista de personajes</h2>
-                <button id="closeEditCharacterListModal"
-                    class="text-gray-600 hover:text-gray-800 text-xl font-bold">✕</button>
-            </div>
+        class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl p-6 md:p-8 shadow-2xl relative">
 
-            <form id="editCharacterListForm">
-                @csrf
+            <!-- Botón cerrar absoluto -->
+            <button id="closeEditCharacterListModal"
+                class="absolute top-4 right-4 text-gray-600 hover:text-gray-800 text-2xl font-bold rounded-full w-8 h-8 flex items-center justify-center">
+                ✕
+            </button>
+
+            <h2 class="text-2xl font-bold mb-4">Editar lista de personajes</h2>
+
+            <form id="editCharacterListForm" class="space-y-4">
                 <input type="hidden" id="editCharacterListId">
 
-                <div class="mb-4">
-                    <label for="editCharacterListName" class="block font-semibold text-gray-700 mb-1">Nombre de la
+                <div>
+                    <label for="editCharacterListName" class="block text-sm font-medium text-gray-700">Nombre de la
                         lista</label>
                     <input type="text" id="editCharacterListName" class="w-full border rounded-lg px-3 py-2"
                         required>
                 </div>
 
-                <div class="mb-4">
+                <div>
                     <label for="editCharacterListDescription"
-                        class="block font-semibold text-gray-700 mb-1">Descripción</label>
+                        class="block text-sm font-medium text-gray-700">Descripción</label>
                     <textarea id="editCharacterListDescription" class="w-full border rounded-lg px-3 py-2" rows="3"></textarea>
                 </div>
 
-                <div class="mb-4 flex items-center gap-3">
-                    <input type="checkbox" id="editCharacterListPublic" class="h-4 w-4">
-                    <label for="editCharacterListPublic" class="text-gray-700 font-semibold">Lista pública</label>
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="editCharacterListPublic" class="w-4 h-4">
+                    <label for="editCharacterListPublic" class="text-gray-700 font-medium">Lista pública</label>
                 </div>
 
-                <button type="submit"
-                    class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-5 py-2 rounded-lg shadow transition">
-                    Guardar cambios
-                </button>
+                <div class="flex justify-end mt-4">
+                    <button type="submit"
+                        class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-5 py-2 rounded-lg shadow">
+                        Guardar cambios
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -1294,51 +1332,56 @@
         });
     </script>
 
-    <!-- SUBMODAL DE ANIME EN LISTA -->
+    <!-- SUBMODAL DE ANIME EN LISTA (responsive 100%) -->
     <div id="animeSubmodal"
-        class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60] opacity-0 scale-95">
+        class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60] opacity-0 scale-95 p-2 sm:p-4 transition-all duration-200 overflow-auto">
         <div
-            class="bg-gray-100 p-8 rounded-2xl shadow-2xl w-11/12 max-w-4xl relative flex flex-col md:flex-row gap-6 transition-all duration-200">
+            class="bg-gray-900 text-white rounded-2xl shadow-xl w-full max-w-4xl relative flex flex-col md:flex-row gap-4 sm:gap-6 p-4 sm:p-6 md:p-8 transition-all duration-200">
+
+            <!-- Botón de cerrar -->
             <button id="closeSubmodal"
-                class="absolute top-4 right-5 text-gray-600 hover:text-gray-800 text-3xl font-bold">✕</button>
+                class="absolute top-2 sm:top-4 right-2 sm:right-5 text-gray-400 hover:text-white text-2xl sm:text-3xl font-bold z-50">
+                &times;
+            </button>
 
             <!-- Imagen -->
             <div class="relative flex-shrink-0 w-full md:w-1/3 group cursor-pointer" id="submodalImageContainer">
                 <img id="submodalImage" src="" alt=""
-                    class="w-full h-80 object-cover rounded-xl shadow-md transition-transform duration-300 group-hover:scale-105">
+                    class="w-full h-64 sm:h-80 md:h-full object-cover rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105">
             </div>
 
             <!-- Información -->
-            <div class="flex-1 text-gray-800 space-y-3" id="submodalInfo">
-                <h3 id="submodalTitle" class="text-3xl font-extrabold text-gray-900 mb-3"></h3>
+            <div class="flex-1 space-y-3 overflow-auto max-h-[80vh] md:max-h-[70vh]" id="submodalInfo">
+                <h3 id="submodalTitle" class="text-2xl sm:text-3xl font-bold mb-2"></h3>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2">
-                    <p><span class="font-semibold">Estado:</span> <span id="submodalStatus">—</span></p>
-                    <p><span class="font-semibold">Puntuación:</span> <span id="submodalScore">—</span></p>
-                    <p><span class="font-semibold">Progreso:</span> <span id="submodalProgress">—</span></p>
-                    <p><span class="font-semibold">Reviendo:</span> <span id="submodalRewatch">—</span></p>
-                    <p><span class="font-semibold">Veces visto:</span> <span id="submodalRewatchCount">—</span></p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-gray-300">
+                    <p><span class="font-semibold text-white">Estado:</span> <span id="submodalStatus">—</span></p>
+                    <p><span class="font-semibold text-white">Puntuación:</span> <span id="submodalScore">—</span></p>
+                    <p><span class="font-semibold text-white">Progreso:</span> <span id="submodalProgress">—</span>
+                    </p>
+                    <p><span class="font-semibold text-white">Reviendo:</span> <span id="submodalRewatch">—</span></p>
+                    <p><span class="font-semibold text-white">Veces visto:</span> <span
+                            id="submodalRewatchCount">—</span></p>
                 </div>
 
                 <div class="mt-4">
-                    <h4 class="font-semibold text-lg mb-1">Notas:</h4>
+                    <h4 class="font-semibold text-lg mb-1 text-white">Notas:</h4>
                     <p id="submodalNotes"
-                        class="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200 shadow-inner">
+                        class="text-sm text-gray-300 bg-gray-800 p-3 rounded-lg border border-gray-700 shadow-inner break-words">
                         Sin notas
                     </p>
                 </div>
 
                 <!-- Botones -->
-                <div class="mt-6 flex gap-3">
+                <div class="mt-6 flex flex-col sm:flex-row gap-3">
                     <button id="editInfoBtn"
-                        class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-5 py-2 rounded-lg shadow transition">
+                        class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-5 py-2 rounded-lg shadow text-center transition">
                         Editar info
                     </button>
                     <button id="deleteFromListBtn"
-                        class="bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2 rounded-lg shadow transition">
+                        class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2 rounded-lg shadow text-center transition">
                         Eliminar de la lista
                     </button>
-
                 </div>
             </div>
         </div>

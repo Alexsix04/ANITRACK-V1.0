@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AnimeList;
 use App\Models\AnimeListItem;
+use App\Services\AniListService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
