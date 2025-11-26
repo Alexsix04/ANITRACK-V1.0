@@ -31,7 +31,7 @@
                         x-transition:leave-start="translate-x-0 opacity-100"
                         x-transition:leave-end="-translate-x-full opacity-0" class="absolute inset-0 w-full h-full">
                         <a :href="'/animes/' + anime.id" class="block w-full h-full">
-                            <img :src="'https://res.cloudinary.com/dqhtqecue/image/fetch/f_auto,q_auto:best,c_fit,w_1920,h_560/' +
+                            <img :src="'https://res.cloudinary.com/dqhtqecue/image/fetch/f_auto,q_auto:best,c_fit,w_2570,h_720/' +
                             encodeURIComponent(anime.coverImage.extraLarge ?? anime.coverImage.large)"
                                 :alt="anime.title.romaji"
                                 class="w-full h-full object-cover object-[center_37%] transition-all duration-500"
@@ -48,11 +48,29 @@
                 </template>
 
                 <!-- Controles -->
+                <!-- Botón Anterior -->
                 <button @click="prev()"
-                    class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-gray-800 p-1 md:p-2 rounded-full shadow transition">◀</button>
-                <button @click="next()"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white text-gray-800 p-1 md:p-2 rounded-full shadow transition">▶</button>
+                    class="absolute left-2 sm:left-4 md:left-6 top-1/2 -translate-y-1/2 
+           bg-white/20 backdrop-blur-sm hover:bg-white/40 text-gray-900 
+           p-2 sm:p-3 md:p-4 rounded-full shadow-lg 
+           transition transform hover:scale-110">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
 
+                <!-- Botón Siguiente -->
+                <button @click="next()"
+                    class="absolute right-2 sm:right-4 md:right-6 top-1/2 -translate-y-1/2 
+           bg-white/20 backdrop-blur-sm hover:bg-white/40 text-gray-900 
+           p-2 sm:p-3 md:p-4 rounded-full shadow-lg 
+           transition transform hover:scale-110">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
                 <!-- Indicadores -->
                 <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 md:gap-2">
                     <template x-for="i in total" :key="i">

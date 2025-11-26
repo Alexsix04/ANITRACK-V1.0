@@ -13,8 +13,11 @@ class AnimeRandomizerController extends Controller
      */
     public function index()
     {
+        // Listas creadas por el usuario
         $userLists = AnimeList::where('user_id', auth()->id())->get();
-        $savedLists = SavedAnimeList::all(); // todas las listas guardadas
+
+        // Solo listas guardadas por el usuario autenticado
+        $savedLists = SavedAnimeList::where('user_id', auth()->id())->get();
 
         return view('randomizer.index', compact('userLists', 'savedLists'));
     }

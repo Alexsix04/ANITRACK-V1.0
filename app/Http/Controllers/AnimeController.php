@@ -18,7 +18,7 @@ class AnimeController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = 100;
+        $perPage = 25;
         $page = $request->input('page', 1);
         $filterFromHome = $request->input('filter');
 
@@ -122,6 +122,9 @@ class AnimeController extends Controller
                 ->exists();
         }
 
-        return view('animes.show', compact('anime', 'seccion', 'comments', 'isFavorite'));
+        // Retornar la vista con headers de cache para el navegador
+        return response()
+            ->view('animes.show', compact('anime', 'seccion', 'comments', 'isFavorite'))
+            ->header('Cache-Control', 'public, max-age=3600'); // cache por 1 hora
     }
 }

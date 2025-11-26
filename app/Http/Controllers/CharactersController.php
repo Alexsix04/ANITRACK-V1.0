@@ -80,7 +80,7 @@ class CharactersController extends Controller
         $page = 1;
         $perPage = 50;
         $characterData = null;
-        $voiceActors = []; // <-- Inicializamos los actores de voz
+        $voiceActors = [];
 
         do {
             $charactersPage = $this->aniList->getCharactersByAnime((int)$animeId, $page, $perPage);
@@ -90,7 +90,7 @@ class CharactersController extends Controller
                 if ((int)$char['node']['id'] === (int)$characterId) {
                     $characterData = $char['node'];
                     $role = $char['role'] ?? null;
-                    $voiceActors = $char['voiceActors'] ?? []; // <-- Guardamos solo los actores de este personaje
+                    $voiceActors = $char['voiceActors'] ?? [];
                     break 2;
                 }
             }
@@ -106,7 +106,6 @@ class CharactersController extends Controller
         $attributes = [];
         $cleanDescription = $rawDescription;
 
-        // Traducciones de atributos
         $translations = [
             'Height' => 'Altura',
             'Initial Height' => 'Altura inicial',
@@ -127,17 +126,14 @@ class CharactersController extends Controller
             'Partners' => 'Partners',
         ];
 
-        // Detectar atributos tipo __Height__: o **Height:**
         if (preg_match_all('/(?:__|\*\*)\s*([A-Za-z0-9\s\'\-]+)\s*(?:__|\*\*)?:\s*([^\n]+)/', $rawDescription, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
                 $key = trim($match[1]);
                 $value = trim($match[2]);
                 $translatedKey = $translations[$key] ?? $key;
 
-                // Limpiar delimitadores tipo ~! ... !~ pero conservar el contenido
                 $value = preg_replace('/~!\s*(.*?)\s*!~/', '$1', $value);
 
-                // Reemplazar enlaces de personajes dentro del valor
                 $value = preg_replace_callback(
                     '/\[(.*?)\]\(https:\/\/anilist\.co\/character\/(\d+)(?:\/[^\)]*)?\)/',
                     function ($m) use ($animeId) {
@@ -149,22 +145,17 @@ class CharactersController extends Controller
                     $value
                 );
 
-                // Quitar guiones finales solitarios en Edad
                 if ($translatedKey === 'Edad') {
                     $value = preg_replace('/-$/', '', $value);
                 }
 
-                // Quitar __ o ** sobrantes
                 $value = preg_replace('/^(?:__|\*\*)|(?:__|\*\*)$/', '', $value);
-
                 $attributes[$translatedKey] = $value;
             }
 
-            // Eliminar los atributos detectados del cuerpo
             $cleanDescription = preg_replace('/(?:__|\*\*)\s*[A-Za-z0-9\s\'\-]+\s*(?:__|\*\*)?:\s*[^\n]+/', '', $rawDescription);
         }
 
-        // Reemplazar enlaces de personajes en la descripción general
         $cleanDescription = preg_replace_callback(
             '/\[(.*?)\]\(https:\/\/anilist\.co\/character\/(\d+)(?:\/[^\)]*)?\)/',
             function ($m) use ($animeId) {
@@ -176,20 +167,10 @@ class CharactersController extends Controller
             $cleanDescription
         );
 
-        // Añadir datos fijos del personaje si existen y no están ya
-        if (!empty($characterData['age']) && !isset($attributes['Edad'])) {
-            $attributes['Edad'] = e($characterData['age']);
-        }
+        if (!empty($characterData['age']) && !isset($attributes['Edad'])) $attributes['Edad'] = e($characterData['age']);
+        if (!empty($characterData['gender']) && !isset($attributes['Género'])) $attributes['Género'] = e($characterData['gender']);
+        if (!empty($characterData['bloodType']) && !isset($attributes['Tipo de sangre'])) $attributes['Tipo de sangre'] = e($characterData['bloodType']);
 
-        if (!empty($characterData['gender']) && !isset($attributes['Género'])) {
-            $attributes['Género'] = e($characterData['gender']);
-        }
-
-        if (!empty($characterData['bloodType']) && !isset($attributes['Tipo de sangre'])) {
-            $attributes['Tipo de sangre'] = e($characterData['bloodType']);
-        }
-
-        // Cumpleaños: si existe dateOfBirth con day/month/year
         if (
             !empty($characterData['dateOfBirth']) &&
             (!empty($characterData['dateOfBirth']['day']) || !empty($characterData['dateOfBirth']['month']))
@@ -197,14 +178,10 @@ class CharactersController extends Controller
             $day = $characterData['dateOfBirth']['day'] ?? null;
             $month = $characterData['dateOfBirth']['month'] ?? null;
             $year = $characterData['dateOfBirth']['year'] ?? null;
-
             $birthday = trim(($day ? $day : '') . '/' . ($month ? $month : '') . ($year ? '/' . $year : ''));
-            if ($birthday && !isset($attributes['Cumpleaños'])) {
-                $attributes['Cumpleaños'] = $birthday;
-            }
+            if ($birthday && !isset($attributes['Cumpleaños'])) $attributes['Cumpleaños'] = $birthday;
         }
 
-        // Mapear personaje al formato de la vista
         $character = [
             'id' => $characterData['id'],
             'name' => $characterData['name'],
@@ -217,28 +194,25 @@ class CharactersController extends Controller
             'extra_attributes' => $attributes,
         ];
 
-        // Procesar prequels/sequels del anime
-        $relatedMedia = collect($anime['relations']['edges'] ?? [])->map(function ($edge) {
-            return [
+        $relatedMedia = collect($anime['relations']['edges'] ?? [])
+            ->map(fn($edge) => [
                 'id' => $edge['node']['id'] ?? null,
                 'title' => $edge['node']['title']['romaji'] ?? 'Sin título',
                 'relationType' => $edge['relationType'] ?? null,
                 'coverImage' => $edge['node']['coverImage']['medium'] ?? null,
                 'node' => $edge['node'] ?? null,
-            ];
-        })->filter(function ($item) {
-            return in_array($item['relationType'], ['PREQUEL', 'SEQUEL']) && !empty($item['node']);
-        });
+            ])
+            ->filter(fn($item) => in_array($item['relationType'], ['PREQUEL', 'SEQUEL']) && !empty($item['node']));
 
-        // Traer comentarios asociados al personaje, más recientes primero
         $comments = CharacterComment::where('character_id', $character['id'])
             ->orderBy('likes_count', 'desc')
             ->orderBy('created_at', 'desc')
-            ->with('user') // opcional, si quieres mostrar avatar y nombre
+            ->with('user')
             ->get();
 
-
-        // Enviar todo a la vista
-        return view('animes.characters.show', compact('character', 'anime', 'relatedMedia', 'comments'));
+        // Cache de navegador de 1 hora
+        return response()
+            ->view('animes.characters.show', compact('character', 'anime', 'relatedMedia', 'comments'))
+            ->header('Cache-Control', 'public, max-age=3600');
     }
 }

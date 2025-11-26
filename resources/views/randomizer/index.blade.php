@@ -119,6 +119,12 @@
 
             const listData = await listResponse.json();
 
+            // Manejar listas que no existen o no pertenecen al usuario
+            if (listResponse.status === 404) {
+                container.innerHTML = `<p class="text-red-500">❌ No tienes permiso para ver esta lista</p>`;
+                return;
+            }
+
             if (!listData.animes || listData.animes.length === 0) {
                 container.innerHTML = `<p class="text-red-500">La lista no tiene animes</p>`;
                 return;
