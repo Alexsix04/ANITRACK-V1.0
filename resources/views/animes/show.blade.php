@@ -39,14 +39,14 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
                                     viewBox="0 0 24 24">
                                     <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
-                                                     1.4 8.172L12 18.896l-7.334 3.868
-                                                     1.4-8.172-5.934-5.782 8.2-1.192z" />
+                                                         1.4 8.172L12 18.896l-7.334 3.868
+                                                         1.4-8.172-5.934-5.782 8.2-1.192z" />
                                 </svg>
                             @else
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
                                     stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                                                     9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                         9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                                 </svg>
                             @endif
                         </button>
@@ -67,7 +67,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
                                 stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                                                 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                     9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                             </svg>
                         </a>
                         <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
@@ -320,8 +320,18 @@
 
                         <!-- Subir imagen -->
                         <div class="mb-3">
-                            <label class="block mb-1">Adjuntar imagen (opcional)</label>
-                            <input type="file" name="image" accept="image/*">
+                            <label class="block mb-1 font-medium text-gray-700">Adjuntar imagen (opcional)</label>
+                            <div class="relative">
+                                <!-- Botón personalizado -->
+                                <button type="button"
+                                    class="w-full text-left bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    Seleccionar archivo...
+                                </button>
+                                <!-- Input real oculto -->
+                                <input type="file" name="image" accept="image/*"
+                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Se aceptan imágenes JPG, PNG o GIF.</p>
                         </div>
 
                         <!-- Spoiler -->
@@ -439,13 +449,13 @@
                                     const commentId = button.dataset.commentId;
                                     try {
                                         const response = await fetch(
-                                        `/anime-comments/${commentId}/toggle-like`, {
-                                            method: 'POST',
-                                            headers: {
-                                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                                'Accept': 'application/json'
-                                            }
-                                        });
+                                            `/anime-comments/${commentId}/toggle-like`, {
+                                                method: 'POST',
+                                                headers: {
+                                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                    'Accept': 'application/json'
+                                                }
+                                            });
                                         if (!response.ok) {
                                             if (response.status === 403) alert(
                                                 'Debes iniciar sesión para dar like.');

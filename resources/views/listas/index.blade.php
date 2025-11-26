@@ -306,7 +306,7 @@
                 setTimeout(() => modal.classList.add('hidden'), 200);
             }
         });
-    </script>
+    </script> 
 
     {{-- Sección Personajes --}}
     <div>

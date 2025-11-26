@@ -107,7 +107,7 @@
                                 @endforeach
                             </div>
                         @endif
-                    </div>
+                    </div> 
 
                     {{-- Modal Moderno --}}
                     <div id="listModal-{{ $list->id }}"

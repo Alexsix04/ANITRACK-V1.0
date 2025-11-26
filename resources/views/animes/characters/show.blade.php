@@ -51,14 +51,14 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
                                         viewBox="0 0 24 24">
                                         <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888
-                                         1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
-                                         -6.064-5.888 8.332-1.151z" />
+                                             1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
+                                             -6.064-5.888 8.332-1.151z" />
                                     </svg>
                                 @else
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                         stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                                         9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                             9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                                     </svg>
                                 @endif
                             </button>
@@ -69,8 +69,8 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
                                     viewBox="0 0 24 24">
                                     <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888
-                                     1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
-                                     -6.064-5.888 8.332-1.151z" />
+                                         1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
+                                         -6.064-5.888 8.332-1.151z" />
                                 </svg>
                             </a>
                         @endauth
@@ -365,312 +365,319 @@
                     </div>
                 </div>
             @endif
-            </div>
         </div>
-            <div class="w-full bg-gray-900 bg-opacity-90 py-10"> 
+    </div>
+    <div class="w-full bg-gray-900 bg-opacity-90 py-10">
 
-            <!-- ================= -->
-            <!-- Sección Comentarios -->
-            <!-- ================= -->
-            <div class="max-w-2xl mx-auto mt-10">
-                <h2 class="text-2xl font-semibold text-white-800 mb-4">Comentarios</h2>
+        <!-- ================= -->
+        <!-- Sección Comentarios -->
+        <!-- ================= -->
+        <div class="max-w-2xl mx-auto mt-10">
+            <h2 class="text-2xl font-semibold text-white-800 mb-4">Comentarios</h2>
 
-                <!-- Mensaje de éxito -->
-                @if (session('success'))
-                    <div class="mb-4 rounded-md bg-green-100 p-3 text-green-700 shadow-sm">
-                        {{ session('success') }}
-                    </div>
-                @endif
+            <!-- Mensaje de éxito -->
+            @if (session('success'))
+                <div class="mb-4 rounded-md bg-green-100 p-3 text-green-700 shadow-sm">
+                    {{ session('success') }}
+                </div>
+            @endif
 
-                <!-- Errores de validación -->
-                @if ($errors->any())
-                    <div class="mb-4 rounded-md bg-red-100 p-3 text-red-700 shadow-sm">
-                        <ul class="list-disc list-inside">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+            <!-- Errores de validación -->
+            @if ($errors->any())
+                <div class="mb-4 rounded-md bg-red-100 p-3 text-red-700 shadow-sm">
+                    <ul class="list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-                <!-- Formulario de comentario -->
-                <form action="{{ route('characters.comments.store') }}" method="POST" enctype="multipart/form-data"
-                    class="bg-white rounded-2xl shadow-md p-5 mb-6 border border-gray-100">
-                    @csrf
-                    <input type="hidden" name="character_id" value="{{ $character['id'] }}">
+            <!-- Formulario de comentario -->
+            <form action="{{ route('characters.comments.store') }}" method="POST" enctype="multipart/form-data"
+                class="bg-white rounded-2xl shadow-md p-5 mb-6 border border-gray-100">
+                @csrf
+                <input type="hidden" name="character_id" value="{{ $character['id'] }}">
 
-                    <!-- Nombre usuario -->
-                    @auth
-                        <p class="text-gray-700 mb-3">
-                            Comentando como:
-                            <span class="font-semibold text-blue-600">{{ auth()->user()->name }}</span>
-                        </p>
-                        <input type="hidden" name="user_name" value="{{ auth()->user()->name }}">
-                    @else
-                        <div class="mb-3">
-                            <input type="text" name="user_name" placeholder="Tu nombre"
-                                class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
-                                value="{{ old('user_name') }}">
-                        </div>
-                    @endauth
-
-                    <div class="mb-3">
-                        <textarea name="content" placeholder="Escribe algo..." rows="3"
-                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none resize-none">{{ old('content') }}</textarea>
-                    </div>
-
-                    <!-- Subir imagen -->
-                    <div class="mb-3">
-                        <label class="block mb-1 font-medium text-gray-700">Adjuntar imagen (opcional)</label>
-                        <input type="file" name="image" accept="image/*"
-                            class="block text-sm text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                    </div>
-
-                    <!-- Spoiler -->
-                    <div class="mb-3 flex items-center gap-2">
-                        <input type="checkbox" name="is_spoiler" id="is_spoiler" value="1"
-                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-400">
-                        <label for="is_spoiler" class="text-gray-700">Marcar como spoiler</label>
-                    </div>
-
-                    <button type="submit"
-                        class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition-all shadow-sm">
-                        💬 Publicar comentario
-                    </button>
-                </form>
-
-                <!-- Listado de comentarios -->
-                @forelse ($comments as $comment)
-                    <div
-                        class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-4 border border-gray-100 dark:border-gray-700 flex gap-4 transition-transform hover:scale-[1.02]">
-
-                        <!-- Avatar -->
-                        <div class="flex-shrink-0">
-                            <a href="{{ $comment->user ? route('profile.show', $comment->user->id) : '#' }}"
-                                class="block">
-                                <img src="{{ $comment->user && $comment->user->avatar_url ? $comment->user->avatar_url : 'https://ui-avatars.com/api/?name=' . urlencode($comment->user_name ?? 'Anónimo') . '&background=0D8ABC&color=fff&bold=true' }}"
-                                    alt="{{ $comment->user_name ?? 'Anónimo' }}"
-                                    class="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-gray-600 shadow-sm hover:opacity-80 transition">
-                            </a>
-                        </div>
-
-                        <!-- Contenido -->
-                        <div class="flex-1 flex flex-col">
-                            <!-- Nombre y fecha -->
-                            <div class="flex items-center justify-between mb-2">
-                                <a href="{{ $comment->user ? route('profile.show', $comment->user->id) : '#' }}"
-                                    class="text-gray-800 dark:text-gray-100 font-semibold hover:underline">
-                                    {{ $comment->user_name ?? 'Anónimo' }}
-                                </a>
-                                <small
-                                    class="text-gray-400 dark:text-gray-300 text-sm">{{ $comment->created_at->diffForHumans() }}</small>
-                            </div>
-
-                            <!-- Spoiler -->
-                            @if ($comment->is_spoiler)
-                                <div class="p-2 bg-yellow-50 dark:bg-yellow-900 rounded-lg mb-2">
-                                    <button type="button"
-                                        class="show-spoiler-btn text-yellow-600 dark:text-yellow-400 hover:underline font-medium">
-                                        ⚠️ Spoiler — Mostrar
-                                    </button>
-                                    <div class="spoiler-content hidden mt-2 text-gray-700 dark:text-gray-200">
-                                        {{ $comment->content }}</div>
-                                </div>
-                            @else
-                                <p class="text-gray-700 dark:text-gray-200 mb-2 leading-relaxed">
-                                    {{ $comment->content }}</p>
-                            @endif
-
-                            <!-- Imagen adjunta -->
-                            @if ($comment->image)
-                                <div class="mb-2">
-                                    <button type="button"
-                                        class="show-image-btn text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium">
-                                        Ver imagen
-                                    </button>
-                                    <img src="{{ asset('storage/' . $comment->image) }}" alt="Imagen comentario"
-                                        class="mt-2 hidden max-w-full rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
-                                </div>
-                            @endif
-
-                            <!-- Likes: solo corazón -->
-                            <div class="flex items-center gap-2 mt-2">
-                                <span class="text-gray-500 dark:text-gray-400 like-count text-sm"
-                                    data-comment-id="{{ $comment->id }}">
-                                    {{ $comment->likes_count }}
-                                </span>
-
-                                @auth
-                                    <button type="button"
-                                        class="toggle-like-btn flex items-center transition-colors
-                            {{ auth()->user()->hasLikedCharacter($comment) ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-blue-500' }}"
-                                        data-comment-id="{{ $comment->id }}">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24"
-                                            fill="{{ auth()->user()->hasLikedCharacter($comment) ? 'currentColor' : 'none' }}"
-                                            stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                                        </svg>
-                                    </button>
-                                @else
-                                    <button type="button"
-                                        class="flex items-center text-gray-400 hover:text-blue-500 transition-colors"
-                                        data-comment-id="{{ $comment->id }}">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                                        </svg>
-                                    </button>
-                                @endauth
-                            </div>
-                        </div>
-                    </div>
-                @empty
-                    <p class="text-gray-500 dark:text-gray-400 text-center">Sé el primero en comentar este personaje 📝
+                <!-- Nombre usuario -->
+                @auth
+                    <p class="text-gray-700 mb-3">
+                        Comentando como:
+                        <span class="font-semibold text-blue-600">{{ auth()->user()->name }}</span>
                     </p>
-                @endforelse
+                    <input type="hidden" name="user_name" value="{{ auth()->user()->name }}">
+                @else
+                    <div class="mb-3">
+                        <input type="text" name="user_name" placeholder="Tu nombre"
+                            class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                            value="{{ old('user_name') }}">
+                    </div>
+                @endauth
 
-                <!-- JS y estilos para likes, spoilers e imagen -->
-                <script>
-                    document.addEventListener('DOMContentLoaded', () => {
+                <div class="mb-3">
+                    <textarea name="content" placeholder="Escribe algo..." rows="3"
+                        class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none resize-none">{{ old('content') }}</textarea>
+                </div>
 
-                        // Likes AJAX
-                        document.querySelectorAll('.toggle-like-btn').forEach(button => {
-                            button.addEventListener('click', async () => {
-                                const commentId = button.dataset.commentId;
-                                try {
-                                    const response = await fetch(
-                                        `/character-comments/${commentId}/toggle-like`, {
-                                            method: 'POST',
-                                            headers: {
-                                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                                'Accept': 'application/json'
-                                            }
-                                        });
-                                    if (!response.ok) {
-                                        if (response.status === 403) alert(
-                                            'Debes iniciar sesión para dar like.');
-                                        return;
-                                    }
-                                    const data = await response.json();
-                                    const likeCount = document.querySelector(
-                                        `.like-count[data-comment-id="${commentId}"]`);
-                                    if (likeCount) likeCount.textContent = data.likes_count;
+                <!-- Subir imagen con botón personalizado -->
+                <div class="mb-3">
+                    <label class="block mb-1 font-medium text-gray-700">Adjuntar imagen (opcional)</label>
+                    <div class="relative w-full">
+                        <button type="button"
+                            class="w-full text-left bg-gray-100 border border-gray-300 rounded-lg px-3 py-2 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            Seleccionar archivo...
+                        </button>
+                        <input type="file" name="image" accept="image/*"
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Se aceptan imágenes JPG, PNG o GIF.</p>
+                </div>
 
-                                    button.classList.add('scale-110');
-                                    setTimeout(() => button.classList.remove('scale-110'), 150);
+                <!-- Spoiler -->
+                <div class="mb-3 flex items-center gap-2">
+                    <input type="checkbox" name="is_spoiler" id="is_spoiler" value="1"
+                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-400">
+                    <label for="is_spoiler" class="text-gray-700">Marcar como spoiler</label>
+                </div>
 
-                                    const svg = button.querySelector('svg');
-                                    if (data.liked) {
-                                        button.classList.replace('text-gray-400', 'text-red-500');
-                                        svg.setAttribute('fill', 'currentColor');
-                                    } else {
-                                        button.classList.replace('text-red-500', 'text-gray-400');
-                                        svg.setAttribute('fill', 'none');
-                                    }
-                                } catch (error) {
-                                    console.error('Error al procesar el like:', error);
+                <button type="submit"
+                    class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition-all shadow-sm">
+                    💬 Publicar comentario
+                </button>
+            </form>
+
+            <!-- Listado de comentarios -->
+            @forelse ($comments as $comment)
+                <div
+                    class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 mb-4 border border-gray-100 dark:border-gray-700 flex gap-4 transition-transform hover:scale-[1.02]">
+
+                    <!-- Avatar -->
+                    <div class="flex-shrink-0">
+                        <a href="{{ $comment->user ? route('profile.show', $comment->user->id) : '#' }}"
+                            class="block">
+                            <img src="{{ $comment->user && $comment->user->avatar_url ? $comment->user->avatar_url : 'https://ui-avatars.com/api/?name=' . urlencode($comment->user_name ?? 'Anónimo') . '&background=0D8ABC&color=fff&bold=true' }}"
+                                alt="{{ $comment->user_name ?? 'Anónimo' }}"
+                                class="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-gray-600 shadow-sm hover:opacity-80 transition">
+                        </a>
+                    </div>
+
+                    <!-- Contenido -->
+                    <div class="flex-1 flex flex-col">
+                        <!-- Nombre y fecha -->
+                        <div class="flex items-center justify-between mb-2">
+                            <a href="{{ $comment->user ? route('profile.show', $comment->user->id) : '#' }}"
+                                class="text-gray-800 dark:text-gray-100 font-semibold hover:underline">
+                                {{ $comment->user_name ?? 'Anónimo' }}
+                            </a>
+                            <small
+                                class="text-gray-400 dark:text-gray-300 text-sm">{{ $comment->created_at->diffForHumans() }}</small>
+                        </div>
+
+                        <!-- Spoiler -->
+                        @if ($comment->is_spoiler)
+                            <div class="p-2 bg-yellow-50 dark:bg-yellow-900 rounded-lg mb-2">
+                                <button type="button"
+                                    class="show-spoiler-btn text-yellow-600 dark:text-yellow-400 hover:underline font-medium">
+                                    ⚠️ Spoiler — Mostrar
+                                </button>
+                                <div class="spoiler-content hidden mt-2 text-gray-700 dark:text-gray-200">
+                                    {{ $comment->content }}</div>
+                            </div>
+                        @else
+                            <p class="text-gray-700 dark:text-gray-200 mb-2 leading-relaxed">
+                                {{ $comment->content }}</p>
+                        @endif
+
+                        <!-- Imagen adjunta -->
+                        @if ($comment->image)
+                            <div class="mb-2">
+                                <button type="button"
+                                    class="show-image-btn text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium">
+                                    Ver imagen
+                                </button>
+                                <img src="{{ asset('storage/' . $comment->image) }}" alt="Imagen comentario"
+                                    class="mt-2 hidden max-w-full rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm">
+                            </div>
+                        @endif
+
+                        <!-- Likes: solo corazón -->
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-gray-500 dark:text-gray-400 like-count text-sm"
+                                data-comment-id="{{ $comment->id }}">
+                                {{ $comment->likes_count }}
+                            </span>
+
+                            @auth
+                                <button type="button"
+                                    class="toggle-like-btn flex items-center transition-colors
+                            {{ auth()->user()->hasLikedCharacter($comment) ? 'text-red-500 hover:text-red-600' : 'text-gray-400 hover:text-blue-500' }}"
+                                    data-comment-id="{{ $comment->id }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24"
+                                        fill="{{ auth()->user()->hasLikedCharacter($comment) ? 'currentColor' : 'none' }}"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                    </svg>
+                                </button>
+                            @else
+                                <button type="button"
+                                    class="flex items-center text-gray-400 hover:text-blue-500 transition-colors"
+                                    data-comment-id="{{ $comment->id }}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                                    </svg>
+                                </button>
+                            @endauth
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <p class="text-gray-500 dark:text-gray-400 text-center">Sé el primero en comentar este personaje 📝
+                </p>
+            @endforelse
+
+            <!-- JS y estilos para likes, spoilers e imagen -->
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+
+                    // Likes AJAX
+                    document.querySelectorAll('.toggle-like-btn').forEach(button => {
+                        button.addEventListener('click', async () => {
+                            const commentId = button.dataset.commentId;
+                            try {
+                                const response = await fetch(
+                                    `/character-comments/${commentId}/toggle-like`, {
+                                        method: 'POST',
+                                        headers: {
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                            'Accept': 'application/json'
+                                        }
+                                    });
+                                if (!response.ok) {
+                                    if (response.status === 403) alert(
+                                        'Debes iniciar sesión para dar like.');
+                                    return;
                                 }
-                            });
-                        });
+                                const data = await response.json();
+                                const likeCount = document.querySelector(
+                                    `.like-count[data-comment-id="${commentId}"]`);
+                                if (likeCount) likeCount.textContent = data.likes_count;
 
-                        // Spoiler
-                        document.querySelectorAll('.show-spoiler-btn').forEach(btn => {
-                            btn.addEventListener('click', () => btn.nextElementSibling.classList.toggle('hidden'));
-                        });
+                                button.classList.add('scale-110');
+                                setTimeout(() => button.classList.remove('scale-110'), 150);
 
-                        // Imagen
-                        document.querySelectorAll('.show-image-btn').forEach(btn => {
-                            btn.addEventListener('click', () => btn.nextElementSibling.classList.toggle('hidden'));
+                                const svg = button.querySelector('svg');
+                                if (data.liked) {
+                                    button.classList.replace('text-gray-400', 'text-red-500');
+                                    svg.setAttribute('fill', 'currentColor');
+                                } else {
+                                    button.classList.replace('text-red-500', 'text-gray-400');
+                                    svg.setAttribute('fill', 'none');
+                                }
+                            } catch (error) {
+                                console.error('Error al procesar el like:', error);
+                            }
                         });
                     });
-                </script>
 
-                <style>
-                    .toggle-like-btn {
-                        transition: transform 0.15s ease, color 0.2s ease;
-                    }
+                    // Spoiler
+                    document.querySelectorAll('.show-spoiler-btn').forEach(btn => {
+                        btn.addEventListener('click', () => btn.nextElementSibling.classList.toggle('hidden'));
+                    });
 
-                    .toggle-like-btn.scale-110 {
-                        transform: scale(1.2);
-                    }
-                </style>
+                    // Imagen
+                    document.querySelectorAll('.show-image-btn').forEach(btn => {
+                        btn.addEventListener('click', () => btn.nextElementSibling.classList.toggle('hidden'));
+                    });
+                });
+            </script>
 
-                {{-- SCRIPT BOTÓN FAVORITO FUNCIONAL (AJAX) --}}
-                <script>
-                    document.addEventListener('DOMContentLoaded', () => {
-                        document.querySelectorAll('.favoriteCharacterButton').forEach(button => {
-                            button.addEventListener('click', async () => {
+            <style>
+                .toggle-like-btn {
+                    transition: transform 0.15s ease, color 0.2s ease;
+                }
 
-                                const characterData = {
-                                    character_anilist_id: button.dataset.characterAnilistId,
-                                    character_name: button.dataset.characterName,
-                                    character_image: button.dataset.characterImage,
-                                    anime_anilist_id: button.dataset.animeAnilistId,
-                                    anime_name: button.dataset.animeName,
-                                    anime_image: button.dataset.animeImage,
-                                };
+                .toggle-like-btn.scale-110 {
+                    transform: scale(1.2);
+                }
+            </style>
 
-                                try {
-                                    const response = await fetch("{{ route('favorites.toggle') }}", {
-                                        method: "POST",
-                                        headers: {
-                                            "Content-Type": "application/json",
-                                            "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                                            "Accept": "application/json"
-                                        },
-                                        body: JSON.stringify(characterData)
-                                    });
+            {{-- SCRIPT BOTÓN FAVORITO FUNCIONAL (AJAX) --}}
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.querySelectorAll('.favoriteCharacterButton').forEach(button => {
+                        button.addEventListener('click', async () => {
 
-                                    const data = await response.json();
+                            const characterData = {
+                                character_anilist_id: button.dataset.characterAnilistId,
+                                character_name: button.dataset.characterName,
+                                character_image: button.dataset.characterImage,
+                                anime_anilist_id: button.dataset.animeAnilistId,
+                                anime_name: button.dataset.animeName,
+                                anime_image: button.dataset.animeImage,
+                            };
 
-                                    if (data.status === 'added') {
-                                        button.classList.remove('bg-gray-200', 'hover:bg-gray-300',
-                                            'text-gray-700');
-                                        button.classList.add('bg-yellow-600', 'hover:bg-yellow-700',
-                                            'text-white');
-                                        button.dataset.isFavorite = 'true';
-                                        button.title = 'Quitar de favoritos';
-                                        button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                            try {
+                                const response = await fetch("{{ route('favorites.toggle') }}", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                                        "Accept": "application/json"
+                                    },
+                                    body: JSON.stringify(characterData)
+                                });
+
+                                const data = await response.json();
+
+                                if (data.status === 'added') {
+                                    button.classList.remove('bg-gray-200', 'hover:bg-gray-300',
+                                        'text-gray-700');
+                                    button.classList.add('bg-yellow-600', 'hover:bg-yellow-700',
+                                        'text-white');
+                                    button.dataset.isFavorite = 'true';
+                                    button.title = 'Quitar de favoritos';
+                                    button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888 
                                  1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
                                  -6.064-5.888 8.332-1.151z" />
                     </svg>`;
-                                    } else if (data.status === 'removed') {
-                                        button.classList.remove('bg-yellow-600', 'hover:bg-yellow-700',
-                                            'text-white');
-                                        button.classList.add('bg-gray-200', 'hover:bg-gray-300',
-                                            'text-gray-700');
-                                        button.dataset.isFavorite = 'false';
-                                        button.title = 'Agregar a favoritos';
-                                        button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                } else if (data.status === 'removed') {
+                                    button.classList.remove('bg-yellow-600', 'hover:bg-yellow-700',
+                                        'text-white');
+                                    button.classList.add('bg-gray-200', 'hover:bg-gray-300',
+                                        'text-gray-700');
+                                    button.dataset.isFavorite = 'false';
+                                    button.title = 'Agregar a favoritos';
+                                    button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round"
                               d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 
                                  9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>`;
-                                    }
-
-                                } catch (error) {
-                                    console.error(error);
-                                    alert('Ocurrió un error, inténtalo de nuevo.');
                                 }
-                            });
+
+                            } catch (error) {
+                                console.error(error);
+                                alert('Ocurrió un error, inténtalo de nuevo.');
+                            }
                         });
                     });
-                </script>
+                });
+            </script>
 
 
 
-                <!-- Tailwind: animación de like -->
-                <style>
-                    .toggle-like-btn {
-                        transition: transform 0.15s ease;
-                    }
+            <!-- Tailwind: animación de like -->
+            <style>
+                .toggle-like-btn {
+                    transition: transform 0.15s ease;
+                }
 
-                    .toggle-like-btn.scale-110 {
-                        transform: scale(1.2);
-                    }
-                </style>
-            </div>
+                .toggle-like-btn.scale-110 {
+                    transform: scale(1.2);
+                }
+            </style>
+        </div>
 </x-app-layout>
