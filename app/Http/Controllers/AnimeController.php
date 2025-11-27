@@ -122,9 +122,6 @@ class AnimeController extends Controller
                 ->exists();
         }
 
-        // Retornar la vista con headers de cache para el navegador
-        return response()
-            ->view('animes.show', compact('anime', 'seccion', 'comments', 'isFavorite'))
-            ->header('Cache-Control', 'public, max-age=3600'); // cache por 1 hora
+        return view('animes.show', compact('anime', 'seccion', 'comments', 'isFavorite'));
     }
 }

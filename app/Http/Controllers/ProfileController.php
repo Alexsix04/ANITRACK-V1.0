@@ -230,21 +230,50 @@ class ProfileController extends Controller
         $request->validate([
             'bio' => 'nullable|string|max:500',
             'avatar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'selected_default' => 'nullable|string', // <- avatar por defecto
             'banner' => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
             'is_public' => 'required|boolean',
         ]);
 
-        // Actualizar avatar
-        if ($request->hasFile('avatar')) {
 
-            // Si el avatar actual NO es el default, lo borramos
-            if ($user->avatar && $user->avatar !== 'avatars/default-avatar.png') {
+        /* ------------------------
+     |  1. Usuario elige avatar por defecto
+     -------------------------*/
+
+        if ($request->selected_default) {
+
+            // Si tenía avatar propio → borrarlo
+            if ($user->avatar && !str_starts_with($user->avatar, 'defaults/')) {
                 Storage::disk('public')->delete($user->avatar);
             }
 
-            // Guardar nuevo
+            // Guardar nuevo avatar por defecto
+            $user->avatar = 'defaults/' . $request->selected_default;
+        }
+
+
+        /* ------------------------
+     |  2. Usuario sube avatar propio
+     -------------------------*/
+
+        if ($request->hasFile('avatar')) {
+
+            // Borrar solo si NO era un default
+            if ($user->avatar && !str_starts_with($user->avatar, 'defaults/')) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+
             $user->avatar = $request->file('avatar')->store('avatars', 'public');
         }
+
+
+        /* ------------------------
+     |  3. Otros campos
+     -------------------------*/
+
+        $user->bio = $request->bio;
+        $user->is_public = $request->is_public;
+        $user->save();
 
         // Actualizar banner
         if ($request->hasFile('banner')) {

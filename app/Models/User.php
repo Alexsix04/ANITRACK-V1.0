@@ -75,16 +75,23 @@ class User extends Authenticatable
     // === Accessor ===
     public function getAvatarUrlAttribute()
     {
+        // Sin avatar → generar con el accesor
         if (!$this->avatar) {
-            return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=0D8ABC&color=fff&bold=true';
+            return 'https://ui-avatars.com/api/?name=' . urlencode($this->name)
+                . '&background=0D8ABC&color=fff&bold=true';
         }
 
-        // Si es una URL completa (por ejemplo, guardada con asset() o storage path)
+        // Si es default → viene de public/images/avatars
+        if (str_starts_with($this->avatar, 'defaults/')) {
+            return asset('images/avatars/' . str_replace('defaults/', '', $this->avatar));
+        }
+
+        // Si es una URL completa
         if (str_starts_with($this->avatar, 'http')) {
             return $this->avatar;
         }
 
-        // Si es una ruta relativa (por ejemplo, 'avatars/user1.jpg')
+        // Si es un archivo propio del usuario
         return asset('storage/' . $this->avatar);
     }
 

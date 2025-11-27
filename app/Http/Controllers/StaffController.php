@@ -135,7 +135,7 @@ class StaffController extends Controller
             'other_animes' => $otherAnimes,
         ];
 
-        // Depuración opcional
+        // Depuración
         // dd($staff['other_animes']);
 
         return view('animes.staff.show', compact('staff', 'anime'));

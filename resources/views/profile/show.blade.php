@@ -61,7 +61,14 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nuevo Avatar</label>
                     <input type="file" name="avatar"
-                        class="block w-full text-sm border border-gray-300 rounded p-2">
+                        class="block w-full text-sm border border-gray-300 rounded p-2 mb-2">
+                    <button type="button" id="openAvatarModal"
+                        class="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition">
+                        Seleccionar avatar por defecto
+                    </button>
+                    <!-- Preview del avatar seleccionado -->
+                    <img id="avatarPreview" src="{{ $user->avatar_url }}"
+                        class="h-20 w-20 rounded-full mt-2 object-cover">
                 </div>
 
                 <!-- Bio -->
@@ -97,6 +104,29 @@
             </form>
         </div>
     </div>
+    <!-- Submodal de Avatares -->
+    <div id="avatarModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 opacity-0 scale-95">
+        <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-lg">
+            <h2 class="text-lg font-semibold mb-4">Seleccionar Avatar</h2>
+            <div class="grid grid-cols-4 gap-4 max-h-80 overflow-y-auto">
+                @foreach (File::files(public_path('images/avatars')) as $avatar)
+                    @php
+                        $avatarUrl = asset('images/avatars/' . $avatar->getFilename());
+                    @endphp
+                    <img src="{{ $avatarUrl }}" alt="Avatar"
+                        class="w-20 h-20 rounded-full cursor-pointer border-2 border-transparent hover:border-indigo-500"
+                        onclick="selectAvatar('{{ $avatarUrl }}')">
+                @endforeach
+            </div>
+            <div class="flex justify-end mt-4">
+                <button type="button" id="closeAvatarModal"
+                    class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+
     <div class="flex flex-col lg:flex-row max-w-6xl mx-auto px-6 py-12 gap-8">
 
         <!-- Sección estadísticas -->
@@ -723,6 +753,55 @@
                             setTimeout(() => editModal.classList.add('hidden'), 200);
                         }
                     });
+                });
+            </script>
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const openAvatarBtn = document.getElementById('openAvatarModal');
+                    const avatarModal = document.getElementById('avatarModal');
+                    const closeAvatarBtn = document.getElementById('closeAvatarModal');
+                    const avatarPreview = document.getElementById('avatarPreview');
+
+                    // Abrir submodal
+                    openAvatarBtn.addEventListener('click', () => {
+                        avatarModal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                        avatarModal.classList.add('flex', 'opacity-100', 'scale-100');
+                    });
+
+                    // Cerrar submodal
+                    closeAvatarBtn.addEventListener('click', () => {
+                        avatarModal.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => avatarModal.classList.add('hidden'), 200);
+                    });
+
+                    avatarModal.addEventListener('click', (e) => {
+                        if (e.target === avatarModal) {
+                            avatarModal.classList.add('opacity-0', 'scale-95');
+                            setTimeout(() => avatarModal.classList.add('hidden'), 200);
+                        }
+                    });
+
+                    // Seleccionar avatar por defecto
+                    window.selectAvatar = function(url) {
+                        // Actualizar preview
+                        avatarPreview.src = url;
+
+                        // Crear/actualizar input hidden para enviar al backend
+                        let hiddenInput = document.querySelector('input[name="selected_default"]');
+                        if (!hiddenInput) {
+                            hiddenInput = document.createElement('input');
+                            hiddenInput.type = 'hidden';
+                            hiddenInput.name = 'selected_default';
+                            avatarPreview.parentNode.appendChild(hiddenInput);
+                        }
+
+                        // Guardar solo el nombre del archivo
+                        hiddenInput.value = url.split('/').pop();
+
+                        // Cerrar submodal
+                        avatarModal.classList.add('opacity-0', 'scale-95');
+                        setTimeout(() => avatarModal.classList.add('hidden'), 200);
+                    }
                 });
             </script>
 

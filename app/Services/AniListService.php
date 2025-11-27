@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class AniListService
 {
@@ -37,7 +38,10 @@ class AniListService
      */
     public function getAnimeById(int $id)
     {
-        $query = '
+        $cacheKey = "anime_{$id}";
+
+        return Cache::remember($cacheKey, 3600, function () use ($id) {
+            $query = '
             query ($id: Int) {
                 Media(id: $id, type: ANIME) {
                     id
@@ -58,78 +62,78 @@ class AniListService
                     studios { edges { node { name } } }
                     startDate { year month day }
                     endDate { year month day }
-                    characters(page: 1, perPage: 50) { edges { role node { id name { full } image { large medium } } } }
-                    staff(page: 1, perPage: 10) { edges { role node { id name { full } image { large medium } } } }
-                    trailer {
-                    id
-                    site
-                    thumbnail
+                    characters(page: 1, perPage: 50) { 
+                        edges { role node { id name { full } image { large medium } } } 
                     }
-                    streamingEpisodes {
-                    title
-                    thumbnail
-                    url
-                    site
+                    staff(page: 1, perPage: 10) { 
+                        edges { role node { id name { full } image { large medium } } } 
                     }
+                    trailer { id site thumbnail }
+                    streamingEpisodes { title thumbnail url site }
                     relations {
                         edges {
                             relationType
-                                node {
-                                    id
-                                        title {
-                                            romaji
-                                            english
-                                            }
-                                        coverImage {
-                                            medium
-                                            }
-                                        type
-                                        format
-                                        status
-                                    }
-                                }
+                            node {
+                                id
+                                title { romaji english }
+                                coverImage { medium }
+                                type
+                                format
+                                status
                             }
                         }
                     }
-                ';
+                }
+            }
+        ';
 
-        return $this->query($query, ['id' => $id])['data']['Media'] ?? null;
+            return $this->query($query, ['id' => $id])['data']['Media'] ?? null;
+        });
     }
 
     /**
-     * Obtiene todos los personajes de un anime.
+     * Obtiene todos los personajes de un anime (con cache por página).
      */
     public function getCharactersByAnime(int $animeId, int $page = 1, int $perPage = 50)
     {
-        $query = '
-    query ($id: Int, $page: Int, $perPage: Int) {
-        Media(id: $id, type: ANIME) {
-            characters(page: $page, perPage: $perPage) {
-                pageInfo { total currentPage lastPage hasNextPage }
-                edges {
-                    role
-                    node {
-                        id
-                        name { full }
-                        image { large medium }
-                        description
-                        age
-                        gender
-                        bloodType
-                        dateOfBirth { year month day }
-                    }
-                    voiceActors(sort: [RELEVANCE, ID]) {
-                        id
-                        name { full native }
-                        languageV2
-                        image { large medium }
+        $cacheKey = "anime_{$animeId}_characters_page_{$page}_per_{$perPage}";
+
+        return Cache::remember($cacheKey, 3600, function () use ($animeId, $page, $perPage) {
+            $query = '
+            query ($id: Int, $page: Int, $perPage: Int) {
+                Media(id: $id, type: ANIME) {
+                    characters(page: $page, perPage: $perPage) {
+                        pageInfo { total currentPage lastPage hasNextPage }
+                        edges {
+                            role
+                            node {
+                                id
+                                name { full }
+                                image { large medium }
+                                description
+                                age
+                                gender
+                                bloodType
+                                dateOfBirth { year month day }
+                            }
+                            voiceActors(sort: [RELEVANCE, ID]) {
+                                id
+                                name { full native }
+                                languageV2
+                                image { large medium }
+                            }
+                        }
                     }
                 }
             }
-        }
-    }
-';
-        return $this->query($query, ['id' => $animeId, 'page' => $page, 'perPage' => $perPage])['data']['Media']['characters'] ?? [];
+        ';
+
+            return $this->query($query, [
+                'id' => $animeId,
+                'page' => $page,
+                'perPage' => $perPage
+            ])['data']['Media']['characters'] ?? [];
+        });
     }
 
     /**
@@ -176,9 +180,15 @@ query ($id: Int) {
     /**
      * Obtiene el staff de un anime.
      */
+    /**
+     * Obtiene el staff de un anime (con cache por página).
+     */
     public function getStaffByAnime(int $animeId, int $page = 1, int $perPage = 50)
     {
-        $query = '
+        $cacheKey = "anime_{$animeId}_staff_page_{$page}_per_{$perPage}";
+
+        return Cache::remember($cacheKey, 3600, function () use ($animeId, $page, $perPage) {
+            $query = '
             query ($id: Int, $page: Int, $perPage: Int) {
                 Media(id: $id, type: ANIME) {
                     staff(page: $page, perPage: $perPage) {
@@ -189,84 +199,107 @@ query ($id: Int) {
             }
         ';
 
-        return $this->query($query, ['id' => $animeId, 'page' => $page, 'perPage' => $perPage])['data']['Media']['staff'] ?? [];
+            return $this->query($query, [
+                'id' => $animeId,
+                'page' => $page,
+                'perPage' => $perPage
+            ])['data']['Media']['staff'] ?? [];
+        });
     }
 
     /**
-     * Obtiene un miembro de staff por su ID.
+     * Obtiene la información de un miembro del staff y sus animes (cache por página).
      */
     public function getStaffById(int $staffId, int $page = 1, int $perPage = 25)
     {
-        $query = '
-        query ($id: Int, $page: Int, $perPage: Int) {
-            Staff(id: $id) {
-                id
-                name { full native }
-                image { large medium }
-                description
-                favourites
-                staffMedia(page: $page, perPage: $perPage) {
-                    pageInfo { total currentPage lastPage hasNextPage }
-                    edges { node { id title { romaji english } coverImage { large medium } } }
-                }
-            }
-        }
-    ';
+        $cacheKey = "staff_{$staffId}_page_{$page}_per_{$perPage}";
 
-        return $this->query($query, ['id' => $staffId, 'page' => $page, 'perPage' => $perPage])['data']['Staff'] ?? null;
-    }
-
-    public function getStaffSummaryById(int $staffId, int $page = 1, int $perPage = 25)
-    {
-        $query = '
-        query ($id: Int, $page: Int, $perPage: Int) {
-            Staff(id: $id) {
-                id
-                name { full native }
-                image { large medium }
-                description
-                favourites
-                staffMedia(page: $page, perPage: $perPage, sort: POPULARITY_DESC) {
-                    edges {
-                        node {
-                            id
-                            title { romaji english }
-                            coverImage { large medium }
-                        }
-                    }
-                }
-                characterMedia(page: 1, perPage: 50, sort: POPULARITY_DESC) {
-                    edges {
-                        node {
-                            id
-                            title { romaji english }
-                            coverImage { large medium }
-                        }
-                        characters {
-                            id
-                            name { full native }
-                            image { large medium }
-                            favourites
-                        }
+        return Cache::remember($cacheKey, 3600, function () use ($staffId, $page, $perPage) {
+            $query = '
+            query ($id: Int, $page: Int, $perPage: Int) {
+                Staff(id: $id) {
+                    id
+                    name { full native }
+                    image { large medium }
+                    description
+                    favourites
+                    staffMedia(page: $page, perPage: $perPage) {
+                        pageInfo { total currentPage lastPage hasNextPage }
+                        edges { node { id title { romaji english } coverImage { large medium } } }
                     }
                 }
             }
-        }
-    ';
+        ';
 
-        return $this->query($query, [
-            'id' => $staffId,
-            'page' => $page,
-            'perPage' => $perPage,
-        ])['data']['Staff'] ?? null;
+            return $this->query($query, [
+                'id' => $staffId,
+                'page' => $page,
+                'perPage' => $perPage
+            ])['data']['Staff'] ?? null;
+        });
     }
 
     /**
-     * Obtiene episodios de un anime.
+     * Obtiene un resumen del staff y sus animes/personajes (cache por página).
+     */
+    public function getStaffSummaryById(int $staffId, int $page = 1, int $perPage = 25)
+    {
+        $cacheKey = "staff_summary_{$staffId}_page_{$page}_per_{$perPage}";
+
+        return Cache::remember($cacheKey, 3600, function () use ($staffId, $page, $perPage) {
+            $query = '
+            query ($id: Int, $page: Int, $perPage: Int) {
+                Staff(id: $id) {
+                    id
+                    name { full native }
+                    image { large medium }
+                    description
+                    favourites
+                    staffMedia(page: $page, perPage: $perPage, sort: POPULARITY_DESC) {
+                        edges {
+                            node {
+                                id
+                                title { romaji english }
+                                coverImage { large medium }
+                            }
+                        }
+                    }
+                    characterMedia(page: 1, perPage: 50, sort: POPULARITY_DESC) {
+                        edges {
+                            node {
+                                id
+                                title { romaji english }
+                                coverImage { large medium }
+                            }
+                            characters {
+                                id
+                                name { full native }
+                                image { large medium }
+                                favourites
+                            }
+                        }
+                    }
+                }
+            }
+        ';
+
+            return $this->query($query, [
+                'id' => $staffId,
+                'page' => $page,
+                'perPage' => $perPage,
+            ])['data']['Staff'] ?? null;
+        });
+    }
+
+    /**
+     * Obtiene episodios de un anime (cache por 1 hora).
      */
     public function getEpisodesByAnime(int $animeId)
     {
-        $query = '
+        $cacheKey = "anime_{$animeId}_episodes";
+
+        return Cache::remember($cacheKey, 3600, function () use ($animeId) {
+            $query = '
             query ($id: Int) {
                 Media(id: $id, type: ANIME) {
                     episodes
@@ -274,7 +307,8 @@ query ($id: Int) {
             }
         ';
 
-        return $this->query($query, ['id' => $animeId])['data']['Media']['episodes'] ?? 0;
+            return $this->query($query, ['id' => $animeId])['data']['Media']['episodes'] ?? 0;
+        });
     }
 
     /**
@@ -386,8 +420,14 @@ query ($id: Int) {
         $page = $params['page'] ?? 1;
         $perPage = $params['perPage'] ?? 10;
 
-        return $this->searchAnimes($filters, $page, $perPage)['animes'] ?? [];
+        // Generar una key de cache única según los parámetros
+        $cacheKey = 'search_anime_' . md5(json_encode($params));
+
+        return Cache::remember($cacheKey, 3600, function () use ($filters, $page, $perPage) {
+            return $this->searchAnimes($filters, $page, $perPage)['animes'] ?? [];
+        });
     }
+
     /**
      * Buscar ANIMES por nombre (parcial).
      */
@@ -451,6 +491,8 @@ query ($id: Int) {
           media {
             nodes {
               id
+              popularity
+              averageScore
             }
           }
         }
@@ -467,8 +509,23 @@ query ($id: Int) {
         $items = $result['data']['Page']['characters'] ?? [];
 
         return collect($items)->map(function ($char) {
-            // Tomamos el primer anime del array de media
-            $animeId = $char['media']['nodes'][0]['id'] ?? null;
+
+            $media = collect($char['media']['nodes']);
+
+            //  Filtrar nodos sin id
+            $media = $media->filter(fn($m) => !empty($m['id']));
+
+            //  Orden automático por importancia (popularity > averageScore)
+            $media = $media->sortByDesc(function ($m) {
+                return [
+                    $m['popularity'] ?? 0,
+                    $m['averageScore'] ?? 0,
+                ];
+            });
+
+            // Seleccionar anime principal
+            $mainAnime = $media->first();
+            $animeId = $mainAnime['id'] ?? null;
 
             return [
                 'id' => $char['id'],
