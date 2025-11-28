@@ -51,14 +51,14 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
                                         viewBox="0 0 24 24">
                                         <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888
-                                             1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
-                                             -6.064-5.888 8.332-1.151z" />
+                                                     1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
+                                                     -6.064-5.888 8.332-1.151z" />
                                     </svg>
                                 @else
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                         stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                                             9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                     9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                                     </svg>
                                 @endif
                             </button>
@@ -69,8 +69,8 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
                                     viewBox="0 0 24 24">
                                     <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888
-                                         1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
-                                         -6.064-5.888 8.332-1.151z" />
+                                                 1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
+                                                 -6.064-5.888 8.332-1.151z" />
                                 </svg>
                             </a>
                         @endauth
@@ -111,10 +111,16 @@
                                         <label for="list_name" class="block mb-2 text-sm text-gray-300">Selecciona una
                                             lista</label>
                                         <select id="list_name" name="list_name"
-                                            class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-blue-500 text-base">
+                                            class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-blue-500 text-base"
+                                            onchange="handleListChange(this.value)">
+                                            @if ((auth()->user()->characterLists ?? [])->isEmpty())
+                                                <option value="" selected disabled>Selecciona una opción</option>
+                                            @endif
+
                                             @foreach (auth()->user()->characterLists ?? [] as $list)
                                                 <option value="{{ $list->name }}">{{ $list->name }}</option>
                                             @endforeach
+
                                             <option value="__new__">+ Crear nueva lista...</option>
                                         </select>
 
@@ -194,7 +200,22 @@
                                 const cancelCreateBtn = document.getElementById('cancelCreateCharacterList');
                                 const createForm = document.getElementById('createCharacterListForm');
 
-                                // Abrir modal o redirigir al login si no hay usuario
+                                // Detecta si no existen listas y es la única opción del select
+                                const onlyHasCreateOption =
+                                    listSelect &&
+                                    listSelect.options.length === 1 &&
+                                    listSelect.options[0].value === "__new__";
+
+                                // Si es la única opción, abre el submodal automáticamente
+                                if (onlyHasCreateOption) {
+                                    setTimeout(() => {
+                                        createModal.classList.remove('hidden', 'opacity-0', 'scale-95');
+                                        createModal.classList.add('flex', 'opacity-100', 'scale-100');
+                                        modal.classList.add('pointer-events-none');
+                                    }, 300);
+                                }
+
+                                // Abrir modal principal
                                 openBtn?.addEventListener('click', () => {
                                     const isLoggedIn = @json(auth()->check());
 
@@ -215,6 +236,7 @@
                                     characterNameInput.value = characterData.name;
                                     characterImageInput.value = characterData.image;
                                     characterAnilistInput.value = characterData.anilist_id;
+
                                     document.getElementById('anime_anilist_id').value = characterData.anime_anilist_id;
                                     document.getElementById('anime_title').value = characterData.anime_title;
                                     document.getElementById('anime_image').value = characterData.anime_image;
@@ -234,7 +256,7 @@
                                     });
                                 });
 
-                                // Abrir submodal
+                                // Abrir submodal desde el select
                                 listSelect?.addEventListener('change', e => {
                                     if (e.target.value === '__new__') {
                                         createModal.classList.remove('hidden', 'opacity-0', 'scale-95');
@@ -253,7 +275,7 @@
                                     });
                                 });
 
-                                // Crear nueva lista vía AJAX
+                                // Crear nueva lista AJAX
                                 createForm?.addEventListener('submit', async e => {
                                     e.preventDefault();
                                     const formData = new FormData(createForm);
@@ -267,6 +289,7 @@
                                     });
 
                                     const result = await response.json();
+
                                     if (result.success && result.list) {
                                         const option = new Option(result.list.name, result.list.name, true, true);
                                         const createOption = listSelect.querySelector('option[value="__new__"]');

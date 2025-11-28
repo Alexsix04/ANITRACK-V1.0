@@ -40,6 +40,8 @@ class VoiceActorsController extends Controller
             'url' => $m[2],
         ]);
 
+        $descriptionRaw = preg_replace('/(\s*\|\s*)+/', '', $descriptionRaw);
+
         // Remover enlaces del texto original
         $descriptionRaw = preg_replace('/\[(.*?)\]\((https?:\/\/.*?)\)/', '', $descriptionRaw);
 

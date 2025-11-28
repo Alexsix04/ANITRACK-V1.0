@@ -21,20 +21,23 @@
 
 <body class="font-sans antialiased">
     <div class="flex flex-col min-h-screen bg-gray-100">
+        {{-- Navbar fijo --}}
         @include('layouts.navigation')
 
-        @isset($header)
-            <header class="bg-white shadow">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    {{ $header }}
-                </div>
-            </header>
-        @endisset
+        {{-- Contenedor del contenido con padding para no tapar el navbar --}}
+        <div class="pt-16 flex flex-col flex-grow">
+            @isset($header)
+                <header class="bg-white shadow">
+                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                        {{ $header }}
+                    </div>
+                </header>
+            @endisset
 
-        <!-- Contenido principal que ocupa todo el espacio restante -->
-        <main class="flex-grow">
-            {{ $slot }}
-        </main>
+            <main class="flex-grow">
+                {{ $slot }}
+            </main>
+        </div>
 
         @include('layouts.footer')
     </div>

@@ -39,14 +39,14 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor"
                                     viewBox="0 0 24 24">
                                     <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.782
-                                                         1.4 8.172L12 18.896l-7.334 3.868
-                                                         1.4-8.172-5.934-5.782 8.2-1.192z" />
+                                                             1.4 8.172L12 18.896l-7.334 3.868
+                                                             1.4-8.172-5.934-5.782 8.2-1.192z" />
                                 </svg>
                             @else
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
                                     stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                                                         9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                             9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                                 </svg>
                             @endif
                         </button>
@@ -67,7 +67,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" stroke="currentColor"
                                 stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                                                     9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                         9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                             </svg>
                         </a>
                         <button class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-md transition">
@@ -201,8 +201,29 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-3">
                         @php
                             $staffList = $anime['staff']['edges'] ?? [];
+
+                            // Roles por prioridad
+                            $priorityRoles = ['Director', 'Original Creator', 'Producer'];
+
+                            // Ordenar staff según prioridad de rol
+                            usort($staffList, function ($a, $b) use ($priorityRoles) {
+                                $roleA = $a['role'];
+                                $roleB = $b['role'];
+
+                                $posA = array_search($roleA, $priorityRoles);
+                                $posB = array_search($roleB, $priorityRoles);
+
+                                // Si no está en el arreglo, asignar baja prioridad
+                                $posA = $posA === false ? 999 : $posA;
+                                $posB = $posB === false ? 999 : $posB;
+
+                                return $posA <=> $posB;
+                            });
+
+                            // Limitar a 6 elementos
                             $staffToShow = array_slice($staffList, 0, 6);
                         @endphp
+
                         @foreach ($staffToShow as $staff)
                             <a href="{{ route('animes.staff.show', ['anime' => $anime['id'], 'staff' => $staff['node']['id']]) }}"
                                 class="block">

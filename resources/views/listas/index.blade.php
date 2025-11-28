@@ -10,7 +10,7 @@
             <div>
                 <h3 class="text-2xl font-bold mb-4 text-blue-600 hover:underline cursor-pointer"
                     onclick="window.location='{{ route('listas.anime.public') }}'">
-                    Últimas listas de Anime
+                    Listas de Anime
                 </h3>
 
                 @if ($publicAnimeLists->isEmpty())
@@ -24,43 +24,47 @@
                                 {{-- Contenedor conjunto de guardar + like --}}
                                 <div class="absolute top-3 right-3 flex items-center gap-3">
 
-                                    {{-- Botón de guardar lista --}}
-                                    <div x-data="{
-                                        saved: {{ in_array($list->id, $savedAnimeIds) ? 'true' : 'false' }},
-                                        toggleSave() {
-                                            fetch('{{ route('listas.anime.toggle-save', $list->id) }}', {
-                                                    method: 'POST',
-                                                    headers: {
-                                                        'Content-Type': 'application/json',
-                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                                    },
-                                                })
-                                                .then(res => res.json())
-                                                .then(data => {
-                                                    this.saved = data.saved;
-                                                })
-                                                .catch(err => console.error(err));
-                                        }
-                                    }">
-                                        <button @click.stop="toggleSave()"
-                                            class="group p-1 focus:outline-none transition">
-                                            {{-- Ícono sin guardar --}}
-                                            <svg x-show="!saved" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-                                                class="w-7 h-7 text-gray-400 group-hover:text-blue-600 transition-all duration-200">
-                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                    d="M5 5v14l7-5 7 5V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z" />
-                                            </svg>
+                                    {{-- Mostrar solo si el usuario autenticado NO es el dueño de la lista --}}
+                                    @auth
+                                        @if ($list->user_id !== auth()->id())
+                                            {{-- Botón de guardar lista --}}
+                                            <div x-data="{
+                                                saved: {{ in_array($list->id, $savedAnimeIds) ? 'true' : 'false' }},
+                                                toggleSave() {
+                                                    fetch('{{ route('listas.anime.toggle-save', $list->id) }}', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                                'Content-Type': 'application/json',
+                                                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                            },
+                                                        })
+                                                        .then(res => res.json())
+                                                        .then(data => {
+                                                            this.saved = data.saved;
+                                                        })
+                                                        .catch(err => console.error(err));
+                                                }
+                                            }">
+                                                <button @click.stop="toggleSave()"
+                                                    class="group p-1 focus:outline-none transition">
+                                                    {{-- Ícono sin guardar --}}
+                                                    <svg x-show="!saved" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                                                        class="w-7 h-7 text-gray-400 group-hover:text-blue-600 transition-all duration-200">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M5 5v14l7-5 7 5V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z" />
+                                                    </svg>
 
-                                            {{-- Ícono guardado --}}
-                                            <svg x-show="saved" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                                                viewBox="0 0 24 24"
-                                                class="w-7 h-7 text-blue-600 transition-all duration-200">
-                                                <path d="M5 3a2 2 0 0 0-2 2v16l9-6 9 6V5a2 2 0 0 0-2-2H5z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-
+                                                    {{-- Ícono guardado --}}
+                                                    <svg x-show="saved" xmlns="http://www.w3.org/2000/svg"
+                                                        fill="currentColor" viewBox="0 0 24 24"
+                                                        class="w-7 h-7 text-blue-600 transition-all duration-200">
+                                                        <path d="M5 3a2 2 0 0 0-2 2v16l9-6 9 6V5a2 2 0 0 0-2-2H5z" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        @endif
+                                    @endauth
                                     {{-- Botón de likes --}}
                                     <div x-data="{
                                         liked: {{ $list->is_liked ? 'true' : 'false' }},
@@ -306,13 +310,13 @@
                 setTimeout(() => modal.classList.add('hidden'), 200);
             }
         });
-    </script> 
+    </script>
 
     {{-- Sección Personajes --}}
     <div>
         <h3 class="text-2xl font-bold mb-4 text-blue-600 hover:underline cursor-pointer"
             onclick="window.location='{{ route('listas.characters.public') }}'">
-            Últimas listas de Personajes
+            Listas de Personajes
         </h3>
 
         @if ($publicCharacterLists->isEmpty())
@@ -326,55 +330,47 @@
                         {{-- Contenedor conjunto de guardar + like --}}
                         <div class="absolute top-3 right-3 flex items-center gap-3">
 
-                            {{-- Botón de guardar lista --}}
-                            <div x-data="{
-                                saved: {{ in_array($list->id, $savedCharacterIds) ? 'true' : 'false' }},
-                                message: '',
-                                showToast: false,
-                                toggleSave() {
-                                    fetch('{{ route('listas.characters.save', $list->id) }}', {
-                                            method: 'POST',
-                                            headers: {
-                                                'Content-Type': 'application/json',
-                                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                            },
-                                        })
-                                        .then(res => res.json())
-                                        .then(data => {
-                                            this.saved = data.saved;
-                                            this.message = data.saved ?
-                                                '✅ Lista guardada correctamente' :
-                                                '❌ Ya no tienes guardada esta lista';
-                                            this.showToast = true;
-                                            setTimeout(() => this.showToast = false, 2000);
-                                        })
-                                        .catch(err => console.error(err));
-                                }
-                            }">
-                                <button @click.stop="toggleSave()" class="group p-1 focus:outline-none transition">
-                                    {{-- Ícono sin guardar --}}
-                                    <svg x-show="!saved" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-                                        class="w-7 h-7 text-gray-400 group-hover:text-blue-600 transition-all duration-200">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M5 5v14l7-5 7 5V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z" />
-                                    </svg>
+                            @auth
+                                @if ($list->user_id !== auth()->id())
+                                    {{-- Botón de guardar lista --}}
+                                    <div x-data="{
+                                        saved: {{ in_array($list->id, $savedCharacterIds) ? 'true' : 'false' }},
+                                        toggleSave() {
+                                            fetch('{{ route('listas.characters.save', $list->id) }}', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                    },
+                                                })
+                                                .then(res => res.json())
+                                                .then(data => {
+                                                    this.saved = data.saved;
+                                                })
+                                                .catch(err => console.error(err));
+                                        }
+                                    }">
 
-                                    {{-- Ícono guardado --}}
-                                    <svg x-show="saved" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                                        viewBox="0 0 24 24" class="w-7 h-7 text-blue-600 transition-all duration-200">
-                                        <path d="M5 3a2 2 0 0 0-2 2v16l9-6 9 6V5a2 2 0 0 0-2-2H5z" />
-                                    </svg>
-                                </button>
+                                        <button @click.stop="toggleSave()" class="group p-1 focus:outline-none transition">
+                                            {{-- Ícono sin guardar --}}
+                                            <svg x-show="!saved" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                                viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                                                class="w-7 h-7 text-gray-400 group-hover:text-blue-600 transition-all duration-200">
+                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                    d="M5 5v14l7-5 7 5V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z" />
+                                            </svg>
 
-                                {{-- Toast de confirmación --}}
-                                <template x-if="showToast">
-                                    <div x-transition
-                                        class="absolute top-10 right-0 bg-gray-900 text-white text-sm font-medium py-2 px-3 rounded-lg shadow-lg">
-                                        <span x-text="message"></span>
+                                            {{-- Ícono guardado --}}
+                                            <svg x-show="saved" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                                viewBox="0 0 24 24"
+                                                class="w-7 h-7 text-blue-600 transition-all duration-200">
+                                                <path d="M5 3a2 2 0 0 0-2 2v16l9-6 9 6V5a2 2 0 0 0-2-2H5z" />
+                                            </svg>
+                                        </button>
+
                                     </div>
-                                </template>
-                            </div>
+                                @endif
+                            @endauth
 
                             {{-- Botón de likes --}}
                             <div x-data="{

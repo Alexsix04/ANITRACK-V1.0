@@ -2,237 +2,197 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 class="text-3xl font-bold mb-6">Listas Públicas de Personajes</h1>
 
-        @if ($publicCharacterLists->isEmpty())
-            <p class="text-gray-500 text-center py-10">No hay listas públicas disponibles.</p>
-        @else
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                @foreach ($publicCharacterLists as $list)
-                    <div class="bg-white rounded-2xl shadow-lg p-4 hover:shadow-xl transition cursor-pointer relative group"
-                        data-modal-target="#characterListModal-{{ $list->id }}">
+        {{-- Buscador --}}
+        <input type="text" id="search" placeholder="Buscar por nombre de lista..."
+            class="border p-2 mb-6 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
 
-                        {{-- Contenedor conjunto de guardar + like --}}
-                        <div class="absolute top-3 right-3 flex items-center gap-3">
+        <div id="character-lists-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            @foreach ($publicCharacterLists as $list)
+                <div class="character-list-card bg-white rounded-2xl shadow-lg p-4 hover:shadow-xl transition cursor-pointer relative group"
+                    data-modal-target="#characterListModal-{{ $list->id }}"
+                    data-name="{{ strtolower($list->name) }}">
 
-                            {{-- Botón de guardar lista --}}
-                            <div x-data="{
-                                saved: {{ $list->is_saved ? 'true' : 'false' }},
-                                message: '',
-                                showToast: false,
-                                toggleSave() {
-                                    fetch('{{ route('listas.characters.save', $list->id) }}', {
-                                            method: 'POST',
-                                            headers: {
-                                                'Content-Type': 'application/json',
-                                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                            },
-                                        })
-                                        .then(res => res.json())
-                                        .then(data => {
-                                            this.saved = data.saved;
-                                            this.message = data.saved ?
-                                                '✅ Lista guardada correctamente' :
-                                                '❌ Ya no tienes guardada esta lista';
-                                            this.showToast = true;
-                                            setTimeout(() => this.showToast = false, 2000);
-                                        })
-                                        .catch(err => console.error(err));
-                                }
-                            }">
-                                <button @click.stop="toggleSave()" class="group p-1 focus:outline-none transition">
-                                    {{-- Ícono sin guardar --}}
-                                    <svg x-show="!saved" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-                                        class="w-7 h-7 text-gray-400 group-hover:text-blue-600 transition-all duration-200">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M5 5v14l7-5 7 5V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z" />
-                                    </svg>
+                    {{-- Guardado + likes --}}
+                    <div class="absolute top-3 right-3 flex items-center gap-3">
 
-                                    {{-- Ícono guardado --}}
-                                    <svg x-show="saved" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
-                                        viewBox="0 0 24 24" class="w-7 h-7 text-blue-600 transition-all duration-200">
-                                        <path d="M5 3a2 2 0 0 0-2 2v16l9-6 9 6V5a2 2 0 0 0-2-2H5z" />
-                                    </svg>
-                                </button>
-
-                                {{-- Toast de confirmación --}}
-                                <template x-if="showToast">
-                                    <div x-transition
-                                        class="absolute top-10 right-0 bg-gray-900 text-white text-sm font-medium py-2 px-3 rounded-lg shadow-lg">
-                                        <span x-text="message"></span>
-                                    </div>
-                                </template>
-                            </div>
-
-                            {{-- Botón de likes --}}
-                            <div x-data="{
-                                liked: {{ $list->is_liked ? 'true' : 'false' }},
-                                likeCount: {{ $list->likes_count }},
-                                toggleLike() {
-                                    fetch('{{ route('listas.characters.like', $list->id) }}', {
-                                            method: 'POST',
-                                            headers: {
-                                                'Content-Type': 'application/json',
-                                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                            },
-                                        })
-                                        .then(res => res.json())
-                                        .then(data => {
-                                            this.liked = data.liked;
-                                            this.likeCount = data.likes_count;
-                                        })
-                                        .catch(err => console.error(err));
-                                }
-                            }" class="flex items-center gap-1">
-
-                                <button @click.stop="toggleLike()" class="group p-1 focus:outline-none transition">
-                                    {{-- Corazón vacío --}}
-                                    <svg x-show="!liked" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                        viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
-                                        class="w-7 h-7 text-gray-400 group-hover:text-red-500 transition-all duration-200">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M4.318 6.318a4.5 4.5 0 0 1 6.364 0L12 7.636l1.318-1.318a4.5 4.5 0 1 1 6.364 6.364L12 21l-7.682-8.318a4.5 4.5 0 0 1 0-6.364z" />
-                                    </svg>
-
-                                    {{-- Corazón relleno --}}
-                                    <svg x-show="liked" xmlns="http://www.w3.org/2000/svg" fill="red"
-                                        viewBox="0 0 24 24" class="w-7 h-7 transition-all duration-200">
-                                        <path
-                                            d="M12 21s-6.716-6.188-9.364-8.836A6 6 0 0 1 12 4.636a6 6 0 0 1 9.364 8.528C18.716 14.812 12 21 12 21z" />
-                                    </svg>
-                                </button>
-
-                                <span class="text-sm text-gray-600" x-text="likeCount"></span>
-                            </div>
-
-                        </div>
-
-                        <h2 class="text-xl font-bold text-gray-800 mb-2 truncate">{{ $list->name }}</h2>
-
-                        @if (!$list->items->isEmpty())
-                            <div class="grid grid-cols-2 gap-2 mt-2">
-                                @foreach ($list->items->take(4) as $item)
-                                    @php
-                                        $image = $item->character->image_url ?? $item->character_image;
-                                    @endphp
-                                    @if ($image)
-                                        <img src="{{ $image }}"
-                                            alt="{{ $item->character->name ?? $item->character_name }}"
-                                            class="w-full h-24 object-cover rounded-lg">
-                                    @endif
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-
-                    {{-- Modal Moderno para listas públicas de personajes --}}
-                    <div id="characterListModal-{{ $list->id }}"
-                        class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95 transition-all duration-200">
-                        <div
-                            class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[85vh] overflow-y-auto relative flex flex-col gap-6">
-
-                            <!-- Encabezado -->
-                            <div class="flex justify-between items-start border-b pb-3">
-                                <div class="space-y-3">
-                                    <h2 class="text-2xl font-bold text-gray-800">{{ $list->name }}</h2>
-
-                                    @if ($list->user)
-                                        <a href="{{ route('profile.show', $list->user->id) }}"
-                                            class="flex items-center gap-3">
-                                            <img src="{{ $list->user->avatar_url }}" alt="{{ $list->user->name }}"
-                                                class="w-10 h-10 rounded-full ring-2 ring-gray-200 hover:opacity-80 transition">
-
-                                            <span class="text-gray-700 font-semibold hover:underline">
-                                                {{ $list->user->name }}
-                                            </span>
-                                        </a>
-                                    @endif
-
-                                    {{-- Contenedor de descripción --}}
-                                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                                        @if ($list->description)
-                                            <p class="text-gray-700 text-sm">{{ $list->description }}</p>
-                                        @else
-                                            <p class="text-gray-400 text-sm italic">
-                                                El usuario no ha proporcionado información para esta lista.
-                                            </p>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <!-- Botón cerrar -->
-                                <button
-                                    class="close-modal text-gray-600 hover:text-gray-800 text-2xl font-bold bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center">
-                                    ✕
-                                </button>
-                            </div>
-
-                            <!-- Contenido de la lista -->
-                            @if ($list->items->isEmpty())
-                                <p class="text-gray-500 text-center py-10">Esta lista no contiene personajes.</p>
-                            @else
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                    @foreach ($list->items as $item)
-                                        @php
-                                            $character = $item->character ?? null;
-                                            $image = $character->image_url ?? $item->character_image;
-                                            $name = $character->name ?? $item->character_name;
-                                            $hasNotes = !empty($item->notes);
-                                            $animeAnilistId =
-                                                $character->anime->anilist_id ?? ($item->anime_anilist_id ?? null);
-                                            $characterAnilistId =
-                                                $character->anilist_id ?? ($item->character_anilist_id ?? null);
-                                        @endphp
-
-                                        @if ($animeAnilistId && $characterAnilistId)
-                                            <a href="{{ url('/animes/' . $animeAnilistId . '/personajes/' . $characterAnilistId) }}"
-                                                class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03] cursor-pointer relative">
-                                            @else
-                                                <div
-                                                    class="bg-gray-800 text-white p-4 rounded-2xl shadow-md opacity-90 block cursor-not-allowed relative">
-                                        @endif
-
-                                        @if ($image)
-                                            <img src="{{ $image }}" alt="{{ $name }}"
-                                                class="w-full h-56 object-cover rounded-lg mb-4">
-                                        @else
-                                            <div
-                                                class="w-full h-56 bg-gray-600 flex items-center justify-center rounded-lg mb-4">
-                                                <span class="text-gray-300 text-sm">Sin imagen</span>
-                                            </div>
-                                        @endif
-
-                                        <h3 class="text-lg font-bold mb-1 truncate">{{ $name }}</h3>
-
-                                        @if ($item->score)
-                                            <p class="text-sm text-yellow-400">
-                                                Puntuación: <span class="font-semibold">{{ $item->score }}/10</span>
-                                            </p>
-                                        @endif
-
-                                        {{-- Botón para mostrar nota --}}
-                                        @if ($hasNotes)
-                                            <button class="mt-2 text-xs text-blue-400 hover:underline open-note-modal"
-                                                data-note="{{ $item->notes }}">
-                                                Ver nota 📝
-                                            </button>
-                                        @endif
-
-                                        @if ($animeAnilistId && $characterAnilistId)
-                                            </a>
-                                        @else
+                        {{-- Botón de guardar --}}
+                        @auth
+                            @if ($list->user_id !== auth()->id())
+                                <div x-data="{
+                                    saved: {{ $list->is_saved ? 'true' : 'false' }},
+                                    toggleSave() {
+                                        fetch('{{ route('listas.characters.save', $list->id) }}', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                },
+                                            })
+                                            .then(res => res.json())
+                                            .then(data => { this.saved = data.saved; })
+                                            .catch(err => console.error(err));
+                                    }
+                                }">
+                                    <button @click.stop="toggleSave()" class="group p-1 focus:outline-none transition">
+                                        <svg x-show="!saved" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                                            class="w-7 h-7 text-gray-400 group-hover:text-blue-600 transition-all duration-200">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M5 5v14l7-5 7 5V5a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z" />
+                                        </svg>
+                                        <svg x-show="saved" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
+                                            viewBox="0 0 24 24" class="w-7 h-7 text-blue-600 transition-all duration-200">
+                                            <path d="M5 3a2 2 0 0 0-2 2v16l9-6 9 6V5a2 2 0 0 0-2-2H5z" />
+                                        </svg>
+                                    </button>
                                 </div>
                             @endif
-                @endforeach
-            </div>
+                        @endauth
+
+                        {{-- Botón de likes --}}
+                        <div x-data="{
+                            liked: {{ $list->is_liked ? 'true' : 'false' }},
+                            likeCount: {{ $list->likes_count }},
+                            toggleLike() {
+                                fetch('{{ route('listas.characters.like', $list->id) }}', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                                    })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        this.liked = data.liked;
+                                        this.likeCount = data.likes_count;
+                                    })
+                                    .catch(err => console.error(err));
+                            }
+                        }" class="flex items-center gap-1">
+                            <button @click.stop="toggleLike()" class="group p-1 focus:outline-none transition">
+                                <svg x-show="!liked" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+                                    class="w-7 h-7 text-gray-400 group-hover:text-red-500 transition-all duration-200">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M4.318 6.318a4.5 4.5 0 0 1 6.364 0L12 7.636l1.318-1.318a4.5 4.5 0 1 1 6.364 6.364L12 21l-7.682-8.318a4.5 4.5 0 0 1 0-6.364z" />
+                                </svg>
+                                <svg x-show="liked" xmlns="http://www.w3.org/2000/svg" fill="red"
+                                    viewBox="0 0 24 24" class="w-7 h-7 transition-all duration-200">
+                                    <path
+                                        d="M12 21s-6.716-6.188-9.364-8.836A6 6 0 0 1 12 4.636a6 6 0 0 1 9.364 8.528C18.716 14.812 12 21 12 21z" />
+                                </svg>
+                            </button>
+                            <span class="text-sm text-gray-600" x-text="likeCount"></span>
+                        </div>
+                    </div>
+
+                    <h2 class="text-xl font-bold text-gray-800 mb-2 truncate">{{ $list->name }}</h2>
+
+                    {{-- Miniaturas --}}
+                    @if (!$list->items->isEmpty())
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            @foreach ($list->items->take(4) as $item)
+                                @php
+                                    $image = $item->character->image_url ?? $item->character_image;
+                                @endphp
+                                @if ($image)
+                                    <img src="{{ $image }}"
+                                        alt="{{ $item->character->name ?? $item->character_name }}"
+                                        class="w-full h-24 object-cover rounded-lg">
+                                @endif
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Modal de lista --}}
+                <div id="characterListModal-{{ $list->id }}"
+                    class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 scale-95 transition-all duration-200">
+                    <div
+                        class="bg-white p-6 rounded-xl shadow-xl w-11/12 max-w-5xl max-h-[85vh] overflow-y-auto relative flex flex-col gap-6">
+                        <div class="flex justify-between items-start border-b pb-3">
+                            <div class="space-y-3">
+                                <h2 class="text-2xl font-bold text-gray-800">{{ $list->name }}</h2>
+                                @if ($list->user)
+                                    <a href="{{ route('profile.show', $list->user->id) }}"
+                                        class="flex items-center gap-3">
+                                        <img src="{{ $list->user->avatar_url }}" alt="{{ $list->user->name }}"
+                                            class="w-10 h-10 rounded-full ring-2 ring-gray-200 hover:opacity-80 transition">
+                                        <span
+                                            class="text-gray-700 font-semibold hover:underline">{{ $list->user->name }}</span>
+                                    </a>
+                                @endif
+                                <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                                    @if ($list->description)
+                                        <p class="text-gray-700 text-sm">{{ $list->description }}</p>
+                                    @else
+                                        <p class="text-gray-400 text-sm italic">El usuario no ha proporcionado
+                                            información para esta lista.</p>
+                                    @endif
+                                </div>
+                            </div>
+                            <button
+                                class="close-modal text-gray-600 hover:text-gray-800 text-2xl font-bold bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center">✕</button>
+                        </div>
+
+                        @if ($list->items->isEmpty())
+                            <p class="text-gray-500 text-center py-10">Esta lista no contiene personajes.</p>
+                        @else
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                @foreach ($list->items as $item)
+                                    @php
+                                        $character = $item->character ?? null;
+                                        $image = $character->image_url ?? $item->character_image;
+                                        $name = $character->name ?? $item->character_name;
+                                        $hasNotes = !empty($item->notes);
+                                        $animeAnilistId =
+                                            $character->anime->anilist_id ?? ($item->anime_anilist_id ?? null);
+                                        $characterAnilistId =
+                                            $character->anilist_id ?? ($item->character_anilist_id ?? null);
+                                    @endphp
+
+                                    @if ($animeAnilistId && $characterAnilistId)
+                                        <a href="{{ url('/animes/' . $animeAnilistId . '/personajes/' . $characterAnilistId) }}"
+                                            class="bg-gray-800 text-white p-4 rounded-2xl shadow-md hover:shadow-lg transition block hover:scale-[1.03] cursor-pointer relative">
+                                        @else
+                                            <div
+                                                class="bg-gray-800 text-white p-4 rounded-2xl shadow-md opacity-90 block cursor-not-allowed relative">
+                                    @endif
+
+                                    @if ($image)
+                                        <img src="{{ $image }}" alt="{{ $name }}"
+                                            class="w-full h-56 object-cover rounded-lg mb-4">
+                                    @else
+                                        <div
+                                            class="w-full h-56 bg-gray-600 flex items-center justify-center rounded-lg mb-4">
+                                            <span class="text-gray-300 text-sm">Sin imagen</span>
+                                        </div>
+                                    @endif
+
+                                    <h3 class="text-lg font-bold mb-1 truncate">{{ $name }}</h3>
+                                    @if ($item->score)
+                                        <p class="text-sm text-yellow-400">Puntuación: <span
+                                                class="font-semibold">{{ $item->score }}/10</span></p>
+                                    @endif
+                                    @if ($hasNotes)
+                                        <button class="mt-2 text-xs text-blue-400 hover:underline open-note-modal"
+                                            data-note="{{ $item->notes }}">
+                                            Ver nota 📝
+                                        </button>
+                                    @endif
+
+                                    @if ($animeAnilistId && $characterAnilistId)
+                                        </a>
+                                    @else
+                            </div>
+                        @endif
+            @endforeach
+        </div>
         @endif
     </div>
     </div>
     @endforeach
     </div>
-    @endif
     </div>
 
-    {{-- Modal de nota general --}}
+    {{-- Modal de nota --}}
     <div id="noteModal"
         class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[100] opacity-0 scale-95 transition-all duration-200">
         <div class="bg-white rounded-xl shadow-xl w-11/12 max-w-md p-6 relative transform transition-all duration-200">
@@ -243,9 +203,17 @@
         </div>
     </div>
 
-    {{-- Script para abrir/cerrar modales --}}
+    {{-- Scripts para modales y buscador --}}
     <script>
-        // Abrir modal principal
+        const searchInput = document.getElementById('search');
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            document.querySelectorAll('.character-list-card').forEach(card => {
+                const name = card.getAttribute('data-name');
+                card.style.display = name.includes(query) ? '' : 'none';
+            });
+        });
+
         document.querySelectorAll('[data-modal-target]').forEach(card => {
             card.addEventListener('click', () => {
                 const modalId = card.getAttribute('data-modal-target');
@@ -255,7 +223,6 @@
             });
         });
 
-        // Cerrar modal principal
         document.querySelectorAll('.close-modal').forEach(btn => {
             btn.addEventListener('click', () => {
                 const modal = btn.closest('.fixed');
@@ -264,7 +231,6 @@
             });
         });
 
-        // Cerrar al hacer clic fuera
         document.querySelectorAll('.fixed').forEach(modal => {
             modal.addEventListener('click', e => {
                 if (e.target === modal) {
@@ -274,12 +240,10 @@
             });
         });
 
-        // Abrir modal de nota
         document.querySelectorAll('.open-note-modal').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 e.preventDefault();
-
                 const note = btn.getAttribute('data-note');
                 const modal = document.getElementById('noteModal');
                 document.getElementById('noteContent').innerText = note;
@@ -288,7 +252,6 @@
             });
         });
 
-        // Cerrar modal de nota
         document.querySelectorAll('.close-note-modal').forEach(btn => {
             btn.addEventListener('click', () => {
                 const modal = btn.closest('.fixed');
@@ -297,7 +260,6 @@
             });
         });
 
-        // Cerrar modal de nota al hacer click fuera
         document.getElementById('noteModal').addEventListener('click', e => {
             if (e.target.id === 'noteModal') {
                 const modal = e.target;

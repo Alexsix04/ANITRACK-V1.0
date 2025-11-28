@@ -112,7 +112,12 @@
             <div class="grid grid-cols-4 gap-4 max-h-80 overflow-y-auto">
                 @foreach (File::files(public_path('images/avatars')) as $avatar)
                     @php
-                        $avatarUrl = asset('images/avatars/' . $avatar->getFilename());
+                        $filename = $avatar->getFilename();
+                        // Excluir default-avatar.png
+                        if ($filename === 'default-avatar.png') {
+                            continue;
+                        }
+                        $avatarUrl = asset('images/avatars/' . $filename);
                     @endphp
                     <img src="{{ $avatarUrl }}" alt="Avatar"
                         class="w-20 h-20 rounded-full cursor-pointer border-2 border-transparent hover:border-indigo-500"
@@ -125,7 +130,6 @@
             </div>
         </div>
     </div>
-
 
     <div class="flex flex-col lg:flex-row max-w-6xl mx-auto px-6 py-12 gap-8">
 

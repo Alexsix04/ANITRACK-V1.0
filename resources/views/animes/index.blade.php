@@ -276,23 +276,29 @@
                 </div>
 
                 <!-- ===================================================== -->
-                <!-- SCRIPT DE MODALES DINÁMICOS -->
+                <!-- TOAST MODERN MESSAGE -->
+                <!-- ===================================================== -->
+                <div id="toastMessage"
+                    class="fixed bottom-6 right-6 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg opacity-0 pointer-events-none transition-all duration-300 z-[200]">
+                    Acción realizada con éxito
+                </div>
+
+                <!-- ===================================================== -->
+                <!-- SCRIPT DE MODALES DINÁMICOS CON TOASTS -->
                 <!-- ===================================================== -->
                 <script>
                     document.addEventListener('DOMContentLoaded', () => {
                         const isLoggedIn = @json(auth()->check());
 
-                        // Modales
                         const addModal = document.getElementById('addToListModal');
                         const createModal = document.getElementById('createListModal');
+                        const toast = document.getElementById('toastMessage');
 
-                        // Botones cerrar/cancelar
                         const closeAddBtn = document.getElementById('closeAddToListModal');
                         const cancelAddBtn = document.getElementById('cancelAddToList');
                         const closeCreateBtn = document.getElementById('closeCreateListModal');
                         const cancelCreateBtn = document.getElementById('cancelCreateList');
 
-                        // Inputs y selects
                         const listSelect = document.getElementById('list_name');
                         const statusSelect = document.getElementById('status');
                         const episodeInput = document.getElementById('episode_progress');
@@ -307,7 +313,15 @@
 
                         let currentMaxEpisodes = 0;
 
-                        // Función para actualizar lista y episodios según estado
+                        function showToast(message, color = 'green') {
+                            toast.textContent = message;
+                            toast.style.backgroundColor = color;
+                            toast.classList.remove('opacity-0', 'pointer-events-none');
+                            setTimeout(() => {
+                                toast.classList.add('opacity-0', 'pointer-events-none');
+                            }, 2500);
+                        }
+
                         function updateListAndEpisodesByStatus() {
                             if (statusSelect.value === 'completed') {
                                 Array.from(listSelect.options).forEach(opt => opt.disabled = opt.value !== 'Vistos');
@@ -321,7 +335,6 @@
                             }
                         }
 
-                        // Abrir modal principal al hacer click en botón del grid
                         document.getElementById('anime-grid').addEventListener('click', (e) => {
                             const btn = e.target.closest('button[data-anime-id]');
                             if (!btn) return;
@@ -359,13 +372,11 @@
 
                         statusSelect.addEventListener('change', updateListAndEpisodesByStatus);
 
-                        // Cerrar modal principal
                         [closeAddBtn, cancelAddBtn].forEach(btn => btn.addEventListener('click', () => {
                             addModal.classList.add('opacity-0', 'scale-95');
                             setTimeout(() => addModal.classList.add('hidden'), 200);
                         }));
 
-                        // Abrir sub-modal
                         listSelect.addEventListener('change', e => {
                             if (e.target.value === '__new__') {
                                 createModal.classList.remove('hidden', 'opacity-0', 'scale-95');
@@ -374,7 +385,6 @@
                             }
                         });
 
-                        // Cerrar sub-modal
                         [closeCreateBtn, cancelCreateBtn].forEach(btn => btn.addEventListener('click', () => {
                             createModal.classList.add('opacity-0', 'scale-95');
                             setTimeout(() => createModal.classList.add('hidden'), 200);
@@ -382,7 +392,7 @@
                             listSelect.value = '';
                         }));
 
-                        // Crear nueva lista vía AJAX
+                        // AJAX Crear nueva lista
                         const createForm = document.getElementById('createListForm');
                         createForm.addEventListener('submit', async (e) => {
                             e.preventDefault();
@@ -405,10 +415,54 @@
                                 createModal.classList.add('opacity-0', 'scale-95');
                                 setTimeout(() => createModal.classList.add('hidden'), 200);
                                 addModal.classList.remove('pointer-events-none');
+
+                                showToast('Lista creada con éxito 🎉');
                             } else {
-                                alert(result.message || 'Error al crear la lista.');
+                                showToast(result.message || 'Error al crear la lista.', 'red');
                             }
                         });
+
+                        // AJAX Añadir anime a lista
+                        const addForm = document.getElementById('addToListForm');
+                        addForm.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            const formData = new FormData(addForm);
+
+                            try {
+                                const response = await fetch(addForm.action, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    body: formData
+                                });
+
+                                const text = await response.text(); // primero texto
+                                let result;
+                                try {
+                                    result = JSON.parse(text); // intentamos parsear
+                                } catch {
+                                    // Si no es JSON, asumimos que se guardó correctamente
+                                    showToast('Anime añadido a tu lista ✅');
+                                    addModal.classList.add('opacity-0', 'scale-95');
+                                    setTimeout(() => addModal.classList.add('hidden'), 200);
+                                    return;
+                                }
+
+                                if (result.success) {
+                                    showToast('Anime añadido a tu lista ✅');
+                                    addModal.classList.add('opacity-0', 'scale-95');
+                                    setTimeout(() => addModal.classList.add('hidden'), 200);
+                                } else {
+                                    showToast(result.message || 'Error al añadir anime.', 'red');
+                                }
+
+                            } catch (err) {
+                                showToast('Error en la petición. Intenta de nuevo.', 'red');
+                                console.error(err);
+                            }
+                        });
+
                     });
                 </script>
 
