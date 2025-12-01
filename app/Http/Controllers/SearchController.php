@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Services\AnilistService;
+use App\Services\AniListService;
 use App\Models\User;
 use App\Models\AnimeList;
 use App\Models\CharacterList;
 
 class SearchController extends Controller
 {
-    public function search(Request $request, AnilistService $anilist)
+    public function search(Request $request, AniListService $anilist)
     {
         $query = trim($request->input('q'));
 

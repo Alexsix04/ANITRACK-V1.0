@@ -16,6 +16,7 @@ use App\Http\Controllers\CharacterListController;
 use App\Http\Controllers\AnimeRandomizerController;
 use App\Http\Controllers\ListsController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\AnimeThemesController;
 use Illuminate\Support\Facades\Route;
 
 

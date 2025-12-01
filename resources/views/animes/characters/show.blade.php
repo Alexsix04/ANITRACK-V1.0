@@ -51,14 +51,14 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
                                         viewBox="0 0 24 24">
                                         <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888
-                                                     1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
-                                                     -6.064-5.888 8.332-1.151z" />
+                                                             1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
+                                                             -6.064-5.888 8.332-1.151z" />
                                     </svg>
                                 @else
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
                                         stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2
-                                                     9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                                             9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                                     </svg>
                                 @endif
                             </button>
@@ -69,8 +69,8 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor"
                                     viewBox="0 0 24 24">
                                     <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.888
-                                                 1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
-                                                 -6.064-5.888 8.332-1.151z" />
+                                                         1.444 8.278L12 18.896l-7.38 3.976 1.444-8.278
+                                                         -6.064-5.888 8.332-1.151z" />
                                 </svg>
                             </a>
                         @endauth
@@ -82,22 +82,26 @@
 
                         {{-- MODAL PRINCIPAL --}}
                         <div id="addCharacterModal"
-                            class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 transition-all opacity-0 scale-95">
+                            class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 transition-all opacity-0 scale-95 p-4">
                             <div
-                                class="bg-gray-900 text-white p-8 rounded-2xl shadow-2xl w-full max-w-3xl relative flex flex-col md:flex-row gap-6">
-                                <button id="closeAddCharacterModal"
-                                    class="absolute top-4 right-4 text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+                                class="bg-gray-900 text-white p-6 md:p-8 rounded-2xl shadow-2xl w-full max-w-3xl relative flex flex-col md:flex-row gap-6 overflow-y-auto max-h-[90vh]">
 
+                                <button id="closeAddCharacterModal"
+                                    class="absolute top-3 right-3 text-gray-400 hover:text-white text-3xl font-bold">&times;</button>
+
+                                {{-- IZQUIERDA --}}
                                 <div
                                     class="flex flex-col items-center justify-start w-full md:w-2/5 border-b md:border-b-0 md:border-r border-gray-700 pb-6 md:pb-0 md:pr-6">
                                     <img id="modalCharacterImage" src="" alt=""
-                                        class="w-48 h-64 object-cover rounded-xl shadow-lg mb-4">
-                                    <h3 id="modalCharacterName" class="text-xl font-semibold text-center leading-tight">
-                                    </h3>
+                                        class="w-40 h-56 sm:w-48 sm:h-64 object-cover rounded-xl shadow-lg mb-4">
+                                    <h3 id="modalCharacterName"
+                                        class="text-lg sm:text-xl font-semibold text-center leading-tight"></h3>
                                 </div>
 
+                                {{-- DERECHA --}}
                                 <div class="flex-1">
-                                    <h2 class="text-2xl font-semibold mb-6">Añadir a mi lista</h2>
+                                    <h2 class="text-xl sm:text-2xl font-semibold mb-6">Añadir a mi lista</h2>
+
                                     <form id="addCharacterForm" method="POST"
                                         action="{{ route('character.addToList') }}">
                                         @csrf
@@ -111,8 +115,7 @@
                                         <label for="list_name" class="block mb-2 text-sm text-gray-300">Selecciona una
                                             lista</label>
                                         <select id="list_name" name="list_name"
-                                            class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-blue-500 text-base"
-                                            onchange="handleListChange(this.value)">
+                                            class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 text-base focus:ring-2 focus:ring-blue-500">
                                             @if ((auth()->user()->characterLists ?? [])->isEmpty())
                                                 <option value="" selected disabled>Selecciona una opción</option>
                                             @endif
@@ -135,11 +138,11 @@
                                         <textarea id="notes" name="notes" rows="2"
                                             class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 mb-4 text-base" placeholder="Anota algo aquí..."></textarea>
 
-                                        <div class="flex justify-end space-x-3 mt-6">
+                                        <div class="flex flex-col sm:flex-row justify-end sm:space-x-3 gap-3 mt-6">
                                             <button type="button" id="cancelAddCharacter"
-                                                class="px-5 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-base">Cancelar</button>
+                                                class="px-5 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-base w-full sm:w-auto">Cancelar</button>
                                             <button type="submit"
-                                                class="px-5 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-base font-semibold">Guardar</button>
+                                                class="px-5 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-base font-semibold w-full sm:w-auto">Guardar</button>
                                         </div>
                                     </form>
                                 </div>
@@ -390,13 +393,13 @@
             @endif
         </div>
     </div>
-    <div class="w-full bg-gray-900 bg-opacity-90 py-10">
+    <div class="w-full bg-gray-900/90 py-10">
 
         <!-- ================= -->
         <!-- Sección Comentarios -->
         <!-- ================= -->
         <div class="max-w-2xl mx-auto mt-10">
-            <h2 class="text-2xl font-semibold text-white-800 mb-4">Comentarios</h2>
+            <h2 class="text-2xl font-semibold text-white mb-4">Comentarios</h2>
 
             <!-- Mensaje de éxito -->
             @if (session('success'))

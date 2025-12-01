@@ -62,7 +62,7 @@ class AnimeListController extends Controller
         }
 
         // Obtener datos desde la API para crear o actualizar
-        $animeData = app(\App\Services\AnilistService::class)->getAnimeById($anilistId);
+        $animeData = app(AniListService::class)->getAnimeById($anilistId);
 
         // Crear o actualizar el anime localmente
         $anime = \App\Models\Anime::updateOrCreate(
