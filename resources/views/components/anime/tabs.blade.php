@@ -6,6 +6,7 @@
         'Personajes' => route('animes.characters.index', ['anime' => $animeId]),
         'Staff' => route('animes.staff.index', ['anime' => $animeId]),
         'Episodios' => route('animes.episodes.index', ['anime' => $animeId]),
+        'Temas' => route('animes.themes.index', ['anime' => $animeId]),
     ];
 
     $currentUrl = url()->current();

@@ -57,6 +57,7 @@ Route::prefix('animes/{anime}')->name('animes.')->group(function () {
     Route::get('staff', [StaffController::class, 'index'])->name('staff.index');
     Route::get('staff/{staff}', [StaffController::class, 'show'])->name('staff.show');
     Route::get('episodios', [EpisodesController::class, 'index'])->name('episodes.index');
+    Route::get('temas', [AnimeThemesController::class, 'index'])->name('themes.index');
 });
 
 //Actores de voz
